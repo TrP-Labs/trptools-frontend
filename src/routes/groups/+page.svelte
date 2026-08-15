@@ -1,0 +1,109 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { IconSearch, IconUsersGroup } from '@tabler/icons-svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Avatar from '$lib/components/users/Avatar.svelte';
+	import { formatNumber } from '$lib/utils/format';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	// Seeded from the URL so the server renders the current term, then owned by
+	// the input. The effect re-syncs it when navigation changes the URL.
+	// svelte-ignore state_referenced_locally
+	let query = $state(data.search);
+
+	$effect(() => {
+		query = data.search;
+	});
+
+	function submit(event: SubmitEvent) {
+		event.preventDefault();
+		const trimmed = query.trim();
+		goto(trimmed ? `/groups?search=${encodeURIComponent(trimmed)}` : '/groups', {
+			keepFocus: true
+		});
+	}
+</script>
+
+<svelte:head>
+	<title>Groups — TrP Tools</title>
+	<meta name="description" content="Browse transit groups running on TrP Tools." />
+</svelte:head>
+
+<div class="mx-auto max-w-7xl px-4 py-10">
+	<PageHeader
+		title="Groups"
+		description="Transit operators that have published a page on TrP Tools."
+	/>
+
+	<form onsubmit={submit} class="mb-6 flex max-w-md gap-2">
+		<div class="relative flex-1">
+			<IconSearch
+				size={16}
+				class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-subtle"
+			/>
+			<input
+				bind:value={query}
+				type="search"
+				placeholder="Search groups"
+				aria-label="Search groups"
+				class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-9 text-sm
+					text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
+			/>
+		</div>
+	</form>
+
+	{#if data.failed}
+		<EmptyState
+			title="Could not reach the API"
+			description="The group directory is temporarily unavailable. Try again in a moment."
+		/>
+	{:else if data.groups.length === 0}
+		<EmptyState
+			title={data.search ? `No groups match “${data.search}”` : 'No public groups yet'}
+			description={data.search
+				? 'Try a different search term.'
+				: 'Groups appear here once they set their visibility to public.'}
+		>
+			{#snippet icon()}<IconUsersGroup size={28} stroke={1.5} />{/snippet}
+		</EmptyState>
+	{:else}
+		<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{#each data.groups as group (group.slug)}
+				<li>
+					<a
+						href="/g/{group.slug}"
+						class="card group flex h-full flex-col p-5 transition-colors hover:border-border-strong"
+					>
+						<div class="flex items-center gap-3">
+							<Avatar src={group.icon} name={group.name} size={44} />
+							<div class="min-w-0">
+								<h2 class="truncate font-semibold text-text">{group.name}</h2>
+								<p class="text-xs text-text-muted">
+									{formatNumber(group.members)} members
+								</p>
+							</div>
+						</div>
+
+						{#if group.tagline}
+							<p class="mt-3 line-clamp-2 text-sm text-text-muted">{group.tagline}</p>
+						{/if}
+
+						<div class="mt-auto flex items-center gap-2 pt-4">
+							<span
+								class="inline-block size-2 rounded-full"
+								style="background: {group.accentColor}"
+							></span>
+							<span class="text-xs text-text-subtle">
+								{group.routeCount}
+								{group.routeCount === 1 ? 'route' : 'routes'}
+							</span>
+						</div>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</div>

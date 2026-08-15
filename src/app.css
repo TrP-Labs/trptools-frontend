@@ -1,0 +1,304 @@
+@import 'tailwindcss';
+
+/*
+ * Theme tokens.
+ *
+ * Three themes carried over from the design prototype. Every surface in the
+ * app is painted from these variables so a theme switch is a single class
+ * change on <html> with no per-component work.
+ */
+
+@layer base {
+	:root,
+	.dim {
+		--background: #1d1d1d;
+		--background-muted: #3a3a3a;
+		--background-secondary: #313131;
+		--background-secondary-muted: #4d4d4d;
+
+		--surface: #272727;
+		--header: #232323;
+		--border: #3f3f3f;
+		--border-strong: #565656;
+
+		--text: #ededed;
+		--text-muted: #a0a0a0;
+		--text-subtle: #7a7a7a;
+
+		--accent: #5b9dff;
+		--accent-hover: #7db0ff;
+		--accent-contrast: #08111f;
+
+		--success: #3fb950;
+		--warning: #d29922;
+		--danger: #f05d5d;
+
+		--shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.22);
+	}
+
+	.midnight {
+		--background: #0a0a0a;
+		--background-muted: #191919;
+		--background-secondary: #121212;
+		--background-secondary-muted: #1f1f1f;
+
+		--surface: #101010;
+		--header: #0d0d0d;
+		--border: #242424;
+		--border-strong: #383838;
+
+		--text: #e6e6e6;
+		--text-muted: #909090;
+		--text-subtle: #6a6a6a;
+
+		--accent: #5b9dff;
+		--accent-hover: #7db0ff;
+		--accent-contrast: #050b14;
+
+		--success: #3fb950;
+		--warning: #d29922;
+		--danger: #f05d5d;
+
+		--shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.4);
+	}
+
+	.light {
+		--background: #f2f3f5;
+		--background-muted: #e2e4e8;
+		--background-secondary: #ffffff;
+		--background-secondary-muted: #eceef1;
+
+		--surface: #ffffff;
+		--header: #ffffff;
+		--border: #dcdfe4;
+		--border-strong: #c2c7ce;
+
+		--text: #1f2328;
+		--text-muted: #5c6570;
+		--text-subtle: #838c96;
+
+		--accent: #2563eb;
+		--accent-hover: #1d4ed8;
+		--accent-contrast: #ffffff;
+
+		--success: #1a7f37;
+		--warning: #9a6700;
+		--danger: #cf222e;
+
+		--shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 8px 24px rgb(16 24 40 / 0.08);
+	}
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-background-muted: var(--background-muted);
+	--color-background-secondary: var(--background-secondary);
+	--color-background-secondary-muted: var(--background-secondary-muted);
+
+	--color-surface: var(--surface);
+	--color-header: var(--header);
+	--color-border-base: var(--border);
+	--color-border-strong: var(--border-strong);
+
+	--color-text: var(--text);
+	--color-text-muted: var(--text-muted);
+	--color-text-subtle: var(--text-subtle);
+
+	--color-accent: var(--accent);
+	--color-accent-hover: var(--accent-hover);
+	--color-accent-contrast: var(--accent-contrast);
+
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-danger: var(--danger);
+
+	--font-sans:
+		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@layer base {
+	* {
+		border-color: var(--border);
+	}
+
+	html {
+		background: var(--background);
+		color-scheme: dark;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	html.light {
+		color-scheme: light;
+	}
+
+	body {
+		background: var(--background);
+		color: var(--text);
+		font-family: var(--font-sans);
+		/* Stops iOS from inflating text in landscape. */
+		-webkit-text-size-adjust: 100%;
+	}
+
+	/* A single visible focus treatment for every interactive element. */
+	:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	::selection {
+		background: color-mix(in srgb, var(--accent) 35%, transparent);
+	}
+
+	/* Scrollbars that belong to the theme rather than the OS. */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border-strong) transparent;
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: var(--border-strong);
+		border-radius: 8px;
+		border: 2px solid transparent;
+		background-clip: content-box;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}
+
+@utility card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+	box-shadow: var(--shadow);
+}
+
+/*
+ * Prose compiled from markdown, used by the terms and privacy pages.
+ *
+ * These are element rules rather than utility classes because the markup is
+ * produced at build time from TERMS.md / PRIVACY.md — there is nowhere to hang
+ * a class. Preflight strips list and heading styling, so both come back here.
+ */
+@utility markdown {
+	color: var(--text-muted);
+	font-size: 0.875rem;
+	line-height: 1.65;
+
+	& > * + * {
+		margin-top: 0.85rem;
+	}
+
+	& h3,
+	& h4,
+	& h5,
+	& h6 {
+		margin-top: 1.5rem;
+		color: var(--text);
+		font-size: 0.9375rem;
+		font-weight: 600;
+	}
+
+	& a {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	& strong {
+		color: var(--text);
+		font-weight: 600;
+	}
+
+	& ul,
+	& ol {
+		padding-left: 1.25rem;
+	}
+
+	& ul {
+		list-style: disc;
+	}
+
+	& ol {
+		list-style: decimal;
+	}
+
+	& li + li {
+		margin-top: 0.35rem;
+	}
+
+	& li > ul,
+	& li > ol {
+		margin-top: 0.35rem;
+	}
+
+	& blockquote {
+		border-left: 2px solid var(--border-strong);
+		padding-left: 0.75rem;
+		color: var(--text-subtle);
+	}
+
+	& code {
+		background: var(--background-muted);
+		border-radius: 0.25rem;
+		padding: 0.1rem 0.3rem;
+		font-family: var(--font-mono);
+		font-size: 0.85em;
+	}
+
+	& pre {
+		background: var(--background-secondary);
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 0.75rem;
+		overflow-x: auto;
+	}
+
+	& pre code {
+		background: none;
+		padding: 0;
+	}
+
+	& hr {
+		border-top: 1px solid var(--border);
+	}
+
+	/* Tables are the one thing here wide enough to push the page sideways. */
+	& table {
+		display: block;
+		width: 100%;
+		overflow-x: auto;
+		border-collapse: collapse;
+	}
+
+	& th,
+	& td {
+		border: 1px solid var(--border);
+		padding: 0.4rem 0.6rem;
+		text-align: left;
+	}
+
+	& th {
+		color: var(--text);
+		font-weight: 600;
+	}
+}

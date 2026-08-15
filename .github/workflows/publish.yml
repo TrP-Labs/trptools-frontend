@@ -1,0 +1,78 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # trptools-backend is checked out as a sibling directory because the
+      # frontend's devDependency on it (file:../trptools-backend) is how
+      # Eden Treaty gets the backend's route types for compile-time checking
+      # — the same layout local development uses.
+      - uses: actions/checkout@v4
+        with:
+          path: trptools-frontend
+      - uses: actions/checkout@v4
+        with:
+          repository: TrP-Labs/trptools-backend
+          path: trptools-backend
+
+      - uses: oven-sh/setup-bun@v2
+
+      - working-directory: trptools-backend
+        run: bun install --frozen-lockfile
+
+      - working-directory: trptools-frontend
+        run: bun install --frozen-lockfile
+
+      - working-directory: trptools-frontend
+        run: bun run check
+
+  publish:
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/trp-labs/trptools-frontend
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
