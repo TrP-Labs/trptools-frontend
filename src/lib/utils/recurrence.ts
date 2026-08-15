@@ -8,7 +8,7 @@ import { Frequency, RRule, rrulestr, Weekday } from 'rrule';
  * still round-tripping any rule the backend accepts.
  */
 
-export type Repeat = 'DAILY' | 'WEEKLY' | 'WEEKDAYS' | 'WEEKENDS' | 'MONTHLY';
+export type Repeat = 'DAILY' | 'WEEKLY' | 'FORTNIGHTLY' | 'WEEKDAYS' | 'WEEKENDS' | 'MONTHLY';
 
 export const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -16,8 +16,13 @@ const WEEKDAYS = [RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA, RR
 
 export interface RecurrenceDraft {
 	repeat: Repeat;
-	/** Indices into WEEKDAY_LABELS, used when repeat is WEEKLY. */
+	/** Indices into WEEKDAY_LABELS, used when repeat is WEEKLY or FORTNIGHTLY. */
 	days: number[];
+}
+
+/** The repeats that let the member pick which days of the week they land on. */
+export function picksDays(repeat: Repeat): boolean {
+	return repeat === 'WEEKLY' || repeat === 'FORTNIGHTLY';
 }
 
 export function buildRule(draft: RecurrenceDraft, start: Date): string {
@@ -44,6 +49,7 @@ export function buildRule(draft: RecurrenceDraft, start: Date): string {
 		case 'MONTHLY':
 			return new RRule({ ...base, freq: Frequency.MONTHLY }).toString();
 
+		case 'FORTNIGHTLY':
 		case 'WEEKLY':
 		default: {
 			const selected: Weekday[] = draft.days
@@ -53,6 +59,12 @@ export function buildRule(draft: RecurrenceDraft, start: Date): string {
 			return new RRule({
 				...base,
 				freq: Frequency.WEEKLY,
+				// A fortnight is a weekly rule that skips every other week. The
+				// interval counts from DTSTART, so the first occurrence is the
+				// start date and every second week after it. Left off entirely
+				// for a plain weekly rule so existing rules keep their exact
+				// stored text.
+				...(draft.repeat === 'FORTNIGHTLY' ? { interval: 2 } : {}),
 				byweekday: selected.length > 0 ? selected : [WEEKDAYS[start.getDay() === 0 ? 6 : start.getDay() - 1]!]
 			}).toString();
 		}
@@ -69,6 +81,11 @@ export function parseRule(rule: string): RecurrenceDraft {
 		if (options.freq === Frequency.MONTHLY) return { repeat: 'MONTHLY', days: [] };
 
 		const days = (options.byweekday ?? []) as number[];
+
+		// The interval has to be read back, not just written. Without this a
+		// fortnightly shift would open in the editor as a weekly one and be
+		// saved back at half its intended spacing.
+		if ((options.interval ?? 1) > 1) return { repeat: 'FORTNIGHTLY', days: [...days] };
 
 		const isWeekdays = days.length === 5 && [0, 1, 2, 3, 4].every((day) => days.includes(day));
 		if (isWeekdays) return { repeat: 'WEEKDAYS', days: [] };
