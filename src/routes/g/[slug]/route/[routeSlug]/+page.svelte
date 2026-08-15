@@ -8,6 +8,7 @@
 	import ImageGallery from '$lib/components/media/ImageGallery.svelte';
 	import ReportButton from '$lib/components/moderation/ReportButton.svelte';
 	import { withAlpha } from '$lib/utils/color';
+	import { formatShare } from '$lib/utils/format';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -45,7 +46,7 @@
 			<div class="min-w-0 flex-1">
 				<h1 class="text-3xl font-semibold tracking-tight text-balance">Route {route.name}</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
-					<Badge tone="accent">{route.targetShare}% target share</Badge>
+					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
 					{#if !route.autoAssign}<Badge tone="warning">Assigned by hand</Badge>{/if}
 					<ReportButton targetType="ROUTE" targetId={route.id} label="route {route.name}" />
 				</div>

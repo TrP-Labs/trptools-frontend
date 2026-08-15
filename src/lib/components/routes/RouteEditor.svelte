@@ -10,6 +10,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ImageManager from '$lib/components/media/ImageManager.svelte';
 	import IconUploader from '$lib/components/media/IconUploader.svelte';
+	import { formatShare } from '$lib/utils/format';
 	import type { Depot, MediaItem, RouteShape } from '$lib/api/types';
 
 	export interface RouteDraft {
@@ -69,6 +70,24 @@
 		{ value: 'PUBLIC' as const, label: 'Public' },
 		{ value: 'PRIVATE' as const, label: 'Members only' }
 	];
+
+	/**
+	 * The share settles when the box is left, not on every keystroke — typing
+	 * "33.33" passes through "33." on the way, and rewriting the field mid-entry
+	 * would eat the point. The value is always written back afterwards so a
+	 * cleared or out-of-range box cannot sit there showing something the draft
+	 * does not hold.
+	 */
+	function commitShare(event: Event & { currentTarget: HTMLInputElement }) {
+		const typed = event.currentTarget.value.trim();
+		const parsed = Number(typed);
+
+		if (typed !== '' && Number.isFinite(parsed)) {
+			draft.targetShare = Math.round(Math.min(100, Math.max(0, parsed)) * 100) / 100;
+		}
+
+		event.currentTarget.value = formatShare(draft.targetShare);
+	}
 
 	function toggleDepot(id: string) {
 		draft.depots = draft.depots.includes(id)
@@ -161,14 +180,32 @@
 					type="range"
 					min="0"
 					max="100"
-					step="5"
+					step="1"
 					bind:value={draft.targetShare}
 					aria-label="Target share"
 					class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-background-muted accent-accent"
 				/>
-				<span class="w-14 text-right font-mono text-sm text-text tabular-nums">
-					{draft.targetShare}%
-				</span>
+
+				<div
+					class="flex shrink-0 items-center rounded-lg border border-border-base bg-background-secondary
+						focus-within:border-accent"
+				>
+					<input
+						type="number"
+						min="0"
+						max="100"
+						step="0.01"
+						value={formatShare(draft.targetShare)}
+						onchange={commitShare}
+						onblur={commitShare}
+						aria-label="Target share, percent"
+						class="w-20 bg-transparent py-2 pl-3 text-right font-mono text-sm text-text
+							tabular-nums focus:outline-none
+							[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
+							[&::-webkit-outer-spin-button]:appearance-none"
+					/>
+					<span class="pr-3 pl-1 font-mono text-sm text-text-muted select-none">%</span>
+				</div>
 			</div>
 		</Field>
 
