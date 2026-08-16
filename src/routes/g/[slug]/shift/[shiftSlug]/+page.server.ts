@@ -3,8 +3,10 @@ import { serverApi } from '$lib/api/server';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	const { data, error: apiError } = await serverApi(event)
-		.public.groups({ slug: event.params.slug })
+	const client = serverApi(event);
+
+	const { data, error: apiError } = await client.public
+		.groups({ slug: event.params.slug })
 		.shifts({ shiftSlug: event.params.shiftSlug })
 		.get();
 
@@ -13,7 +15,30 @@ export const load: PageServerLoad = async (event) => {
 		error(502, 'Could not reach the API');
 	}
 
-	event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
+	// Sign-up sheets are rank-gated and personal, so they come from the
+	// session-aware endpoint rather than the public page payload — which is why
+	// the caching header below only goes on when nobody is signed in.
+	const occurrences = event.locals.user
+		? ((
+				await client.schedule.occurrences.get({
+					query: { groupId: data.group.id, eventId: data.shift.eventId, limit: '20' }
+				})
+			).data ?? [])
+		: [];
 
-	return data;
+	if (!event.locals.user) {
+		event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
+	}
+
+	return {
+		...data,
+		occurrences: data.occurrences,
+		signupOccurrences: occurrences,
+		/**
+		 * Whether this viewer's rank reaches any sheet on this shift at all.
+		 * Without it the page cannot tell "your sign-ups open later" apart from
+		 * "sign-ups are not for you", and would advertise a form to everybody.
+		 */
+		hasAnySheet: occurrences.some((occurrence) => occurrence.sheetsAvailable)
+	};
 };

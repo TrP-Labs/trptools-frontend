@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		IconBrandDiscord,
 		IconBuildingWarehouse,
 		IconCalendarTime,
 		IconExternalLink,
@@ -29,6 +30,7 @@
 		{ href: `${base}/routes`, label: 'Routes', icon: IconRoute, level: 3 },
 		{ href: `${base}/depots`, label: 'Depots', icon: IconBuildingWarehouse, level: 3 },
 		{ href: `${base}/ranks`, label: 'Ranks', icon: IconUsers, level: 3 },
+		{ href: `${base}/bot`, label: 'Bot', icon: IconBrandDiscord, level: 3 },
 		{ href: `${base}/settings`, label: 'Settings', icon: IconSettings, level: 3 }
 	]);
 </script>

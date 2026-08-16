@@ -37,7 +37,8 @@
 			showRoutes: group.showRoutes,
 			showShifts: group.showShifts,
 			showRoster: group.showRoster,
-			roomOpenLeadMinutes: group.roomOpenLeadMinutes
+			roomOpenLeadMinutes: group.roomOpenLeadMinutes,
+			signupLeadMinutes: group.signupLeadMinutes
 		};
 	}
 
@@ -57,7 +58,8 @@
 		try {
 			const { error } = await api.groups({ groupId: group.id }).patch({
 				...form,
-				roomOpenLeadMinutes: Number(form.roomOpenLeadMinutes) || 0
+				roomOpenLeadMinutes: Number(form.roomOpenLeadMinutes) || 0,
+				signupLeadMinutes: Number(form.signupLeadMinutes) || 0
 			});
 			if (error) throw error;
 
@@ -146,7 +148,7 @@
 		{/snippet}
 	</Card>
 
-	<Card title="Dispatch" description="How dispatch rooms behave for this group.">
+	<Card title="Shifts" description="How dispatch rooms and staff sign-ups behave for this group.">
 		<Field
 			label="Open rooms this many minutes early"
 			hint="The dispatch page counts down to the next shift and unlocks its Open room button once the countdown falls inside this window. Set 0 to allow opening only once the shift has started."
@@ -157,6 +159,23 @@
 					min="0"
 					max="120"
 					bind:value={form.roomOpenLeadMinutes}
+					class="max-w-32"
+				/>
+				<span class="text-sm text-text-muted">minutes</span>
+			</div>
+		</Field>
+
+		<Field
+			label="Open sign-ups this many minutes early"
+			hint="Staff sign-up sheets appear on a shift's page this far ahead and close when the shift ends. Without a limit every occurrence for months out carries an empty form, and people commit to shifts nobody has planned yet. 1440 is a day, 10080 a week."
+		>
+			<div class="flex items-center gap-3">
+				<Input
+					type="number"
+					min="0"
+					max="43200"
+					step="60"
+					bind:value={form.signupLeadMinutes}
 					class="max-w-32"
 				/>
 				<span class="text-sm text-text-muted">minutes</span>

@@ -7,11 +7,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Avatar from '$lib/components/users/Avatar.svelte';
-	import ShiftEditor, {
-		type ShiftDraft,
-		type SlotDraft
-	} from '$lib/components/shifts/ShiftEditor.svelte';
+	import ShiftEditor, { type ShiftDraft } from '$lib/components/shifts/ShiftEditor.svelte';
+	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatDateTime, formatDuration, formatRelative } from '$lib/utils/format';
@@ -38,8 +35,7 @@
 			repeat: 'WEEKLY',
 			days: [],
 			visibility: 'PUBLIC',
-			hostLevel: 2,
-			slots: [{ name: 'Driver', description: '', capacity: 10 }]
+			hostLevel: 2
 		};
 	}
 
@@ -55,12 +51,7 @@
 			repeat: recurrence.repeat,
 			days: recurrence.days,
 			visibility: shift.visibility,
-			hostLevel: shift.hostLevel,
-			slots: shift.slots.map((slot) => ({
-				name: slot.name,
-				description: slot.description,
-				capacity: slot.capacity
-			}))
+			hostLevel: shift.hostLevel
 		};
 	}
 
@@ -71,8 +62,6 @@
 	let editing = $state<ShiftEvent | null>(null);
 	let editDraft = $state<ShiftDraft>(emptyDraft());
 	let savingEdit = $state(false);
-
-	let signingUp = $state<string | null>(null);
 
 	function payload(draft: ShiftDraft) {
 		const start = fromLocalInput(draft.startLocal);
@@ -85,15 +74,7 @@
 			rrule: buildRule({ repeat: draft.repeat, days: draft.days }, start),
 			duration: draft.duration,
 			visibility: draft.visibility,
-			hostLevel: draft.hostLevel,
-			slots: draft.slots
-				.filter((slot: SlotDraft) => slot.name.trim())
-				.map((slot, index) => ({
-					name: slot.name.trim(),
-					description: slot.description,
-					capacity: slot.capacity,
-					order: index
-				}))
+			hostLevel: draft.hostLevel
 		};
 	}
 
@@ -154,32 +135,6 @@
 		}
 	}
 
-	/**
-	 * `occurrence` must round-trip to the exact instant the schedule produced.
-	 * It arrives as a Date, and stringifying a Date with `String()` would drop
-	 * milliseconds — enough to make the signup miss its occurrence entirely.
-	 */
-	async function toggleSignup(slotId: string, start: Date | string, taken: boolean) {
-		const occurrence = new Date(start);
-		const key = `${slotId}:${occurrence.getTime()}`;
-		signingUp = key;
-
-		try {
-			const body = { slotId, occurrence };
-			const { error } = taken
-				? await api.schedule.withdraw.post(body)
-				: await api.schedule.signup.post(body);
-			if (error) throw error;
-
-			toasts.success(taken ? 'Signed off' : 'Signed up');
-			await invalidateAll();
-		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not update your signup'));
-		} finally {
-			signingUp = null;
-		}
-	}
-
 	function openEditor(shift: ShiftEvent) {
 		editing = shift;
 		editDraft = toDraft(shift);
@@ -225,54 +180,17 @@
 								</div>
 								<p class="text-sm text-text-muted">{formatDateTime(occurrence.start)}</p>
 
-								{#if occurrence.slots.length > 0}
-									<ul class="mt-3 space-y-2">
-										{#each occurrence.slots as slot (slot.id)}
-											{@const mine = slot.signups.some((s) => s.userId === data.user?.userId)}
-											{@const full = slot.signups.length >= slot.capacity}
-											{@const key = `${slot.id}:${new Date(occurrence.start).getTime()}`}
-											<li
-												class="flex flex-wrap items-center gap-2 rounded-lg bg-background-secondary px-3 py-2"
-											>
-												<div class="min-w-0 flex-1">
-													<p class="text-sm font-medium text-text">
-														{slot.name}
-														<span class="ml-1 text-xs font-normal text-text-subtle">
-															{slot.signups.length}/{slot.capacity}
-														</span>
-													</p>
-													{#if slot.signups.length > 0}
-														<div class="mt-1.5 flex flex-wrap items-center gap-1">
-															{#each slot.signups as signup (signup.userId)}
-																<span
-																	class="flex items-center gap-1.5 rounded-full bg-background-muted py-0.5 pr-2 pl-0.5"
-																>
-																	<Avatar
-																		src={signup.avatar}
-																		name={signup.displayName ?? signup.username}
-																		size={18}
-																	/>
-																	<span class="text-xs text-text-muted">
-																		{signup.displayName ?? signup.username ?? signup.robloxId}
-																	</span>
-																</span>
-															{/each}
-														</div>
-													{/if}
-												</div>
-
-												<Button
-													size="sm"
-													variant={mine ? 'secondary' : 'primary'}
-													loading={signingUp === key}
-													disabled={!mine && full}
-													onclick={() => toggleSignup(slot.id, occurrence.start, mine)}
-												>
-													{mine ? 'Sign off' : full ? 'Full' : 'Sign up'}
-												</Button>
-											</li>
-										{/each}
-									</ul>
+								<!-- Guarded so an occurrence with no sheet for this
+									 viewer leaves no empty gap behind. -->
+								{#if occurrence.sheets.length > 0}
+									<div class="mt-3">
+										<SignupSheets
+											sheets={occurrence.sheets}
+											eventId={occurrence.eventId}
+											occurrence={occurrence.start}
+											userId={data.user?.userId}
+										/>
+									</div>
 								{/if}
 							</div>
 						</div>
@@ -304,10 +222,11 @@
 								<p class="mt-0.5 text-xs text-text-muted">
 									Repeats {shift.recurrenceText} · {formatDuration(shift.duration)}
 								</p>
-								<div class="mt-2 flex flex-wrap gap-1.5">
-									<Badge>{shift.slots.length} slots</Badge>
-									{#if shift.visibility !== 'PUBLIC'}<Badge>Members only</Badge>{/if}
-								</div>
+								{#if shift.visibility !== 'PUBLIC'}
+									<div class="mt-2 flex flex-wrap gap-1.5">
+										<Badge>Members only</Badge>
+									</div>
+								{/if}
 							</div>
 						</div>
 
@@ -329,7 +248,13 @@
 </div>
 
 <Modal bind:open={createOpen} title="New shift" size="lg">
-	<ShiftEditor bind:draft={createDraft} mode="create" busy={creating} onsave={createShift} />
+	<ShiftEditor
+		bind:draft={createDraft}
+		mode="create"
+		busy={creating}
+		ranksHref="/dashboard/{group.slug}/ranks"
+		onsave={createShift}
+	/>
 </Modal>
 
 <Modal
@@ -339,6 +264,7 @@
 	size="lg"
 >
 	<ShiftEditor
+		ranksHref="/dashboard/{group.slug}/ranks"
 		bind:draft={editDraft}
 		mode="edit"
 		busy={savingEdit}
