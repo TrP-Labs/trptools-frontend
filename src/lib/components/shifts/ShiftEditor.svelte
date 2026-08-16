@@ -11,6 +11,7 @@
 		buildRule,
 		describeRule,
 		fromLocalInput,
+		picksDays,
 		type Repeat
 	} from '$lib/utils/recurrence';
 
@@ -46,6 +47,7 @@
 
 	const repeats = [
 		{ value: 'WEEKLY' as const, label: 'Weekly on chosen days' },
+		{ value: 'FORTNIGHTLY' as const, label: 'Every two weeks on chosen days' },
 		{ value: 'DAILY' as const, label: 'Every day' },
 		{ value: 'WEEKDAYS' as const, label: 'Weekdays' },
 		{ value: 'WEEKENDS' as const, label: 'Weekends' },
@@ -114,8 +116,14 @@
 		<ColorInput bind:value={draft.color} />
 	</Field>
 
-	{#if draft.repeat === 'WEEKLY'}
-		<Field label="Days" class="sm:col-span-2">
+	{#if picksDays(draft.repeat)}
+		<Field
+			label="Days"
+			hint={draft.repeat === 'FORTNIGHTLY'
+				? 'Counted from the first occurrence, then every second week.'
+				: undefined}
+			class="sm:col-span-2"
+		>
 			<div class="flex flex-wrap gap-1.5">
 				{#each WEEKDAY_LABELS as label, index (label)}
 					{@const active = draft.days.includes(index)}

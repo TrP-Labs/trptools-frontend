@@ -75,6 +75,18 @@ export function formatNumber(value: number): string {
 	return new Intl.NumberFormat().format(value);
 }
 
+/**
+ * A route's target share, to at most two decimal places.
+ *
+ * Shares are stored as floating point so they can be set precisely, which
+ * means a stored 33.33 can read back as 33.329999999999998 and a total of
+ * three of them as 99.99999999999999. Trailing zeroes are dropped so a whole
+ * share still shows as "20" rather than "20.00".
+ */
+export function formatShare(value: number): string {
+	return String(Math.round(value * 100) / 100);
+}
+
 /** The viewer's IANA timezone, for defaulting the preference. */
 export function detectTimezone(): string {
 	try {

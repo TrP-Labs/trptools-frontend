@@ -180,9 +180,8 @@
 		<div class="space-y-4">
 			<p class="text-sm leading-relaxed text-text-muted">
 				Roblox Open Cloud will not answer group reads without credentials, and a signed-in user's
-				own token is capped at well under a hundred requests a minute. A key that belongs to the
-				group raises that ceiling considerably and keeps rank checks working even when nobody is
-				signed in.
+				own token is capped at well under a hundred requests a minute. A key raises that ceiling
+				considerably and keeps rank checks working even when nobody is signed in.
 			</p>
 
 			<ol class="list-decimal space-y-1.5 pl-5 text-sm text-text-muted">
@@ -197,12 +196,23 @@
 						Creator Dashboard credentials <IconExternalLink size={12} />
 					</a>
 				</li>
-				<li>Create an API key owned by this group, not by your account.</li>
 				<li>
-					Add the <span class="font-mono text-xs text-text">group:read</span> permission for this group.
+					Create an API key owned by <strong class="font-medium text-text">your own account</strong>.
+					Open Cloud will not accept a key owned by the group.
+				</li>
+				<li>
+					Under access permissions add the <span class="font-mono text-xs text-text">Group</span> API
+					system, choose this group, and give it
+					<span class="font-mono text-xs text-text">group:read</span>.
 				</li>
 				<li>Paste the key below. It is verified against your group, then encrypted at rest.</li>
 			</ol>
+
+			<p class="rounded-lg border border-border-base bg-background-secondary px-3 py-2 text-xs text-text-subtle">
+				The key stays with the group, so it keeps working after you hand the group over — but it is
+				billed against the rate limit of the account that made it, and it stops working if that
+				account deletes it.
+			</p>
 
 			<Field
 				label={group.hasOpenCloudKey ? 'Replace key' : 'API key'}

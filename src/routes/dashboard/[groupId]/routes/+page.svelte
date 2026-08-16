@@ -9,6 +9,7 @@
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import RouteEditor, { type RouteDraft } from '$lib/components/routes/RouteEditor.svelte';
 	import { api, errorMessage } from '$lib/api/client';
+	import { formatShare } from '$lib/utils/format';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RouteRecord } from '$lib/api/types';
 	import type { PageProps } from './$types';
@@ -197,7 +198,7 @@
 						{#if route.moderation === 'HIDDEN'}<Badge tone="danger">Hidden</Badge>{/if}
 						{#if !route.autoAssign}<Badge tone="warning">Manual only</Badge>{/if}
 						{#if route.visibility !== 'PUBLIC'}<Badge>Members only</Badge>{/if}
-						<Badge tone="accent">{route.targetShare}%</Badge>
+						<Badge tone="accent">{formatShare(route.targetShare)}%</Badge>
 						<Badge>
 							{route.depots.length === 0
 								? 'All depots'
