@@ -7,7 +7,6 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Avatar from '$lib/components/users/Avatar.svelte';
 	import ShiftEditor, { type ShiftDraft } from '$lib/components/shifts/ShiftEditor.svelte';
 	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { api, errorMessage } from '$lib/api/client';
@@ -181,14 +180,18 @@
 								</div>
 								<p class="text-sm text-text-muted">{formatDateTime(occurrence.start)}</p>
 
-								<div class="mt-3">
-									<SignupSheets
-										sheets={occurrence.sheets}
-										eventId={occurrence.eventId}
-										occurrence={occurrence.start}
-										userId={data.user?.userId}
-									/>
-								</div>
+								<!-- Guarded so an occurrence with no sheet for this
+									 viewer leaves no empty gap behind. -->
+								{#if occurrence.sheets.length > 0}
+									<div class="mt-3">
+										<SignupSheets
+											sheets={occurrence.sheets}
+											eventId={occurrence.eventId}
+											occurrence={occurrence.start}
+											userId={data.user?.userId}
+										/>
+									</div>
+								{/if}
 							</div>
 						</div>
 					</li>

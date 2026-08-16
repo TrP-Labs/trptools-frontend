@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { IconBrandDiscord, IconMinus, IconPlus, IconUserOff } from '@tabler/icons-svelte';
+	import { IconBrandDiscord, IconMinus, IconPlus } from '@tabler/icons-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
@@ -158,14 +158,14 @@
 			</p>
 		{/if}
 	</div>
-{:else}
-	<div
-		class="flex items-center gap-3 rounded-xl border border-dashed border-border-base px-4 py-6 text-sm text-text-muted"
-	>
-		<IconUserOff size={20} stroke={1.5} class="shrink-0 text-text-subtle" />
-		<p>
-			No sign-up sheets are open to your rank for this shift. Sheets are set up per rank by a group
-			manager.
-		</p>
-	</div>
 {/if}
+
+<!--
+	Nothing is rendered when there are no sheets, deliberately.
+
+	Sign-ups are for specific staff roles — dispatchers, maintenance — so most
+	people have none, on most shifts. Telling every one of them, on every
+	occurrence, that a thing they cannot use is unavailable is noise about
+	somebody else's job.
+-->
+

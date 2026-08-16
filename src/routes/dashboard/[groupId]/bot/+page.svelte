@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import {
 		IconAlertTriangle,
@@ -33,19 +33,30 @@
 	let busy = $state(false);
 	let installing = $state(false);
 
-	// The install redirect lands back here with a marker rather than a toast
-	// from the server, since it is a fresh navigation with no client state.
-	$effect(() => {
-		if (page.url.searchParams.get('installed') === '1') {
-			toasts.success('Discord server connected');
-			history.replaceState(null, '', page.url.pathname);
-		}
+	/**
+	 * The install redirect lands back here with a marker rather than a toast
+	 * from the server, since it is a fresh navigation with no client state.
+	 *
+	 * `history.replaceState` was used to clear the marker, which changes the
+	 * address bar but not SvelteKit's own `page.url` — so the effect saw
+	 * `installed=1` forever and fired again on every reload of the page data,
+	 * which is once per settings toggle. SvelteKit's `replaceState` updates
+	 * both. The flag is belt and braces: this must announce once, whatever
+	 * else re-runs it.
+	 */
+	let announced = false;
 
+	$effect(() => {
+		const installed = page.url.searchParams.get('installed') === '1';
 		const failure = page.url.searchParams.get('botError');
-		if (failure) {
-			toasts.error(INSTALL_ERRORS[failure] ?? 'Could not connect that Discord server');
-			history.replaceState(null, '', page.url.pathname);
-		}
+
+		if (announced || (!installed && !failure)) return;
+		announced = true;
+
+		if (installed) toasts.success('Discord server connected');
+		else if (failure) toasts.error(INSTALL_ERRORS[failure] ?? 'Could not connect that Discord server');
+
+		replaceState(page.url.pathname, {});
 	});
 
 	const INSTALL_ERRORS: Record<string, string> = {

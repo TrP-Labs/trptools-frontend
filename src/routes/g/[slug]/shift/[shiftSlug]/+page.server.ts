@@ -30,5 +30,15 @@ export const load: PageServerLoad = async (event) => {
 		event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
 	}
 
-	return { ...data, occurrences: data.occurrences, signupOccurrences: occurrences };
+	return {
+		...data,
+		occurrences: data.occurrences,
+		signupOccurrences: occurrences,
+		/**
+		 * Whether this viewer's rank reaches any sheet on this shift at all.
+		 * Without it the page cannot tell "your sign-ups open later" apart from
+		 * "sign-ups are not for you", and would advertise a form to everybody.
+		 */
+		hasAnySheet: occurrences.some((occurrence) => occurrence.sheetsAvailable)
+	};
 };
