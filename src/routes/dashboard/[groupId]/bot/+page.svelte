@@ -306,7 +306,7 @@
 				<Toggle
 					checked={config.signupsEnabled}
 					label="Sign-up sheets"
-					description="Post per-rank staff sign-up sheets, kept in step with the website."
+					description="Post per-rank staff sign-up sheets, and let whoever signs up into the server early."
 					disabled={busy}
 					onchange={(value) => patch({ signupsEnabled: value })}
 				/>
@@ -383,8 +383,21 @@
 				/>
 
 				<AutomationRow
+					label="Let staff in"
+					description="Give the staff who signed up the join link, ahead of the public announcement."
+					enabled={config.autoStaffStart}
+					lead={config.autoStaffStartLead}
+					disabled={busy}
+					onchange={({ enabled, lead }) =>
+						patch({
+							...(enabled !== undefined ? { autoStaffStart: enabled } : {}),
+							...(lead !== undefined ? { autoStaffStartLead: lead } : {})
+						})}
+				/>
+
+				<AutomationRow
 					label="Announce the start"
-					description="Post the join link and ping signed-up staff when the shift begins."
+					description="Post the join link publicly when the shift begins."
 					enabled={config.autoBegin}
 					lead={config.autoBeginLead}
 					disabled={busy}
