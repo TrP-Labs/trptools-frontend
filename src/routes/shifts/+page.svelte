@@ -6,6 +6,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
+	import { signupTotals } from '$lib/utils/signups';
 	import { loginUrl } from '$lib/api/client';
 	import type { PageProps } from './$types';
 
@@ -68,8 +69,7 @@
 
 					<ul class="space-y-2">
 						{#each occurrences as occurrence (occurrence.eventId + occurrence.start)}
-							{@const filled = occurrence.slots.reduce((n, slot) => n + slot.signups.length, 0)}
-							{@const capacity = occurrence.slots.reduce((n, slot) => n + slot.capacity, 0)}
+							{@const { filled, capacity } = signupTotals(occurrence.sheets)}
 							<li>
 								<a
 									href="/dashboard/{occurrence.groupId}/shifts"

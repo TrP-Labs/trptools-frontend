@@ -19,6 +19,7 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import RankSignupEditor from '$lib/components/shifts/RankSignupEditor.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { PERMISSION_DESCRIPTIONS, PERMISSION_LABELS } from '$lib/api/types';
@@ -199,6 +200,17 @@
 						</div>
 					</div>
 				</div>
+				<RankSignupEditor
+					{groupId}
+					groupSlug={data.group.slug}
+					rankId={rank.id}
+					rankName={rank.cachedName}
+					rankColor={rank.color}
+					signup={data.signups[rank.id] ?? null}
+					botConnected={data.botConnected}
+					channelNames={data.channelNames}
+					roleNames={data.roleNames}
+				/>
 			</div>
 		{/each}
 	</div>

@@ -52,8 +52,22 @@ export type AuditEntry = Data<ReturnType<ReturnType<Api['groups']>['audit']['get
 export type ReportTarget = 'GROUP' | 'ROUTE' | 'DEPOT' | 'MEDIA';
 
 export type ShiftEvent = Data<ReturnType<Api['schedule']['get']>>[number];
-export type ShiftSlot = ShiftEvent['slots'][number];
 export type ShiftOccurrence = Data<ReturnType<Api['schedule']['occurrences']['get']>>[number];
+/** One rank's sign-up sheet as it applies to a single occurrence. */
+export type SignupSheet = ShiftOccurrence['sheets'][number];
+export type SignupSlot = SignupSheet['slots'][number];
+export type SignupUser = SignupSlot['signups'][number];
+
+/** The bot page: stored settings plus the bot's live standing in the guild. */
+export type BotOverview = Data<ReturnType<ReturnType<Api['bot']>['get']>>;
+export type BotConfig = NonNullable<BotOverview['config']>;
+export type BotGuildStatus = NonNullable<BotOverview['guild']>;
+export type BotChannel = Data<ReturnType<ReturnType<Api['bot']>['channels']['get']>>[number];
+export type BotRole = Data<ReturnType<ReturnType<Api['bot']>['roles']['get']>>[number];
+
+/** A rank's sign-up sheet as the ranks dashboard edits it. */
+export type RankSignup = NonNullable<Data<ReturnType<ReturnType<Api['ranks']>['signup']['get']>>>;
+export type RankSignupSlot = RankSignup['slots'][number];
 
 export type PublicGroupSummary = Data<ReturnType<Api['public']['groups']['get']>>[number];
 

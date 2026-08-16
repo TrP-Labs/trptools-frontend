@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconPlus, IconTrash } from '@tabler/icons-svelte';
+	import { IconTrash } from '@tabler/icons-svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
@@ -15,12 +15,6 @@
 		type Repeat
 	} from '$lib/utils/recurrence';
 
-	export interface SlotDraft {
-		name: string;
-		description: string;
-		capacity: number;
-	}
-
 	export interface ShiftDraft {
 		name: string;
 		description: string;
@@ -32,18 +26,19 @@
 		days: number[];
 		visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
 		hostLevel: number;
-		slots: SlotDraft[];
 	}
 
 	interface Props {
 		draft: ShiftDraft;
 		busy?: boolean;
 		mode: 'create' | 'edit';
+		/** Where to send someone to edit the sign-up sheets themselves. */
+		ranksHref: string;
 		onsave: () => void;
 		ondelete?: () => void;
 	}
 
-	let { draft = $bindable(), busy = false, mode, onsave, ondelete }: Props = $props();
+	let { draft = $bindable(), busy = false, mode, ranksHref, onsave, ondelete }: Props = $props();
 
 	const repeats = [
 		{ value: 'WEEKLY' as const, label: 'Weekly on chosen days' },
@@ -75,14 +70,6 @@
 		draft.days = draft.days.includes(index)
 			? draft.days.filter((day) => day !== index)
 			: [...draft.days, index].sort((a, b) => a - b);
-	}
-
-	function addSlot() {
-		draft.slots = [...draft.slots, { name: '', description: '', capacity: 1 }];
-	}
-
-	function removeSlot(index: number) {
-		draft.slots = draft.slots.filter((_, position) => position !== index);
 	}
 </script>
 
@@ -155,50 +142,10 @@
 		<Select bind:value={draft.hostLevel} options={hostLevels} />
 	</Field>
 
-	<div class="sm:col-span-2">
-		<div class="mb-2 flex items-center justify-between">
-			<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">
-				Sign-up slots
-			</span>
-			<Button size="sm" variant="ghost" onclick={addSlot}><IconPlus size={15} /> Add slot</Button>
-		</div>
-
-		{#if draft.slots.length === 0}
-			<p class="rounded-lg border border-dashed border-border-base px-3 py-4 text-center text-sm text-text-muted">
-				No slots yet. Add slots so members can sign up for specific roles.
-			</p>
-		{:else}
-			<ul class="space-y-2">
-				{#each draft.slots as slot, index (index)}
-					<li class="flex flex-wrap items-end gap-2 rounded-lg border border-border-base bg-background-secondary p-3">
-						<div class="min-w-32 flex-1">
-							<Field label="Name">
-								<Input bind:value={slot.name} maxlength={60} placeholder="e.g. Driver" />
-							</Field>
-						</div>
-						<div class="min-w-40 flex-[2]">
-							<Field label="Description">
-								<Input bind:value={slot.description} maxlength={300} placeholder="Optional" />
-							</Field>
-						</div>
-						<div class="w-24">
-							<Field label="Spaces">
-								<Input type="number" min="1" max="100" bind:value={slot.capacity} />
-							</Field>
-						</div>
-						<button
-							type="button"
-							onclick={() => removeSlot(index)}
-							aria-label="Remove slot"
-							class="mb-1.5 rounded-lg p-2 text-text-subtle transition-colors hover:text-danger"
-						>
-							<IconTrash size={16} />
-						</button>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</div>
+	<p class="rounded-lg border border-dashed border-border-base px-3 py-3 text-sm text-text-muted sm:col-span-2">
+		Sign-up sheets are set per rank, not per shift, so every shift shares them. Edit them on the
+		<a href={ranksHref} class="text-accent hover:underline">Ranks</a> page.
+	</p>
 
 	<div class="flex flex-wrap gap-2 sm:col-span-2">
 		<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>

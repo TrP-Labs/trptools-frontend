@@ -289,23 +289,6 @@
 									<p class="font-medium text-text">{shift.name}</p>
 									<p class="mt-0.5 text-sm text-text-muted">{formatDateTime(shift.start)}</p>
 									<p class="text-xs text-text-subtle">{formatRelative(shift.start)}</p>
-
-									{#if shift.capacity > 0}
-										<div class="mt-2.5">
-											<div class="h-1.5 overflow-hidden rounded-full bg-background-muted">
-												<div
-													class="h-full rounded-full transition-[width]"
-													style="width: {Math.min(
-														100,
-														(shift.filled / shift.capacity) * 100
-													)}%; background: {shift.color}"
-												></div>
-											</div>
-											<p class="mt-1 text-xs text-text-subtle">
-												{shift.filled} of {shift.capacity} slots filled
-											</p>
-										</div>
-									{/if}
 								</div>
 							</a>
 						</li>

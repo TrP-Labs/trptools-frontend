@@ -12,6 +12,7 @@
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
 	import { formatDateTime, formatNumber, formatRelative } from '$lib/utils/format';
+	import { signupTotals } from '$lib/utils/signups';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -68,8 +69,7 @@
 			{:else}
 				<ul class="space-y-3">
 					{#each data.upcoming as occurrence (occurrence.eventId + occurrence.start)}
-						{@const filled = occurrence.slots.reduce((n, slot) => n + slot.signups.length, 0)}
-						{@const capacity = occurrence.slots.reduce((n, slot) => n + slot.capacity, 0)}
+						{@const { filled, capacity } = signupTotals(occurrence.sheets)}
 						<li class="flex items-start gap-3">
 							<span
 								class="mt-1 h-9 w-1 shrink-0 rounded-full"
