@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconBrandDiscord, IconMinus, IconPlus } from '@tabler/icons-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -57,7 +57,7 @@
 			if (error) throw error;
 
 			toasts.success(take ? 'Signed up' : 'Withdrawn');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, take ? 'Could not sign you up' : 'Could not withdraw you'));
 		} finally {

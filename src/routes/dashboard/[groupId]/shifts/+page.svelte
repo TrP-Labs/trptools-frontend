@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconCalendarTime, IconChevronDown, IconPlus } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -90,7 +90,7 @@
 			toasts.success('Shift created');
 			createOpen = false;
 			createDraft = emptyDraft();
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not create that shift'));
 		} finally {
@@ -108,7 +108,7 @@
 
 			toasts.success('Shift saved');
 			editing = null;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save that shift'));
 		} finally {
@@ -127,7 +127,7 @@
 
 			toasts.success('Shift deleted');
 			editing = null;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not delete that shift'));
 		} finally {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconCopy, IconKey, IconPlus, IconTrash } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -47,7 +47,7 @@
 			issued = key.token;
 			createOpen = false;
 			name = '';
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not create that key'));
 		} finally {
@@ -63,7 +63,7 @@
 			if (error) throw error;
 
 			toasts.success('Key revoked');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not revoke that key'));
 		}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconBan,
 		IconCrown,
@@ -44,7 +44,7 @@
 		try {
 			const { error } = await api.ranks({ rankId }).patch(body);
 			if (error) throw error;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not update that rank'));
 		} finally {
@@ -60,7 +60,7 @@
 
 			toasts.success(`Bound ${name}`);
 			bindOpen = false;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not bind that rank'));
 		} finally {
@@ -77,7 +77,7 @@
 			if (error) throw error;
 
 			toasts.success('Rank unbound');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not unbind that rank'));
 		} finally {

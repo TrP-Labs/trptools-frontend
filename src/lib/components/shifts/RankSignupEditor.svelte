@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconBrandDiscord,
 		IconClipboardList,
@@ -85,7 +85,7 @@
 		try {
 			const { error } = await api.ranks({ rankId }).signup.put(patch);
 			if (error) throw error;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save the sign-up sheet'));
 		} finally {
@@ -119,7 +119,7 @@
 			if (error) throw error;
 
 			toasts.success('Sign-up sheet removed');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not remove the sheet'));
 		} finally {

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconChevronDown, IconLogout, IconSettings, IconShieldCheck, IconUser } from '@tabler/icons-svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { api, loginUrl, errorMessage } from '$lib/api/client';
@@ -38,7 +39,7 @@
 		open = false;
 		try {
 			await api.auth.logout.post();
-			await invalidateAll();
+			await refreshData();
 			await goto('/');
 			toasts.success('Signed out');
 		} catch (error) {

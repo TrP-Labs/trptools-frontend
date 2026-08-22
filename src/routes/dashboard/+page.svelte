@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconPlus, IconUsersGroup } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -26,7 +27,7 @@
 
 			toasts.success('Group added');
 			addOpen = false;
-			await invalidateAll();
+			await refreshData();
 			await goto(`/dashboard/${created.slug}`);
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not add that group'));
