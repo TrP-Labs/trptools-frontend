@@ -33,11 +33,7 @@
 >
 	<div class="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4">
 		<a href="/" class="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
-			<span
-				class="grid size-7 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-contrast"
-			>
-				T
-			</span>
+			<img src="/logo.svg" alt="" width="28" height="28" class="size-7 shrink-0 rounded-lg" />
 			<span class="hidden sm:block">TrP Tools</span>
 		</a>
 

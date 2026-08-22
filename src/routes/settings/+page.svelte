@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -46,7 +46,7 @@
 			if (error) throw error;
 
 			toasts.success('Settings saved');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save your settings'));
 		} finally {

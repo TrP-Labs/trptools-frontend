@@ -41,10 +41,21 @@ export function loginUrl() {
  *
  * The backend answers failures with a bare string literal, so most of the time
  * the value is already the message we want.
+ *
+ * A thrown `Error` is deliberately *not* shown. Anything reaching here that is
+ * a real exception is a fault in our own code, and putting its text in a toast
+ * only ever produced things like "Cannot read properties of undefined" in
+ * front of a user who could do nothing with it. It goes to the console
+ * instead, where it is actually useful.
  */
 export function errorMessage(error: unknown, fallback = 'Something went wrong'): string {
 	if (!error) return fallback;
 	if (typeof error === 'string') return error;
+
+	if (error instanceof Error) {
+		console.error('[api]', error);
+		return fallback;
+	}
 
 	if (typeof error === 'object') {
 		const value = error as { value?: unknown; message?: unknown; status?: number };

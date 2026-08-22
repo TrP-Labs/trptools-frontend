@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconChevronDown, IconLock, IconPlus, IconRoute } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -77,7 +77,7 @@
 			toasts.success(`Route ${createDraft.name} created`);
 			createOpen = false;
 			createDraft = emptyDraft();
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not create that route'));
 		} finally {
@@ -92,7 +92,7 @@
 			if (error) throw error;
 
 			toasts.success('Route saved');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save that route'));
 		} finally {
@@ -110,7 +110,7 @@
 
 			toasts.success('Route deleted');
 			expandedId = null;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not delete that route'));
 		} finally {

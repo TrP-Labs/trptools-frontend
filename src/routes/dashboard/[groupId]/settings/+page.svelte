@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconCheck, IconExternalLink, IconKey } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -64,7 +64,7 @@
 			if (error) throw error;
 
 			toasts.success('Settings saved');
-			await invalidateAll();
+			await refreshData();
 			form = seed();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save those settings'));
@@ -83,7 +83,7 @@
 
 			toasts.success(apiKey.trim() ? 'Open Cloud key verified and stored' : 'Open Cloud key removed');
 			apiKey = '';
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'That key could not read this group'));
 		} finally {

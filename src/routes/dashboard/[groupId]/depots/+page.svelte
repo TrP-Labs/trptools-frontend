@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconBuildingWarehouse, IconChevronDown, IconPlus, IconTrash } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -119,7 +119,7 @@
 
 			toasts.success(`Depot ${createDraft.number} created`);
 			createOpen = false;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not create that depot'));
 		} finally {
@@ -134,7 +134,7 @@
 			if (error) throw error;
 
 			toasts.success('Depot saved');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save that depot'));
 		} finally {
@@ -157,7 +157,7 @@
 
 			toasts.success('Depot deleted');
 			expandedId = null;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not delete that depot'));
 		} finally {

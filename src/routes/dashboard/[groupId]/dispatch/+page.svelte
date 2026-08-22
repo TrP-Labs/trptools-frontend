@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconBolt,
 		IconClipboardText,
@@ -211,7 +211,7 @@
 			if (!created) throw error;
 
 			toasts.success('Dispatch room opened');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not open a room'));
 		} finally {
@@ -229,7 +229,7 @@
 
 			room.disconnect();
 			toasts.success('Room closed');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not close the room'));
 		}

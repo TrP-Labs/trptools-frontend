@@ -24,18 +24,24 @@ export const load: PageServerLoad = async (event) => {
 		return {
 			overview: overview ?? { connected: false, available: true, config: null, guild: null },
 			channelNames: {} as Record<string, string>,
-			roleNames: {} as Record<string, string>
+			roleNames: {} as Record<string, string>,
+			cleanup: null
 		};
 	}
 
-	const [channels, roles] = await Promise.all([
+	const [channels, roles, cleanup] = await Promise.all([
 		client.bot({ groupId }).channels.get(),
-		client.bot({ groupId }).roles.get()
+		client.bot({ groupId }).roles.get(),
+		// Whether the end-of-shift cleanup can actually run. Loaded with the
+		// rest so the page can say so before a shift, rather than the group
+		// finding out hours after one when nothing was tidied up.
+		client.bot({ groupId }).cleanup.get()
 	]);
 
 	return {
 		overview,
 		channelNames: Object.fromEntries((channels.data ?? []).map((c) => [c.id, c.name])),
-		roleNames: Object.fromEntries((roles.data ?? []).map((r) => [r.id, r.name]))
+		roleNames: Object.fromEntries((roles.data ?? []).map((r) => [r.id, r.name])),
+		cleanup: cleanup.data ?? null
 	};
 };

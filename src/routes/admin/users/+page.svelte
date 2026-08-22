@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconBan, IconClockPause, IconSearch, IconUserCheck, IconUsers } from '@tabler/icons-svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -53,7 +54,7 @@
 			if (error) throw error;
 
 			toasts.success(`${name(user)} can sign in again`);
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not lift that suspension'));
 		} finally {
@@ -173,5 +174,5 @@
 	target={pending}
 	{mode}
 	onclose={() => (pending = null)}
-	ondone={() => invalidateAll()}
+	ondone={() => refreshData()}
 />

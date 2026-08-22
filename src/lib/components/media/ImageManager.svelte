@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconPhotoPlus, IconTrash, IconAlertTriangle } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { API_URL, errorMessage } from '$lib/api/client';
@@ -56,7 +56,7 @@
 
 		uploading = false;
 		onchange?.();
-		await invalidateAll();
+		await refreshData();
 	}
 
 	async function remove(image: MediaItem) {
@@ -71,7 +71,7 @@
 
 			toasts.success('Image deleted');
 			onchange?.();
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not delete that image'));
 		}

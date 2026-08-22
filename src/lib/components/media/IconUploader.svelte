@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconPhotoPlus, IconTrash } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { API_URL, errorMessage } from '$lib/api/client';
@@ -63,7 +63,7 @@
 			if (!response.ok) throw (await response.text().catch(() => '')) || `Upload failed (${response.status})`;
 
 			toasts.success(`${label} updated`);
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, `Could not upload that ${label.toLowerCase()}`));
 		} finally {
@@ -85,7 +85,7 @@
 			if (!response.ok) throw await response.text();
 
 			toasts.success(`${label} removed`);
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not remove that image'));
 		} finally {

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { invalidateAll, replaceState } from '$app/navigation';
+	import { replaceState } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import { page } from '$app/state';
 	import {
 		IconAlertTriangle,
@@ -29,6 +30,7 @@
 	let overview = $derived(data.overview);
 	let config = $derived(overview.config);
 	let guild = $derived(overview.guild);
+	let cleanup = $derived(data.cleanup);
 
 	let busy = $state(false);
 	let installing = $state(false);
@@ -85,7 +87,7 @@
 		try {
 			const { error } = await api.bot({ groupId }).patch(body);
 			if (error) throw error;
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not save that setting'));
 		} finally {
@@ -107,7 +109,7 @@
 			if (error) throw error;
 
 			toasts.success('Discord server disconnected');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not disconnect that server'));
 		} finally {
@@ -268,12 +270,22 @@
 					{groupId}
 					kind="role"
 					label="Shift ping role"
-					description="Pinged when a shift is announced or starts."
+					description="Pinged when a shift starts."
 					value={config.shiftPingRole}
 					names={data.roleNames}
 					disabled={busy}
 					onchange={(value) => patch({ shiftPingRole: value })}
 				/>
+
+				<div class="py-1">
+					<Toggle
+						checked={config.pingUpcoming}
+						label="Ping when a shift is announced too"
+						description="Pings the shift role on the “a shift is coming up” post as well. Off by default — that notice usually goes out a day ahead, where a ping is noise rather than news."
+						disabled={busy || !config.shiftPingRole}
+						onchange={(value) => patch({ pingUpcoming: value })}
+					/>
+				</div>
 
 				<DiscordSetting
 					{groupId}
@@ -424,12 +436,120 @@
 			</div>
 		</section>
 
+		<!-- What closing a shift out takes down, and whether it can -->
+		<section class="card p-4">
+			<div class="flex flex-wrap items-start justify-between gap-3">
+				<div class="min-w-0">
+					<h2 class="text-sm font-semibold text-text">End-of-shift cleanup</h2>
+					<p class="mt-1 text-xs text-text-muted">
+						Closing a shift out deletes the messages the bot posted for it, and nothing else —
+						anything people said in those channels is left alone. Choose which of its own posts
+						it takes down.
+					</p>
+				</div>
+
+				{#if cleanup && cleanup.targets.length > 0}
+					{#if cleanup.ready}
+						<Badge tone="success"><IconCheck size={13} /> Ready</Badge>
+					{:else}
+						<Badge tone="warning"><IconAlertTriangle size={13} /> Cannot delete</Badge>
+					{/if}
+				{/if}
+			</div>
+
+			<div class="mt-4 space-y-4">
+				<Toggle
+					checked={config.clearSignups}
+					label="Sign-up channels"
+					description="The sheets themselves and the “come on in” pings, in each rank’s own channel."
+					disabled={busy}
+					onchange={(value) => patch({ clearSignups: value })}
+				/>
+				<Toggle
+					checked={config.clearAnnouncements}
+					label="Shift announcement channel"
+					description="The upcoming notice, the start announcement and the live dispatch board under it."
+					disabled={busy}
+					onchange={(value) => patch({ clearAnnouncements: value })}
+				/>
+				<Toggle
+					checked={config.clearHostReminders}
+					label="Host channel"
+					description="The “a shift needs a host” reminder."
+					disabled={busy}
+					onchange={(value) => patch({ clearHostReminders: value })}
+				/>
+			</div>
+
+			<!--
+				Deleting needs Manage Messages and Read Message History, and Discord
+				grants both per channel — so a bot that looks healthy above can still
+				be refused in the one channel that matters. This is the check that
+				would have caught it before a shift rather than after one.
+			-->
+			<div class="mt-4 border-t border-border-base pt-4">
+				<p class="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
+					Channels it will clear
+				</p>
+
+				{#if !cleanup || cleanup.targets.length === 0}
+					<p class="text-sm text-text-muted">
+						No channels are set yet, so there is nothing for the cleanup to do.
+					</p>
+				{:else}
+					<ul class="space-y-1.5">
+						{#each cleanup.targets as target (target.channelId)}
+							<li class="flex flex-wrap items-center gap-2 text-sm">
+								{#if !target.enabled}
+									<IconX size={14} class="shrink-0 text-text-subtle" />
+									<span class="text-text-subtle">#{target.name}</span>
+									<span class="text-xs text-text-subtle">kept — {target.purpose}</span>
+								{:else if target.canDelete}
+									<IconCheck size={14} class="shrink-0 text-success" />
+									<span class="text-text-muted">#{target.name}</span>
+									<span class="text-xs text-text-subtle">{target.purpose}</span>
+								{:else}
+									<IconAlertTriangle size={14} class="shrink-0 text-danger" />
+									<span class="text-danger">#{target.name}</span>
+									<span class="text-xs text-danger">
+										cannot delete here — needs Manage Messages and Read Message History
+									</span>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+
+					{#if !cleanup.ready}
+						<p class="mt-3 text-sm text-text-muted">
+							Give the bot’s role those two permissions in the channels above, or re-add it to
+							grant the full set. Until then a shift closes out leaving its messages behind.
+						</p>
+						<div class="mt-3">
+							<Button size="sm" variant="secondary" onclick={beginInstall} loading={installing}>
+								<IconBrandDiscord size={15} /> Re-add with full permissions
+							</Button>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		</section>
+
 		<!-- The Roblox join link the announcements build -->
 		<section class="card p-4">
 			<h2 class="text-sm font-semibold text-text">Join link</h2>
 			<p class="mt-1 text-xs text-text-muted">
 				What the “click here to join” link in a shift announcement points at.
 			</p>
+
+			<div class="mt-4">
+				<Toggle
+					checked={config.announceJoinCode}
+					label="Show the join code publicly"
+					description="Prints the code as text in the “we are open” announcement. The join button works either way, so turning this off only stops the code sitting in a public channel after the shift. Staff who signed up are always given it."
+					disabled={busy}
+					onchange={(value) => patch({ announceJoinCode: value })}
+				/>
+			</div>
 
 			<div class="mt-4 grid gap-4 sm:grid-cols-2">
 				<Field label="Place ID" hint="The Roblox place shifts are run in.">

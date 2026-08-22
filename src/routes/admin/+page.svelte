@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconAlertTriangle,
 		IconCheck,
@@ -43,7 +44,7 @@
 			if (error) throw error;
 
 			toasts.success(action === 'approve' ? 'Content restored' : 'Content stays hidden');
-			await invalidateAll();
+			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not resolve that report'));
 		} finally {

@@ -64,6 +64,7 @@ export type BotConfig = NonNullable<BotOverview['config']>;
 export type BotGuildStatus = NonNullable<BotOverview['guild']>;
 export type BotChannel = Data<ReturnType<ReturnType<Api['bot']>['channels']['get']>>[number];
 export type BotRole = Data<ReturnType<ReturnType<Api['bot']>['roles']['get']>>[number];
+export type BotCleanup = Data<ReturnType<ReturnType<Api['bot']>['cleanup']['get']>>;
 
 /** A rank's sign-up sheet as the ranks dashboard edits it. */
 export type RankSignup = NonNullable<Data<ReturnType<ReturnType<Api['ranks']>['signup']['get']>>>;

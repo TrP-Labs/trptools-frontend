@@ -16,11 +16,7 @@
 
 <div class="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-10">
 	<div class="card p-6 text-center">
-		<span
-			class="mx-auto grid size-12 place-items-center rounded-xl bg-accent text-lg font-bold text-accent-contrast"
-		>
-			T
-		</span>
+		<img src="/logo.svg" alt="" width="48" height="48" class="mx-auto size-12 rounded-xl" />
 
 		<h1 class="mt-4 text-xl font-semibold text-text">Sign in to TrP Tools</h1>
 		<p class="mt-2 text-sm text-text-muted">

@@ -6,6 +6,10 @@
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
+
+	// Baked in by Vite so the running build can always be named, even in a
+	// container where package.json is nowhere near the server bundle.
+	const version = __APP_VERSION__;
 </script>
 
 <svelte:head>
@@ -27,15 +31,24 @@
 		<div
 			class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 text-xs text-text-subtle"
 		>
-			<p>TrP Tools</p>
+			<p class="flex items-center gap-1.5">
+				TrP Tools
+				<span aria-hidden="true">·</span>
+				<span class="font-mono">v{version}</span>
+			</p>
+
+			<!-- Every link here comes from a file in the policies directory. -->
 			<nav class="flex flex-wrap gap-4">
-				<a href="/about" class="transition-colors hover:text-text">About</a>
-				{#if data.legal.privacy}
-					<a href="/privacy" class="transition-colors hover:text-text">Privacy Policy</a>
-				{/if}
-				{#if data.legal.terms}
-					<a href="/terms" class="transition-colors hover:text-text">Terms Of Service</a>
-				{/if}
+				{#each data.policies as policy (policy.href)}
+					<a
+						href={policy.href}
+						target={policy.external ? '_blank' : undefined}
+						rel={policy.external ? 'noopener noreferrer' : undefined}
+						class="transition-colors hover:text-text"
+					>
+						{policy.label}
+					</a>
+				{/each}
 			</nav>
 		</div>
 	</footer>

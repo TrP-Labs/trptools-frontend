@@ -2,8 +2,15 @@ import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { version } from './package.json' with { type: 'json' };
 
 export default defineConfig({
+	// The footer shows which build is running. Baked in here so it costs no
+	// filesystem read at runtime and stays correct in a container, where
+	// package.json is not necessarily beside the server bundle.
+	define: {
+		__APP_VERSION__: JSON.stringify(version)
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit({
