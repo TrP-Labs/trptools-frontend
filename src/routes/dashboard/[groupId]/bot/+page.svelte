@@ -14,8 +14,6 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
-	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import DiscordSetting from '$lib/components/bot/DiscordSetting.svelte';
 	import AutomationRow from '$lib/components/bot/AutomationRow.svelte';
@@ -277,15 +275,23 @@
 					onchange={(value) => patch({ shiftPingRole: value })}
 				/>
 
-				<div class="py-1">
-					<Toggle
-						checked={config.pingUpcoming}
-						label="Ping when a shift is announced too"
-						description="Pings the shift role on the “a shift is coming up” post as well. Off by default — that notice usually goes out a day ahead, where a ping is noise rather than news."
-						disabled={busy || !config.shiftPingRole}
-						onchange={(value) => patch({ pingUpcoming: value })}
-					/>
-				</div>
+				<!--
+					A sub-setting of the ping role above, so it is indented to
+					match that row's label rather than sitting in the list as a
+					peer. It used to be disabled until a role was set, which
+					made it look broken: clicking did nothing and said nothing.
+					With no role there is nothing to ping, so it is not shown.
+				-->
+				{#if config.shiftPingRole}
+					<div class="ml-7 rounded-lg border border-border-base px-3 py-2.5">
+						<Toggle
+							checked={config.pingUpcoming}
+							label="Ping on the upcoming notice too"
+							disabled={busy}
+							onchange={(value) => patch({ pingUpcoming: value })}
+						/>
+					</div>
+				{/if}
 
 				<DiscordSetting
 					{groupId}
@@ -537,48 +543,27 @@
 		<!-- The Roblox join link the announcements build -->
 		<section class="card p-4">
 			<h2 class="text-sm font-semibold text-text">Join link</h2>
+			<!--
+				The place and the server owner used to be text boxes here. Neither
+				was a decision worth offering: there is one place, and the server is
+				the group owner’s. A host who needs a different server for one shift
+				sets it on that shift with /edit-shift, where it expires with the
+				shift instead of quietly outliving whoever changed it.
+			-->
 			<p class="mt-1 text-xs text-text-muted">
-				What the “click here to join” link in a shift announcement points at.
+				Announcements link to the group owner’s private server. Use
+				<code class="rounded bg-background-muted px-1 py-0.5">/edit-shift</code> in Discord to point
+				one shift somewhere else.
 			</p>
 
 			<div class="mt-4">
 				<Toggle
 					checked={config.announceJoinCode}
 					label="Show the join code publicly"
-					description="Prints the code as text in the “we are open” announcement. The join button works either way, so turning this off only stops the code sitting in a public channel after the shift. Staff who signed up are always given it."
+					description="The join button carries it either way. Staff who signed up are always given it."
 					disabled={busy}
 					onchange={(value) => patch({ announceJoinCode: value })}
 				/>
-			</div>
-
-			<div class="mt-4 grid gap-4 sm:grid-cols-2">
-				<Field label="Place ID" hint="The Roblox place shifts are run in.">
-					<Input
-						value={config.placeId}
-						disabled={busy}
-						inputmode="numeric"
-						onblur={(event) => {
-							const next = (event.currentTarget as HTMLInputElement).value.trim();
-							if (next && next !== config.placeId) patch({ placeId: next });
-						}}
-					/>
-				</Field>
-
-				<Field
-					label="Server owner Roblox ID"
-					hint="Whose private server the link opens. A host can override this per shift."
-				>
-					<Input
-						value={config.ownerRobloxId ?? ''}
-						disabled={busy}
-						inputmode="numeric"
-						placeholder="Not set"
-						onblur={(event) => {
-							const next = (event.currentTarget as HTMLInputElement).value.trim();
-							if (next !== (config.ownerRobloxId ?? '')) patch({ ownerRobloxId: next || null });
-						}}
-					/>
-				</Field>
 			</div>
 		</section>
 	</div>
