@@ -36,9 +36,9 @@ COPY --from=build /app/build ./build
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 
-# TERMS.md and PRIVACY.md are read from here at startup, not baked into the
-# image — mount a volume over it to publish policy text, or leave it empty to
-# ship with no terms/privacy pages. See POLICIES_DIR to point elsewhere.
+# The footer's links are read from here at startup, not baked into the image —
+# mount a volume over it to publish documents, or leave it empty to ship with a
+# footer that has no links. See POLICIES_DIR to point elsewhere.
 RUN mkdir -p /app/policies && chown bun:bun /app/policies
 VOLUME /app/policies
 
