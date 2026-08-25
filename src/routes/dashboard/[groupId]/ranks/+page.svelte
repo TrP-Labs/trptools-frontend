@@ -2,6 +2,8 @@
 	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconBan,
+		IconChevronDown,
+		IconClipboardList,
 		IconCrown,
 		IconHeadphones,
 		IconMicrophone,
@@ -17,6 +19,7 @@
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
+	import FieldGroup from '$lib/components/ui/FieldGroup.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import RankSignupEditor from '$lib/components/shifts/RankSignupEditor.svelte';
@@ -38,6 +41,20 @@
 
 	let bindOpen = $state(false);
 	let busyId = $state<string | null>(null);
+
+	/**
+	 * One rank open at a time, like the routes and depots screens.
+	 *
+	 * Every rank used to be laid out in full, sign-up sheet and all, so a group
+	 * with six ranks opened on a wall of controls with no way to tell which
+	 * belonged to which. The row says what a rank is; the panel is for changing
+	 * it.
+	 */
+	let expandedId = $state<string | null>(null);
+
+	function toggleExpanded(rankId: string) {
+		expandedId = expandedId === rankId ? null : rankId;
+	}
 
 	async function patchRank(rankId: string, body: Record<string, unknown>) {
 		busyId = rankId;
@@ -77,6 +94,7 @@
 			if (error) throw error;
 
 			toasts.success('Rank unbound');
+			if (expandedId === rankId) expandedId = null;
 			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, 'Could not unbind that rank'));
@@ -88,7 +106,7 @@
 
 <PageHeader
 	title="Ranks"
-	description="Map your Roblox roles to what they can do here. Access follows Roblox, so promotions apply on their own. Ranks marked visible appear on your public roster."
+	description="Map your Roblox roles to what they can do here. Access follows Roblox, so promotions apply on their own. Ranks marked visible appear on your public staff list."
 >
 	{#snippet actions()}
 		<Button onclick={() => (bindOpen = true)}><IconPlus size={16} /> Bind a role</Button>
@@ -103,88 +121,140 @@
 	<div class="space-y-3">
 		{#each data.ranks as rank (rank.id)}
 			{@const isOwner = rank.cachedRank === 255}
-			<div class="card p-4">
-				<div class="flex flex-wrap items-start gap-4">
+			{@const open = expandedId === rank.id}
+			{@const sheet = data.signups[rank.id] ?? null}
+			<div class="card overflow-hidden">
+				<button
+					type="button"
+					onclick={() => toggleExpanded(rank.id)}
+					aria-expanded={open}
+					class="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-background-secondary/60"
+				>
+					<span
+						class="inline-block size-3 shrink-0 rounded-full"
+						style="background: {rank.color}"
+					></span>
+
 					<div class="min-w-0 flex-1">
-						<div class="flex flex-wrap items-center gap-2">
-							<span
-								class="inline-block size-3 shrink-0 rounded-full"
-								style="background: {rank.color}"
-							></span>
-							<p class="font-medium text-text">{rank.cachedName}</p>
-							<Badge>Rank {rank.cachedRank}</Badge>
-							{#if isOwner}<Badge tone="accent">Owner</Badge>{/if}
-						</div>
-						<p class="mt-1 text-xs text-text-muted">
+						<p class="truncate font-medium text-text">{rank.cachedName}</p>
+						<p class="truncate text-sm text-text-muted">
 							{PERMISSION_DESCRIPTIONS[rank.permissionLevel]}
 						</p>
 					</div>
 
-					<div class="flex shrink-0 items-center gap-1">
-						{#each levels as option (option.level)}
-							{@const active = rank.permissionLevel === option.level}
-							<button
-								type="button"
-								disabled={isOwner || busyId === rank.id}
-								title={PERMISSION_LABELS[option.level]}
-								aria-label={PERMISSION_LABELS[option.level]}
-								aria-pressed={active}
-								onclick={() => patchRank(rank.id, { permissionLevel: option.level })}
-								class="rounded-lg border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50
-									{active
-									? 'border-accent bg-accent/15 text-accent'
-									: 'border-border-base text-text-subtle hover:text-text'}"
-							>
-								<option.icon size={17} />
-							</button>
-						{/each}
+					<div class="hidden shrink-0 items-center gap-2 sm:flex">
+						{#if isOwner}<Badge tone="accent">Owner</Badge>{/if}
+						<Badge>Rank {rank.cachedRank}</Badge>
+						<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
+							{PERMISSION_LABELS[rank.permissionLevel]}
+						</Badge>
+						{#if rank.visible}<Badge>On staff list</Badge>{/if}
+						{#if sheet}
+							<Badge><IconClipboardList size={13} /> Sheet</Badge>
+						{/if}
 					</div>
-				</div>
 
-				<div class="mt-4 space-y-4 border-t border-border-base pt-4">
-					<Field
-						label="Roster description"
-						hint="Shown under this rank on the group's public roster."
-					>
-						<Input
-							value={rank.description}
-							maxlength={300}
-							disabled={busyId === rank.id}
-							placeholder="e.g. Drives assigned routes on shift."
-							onblur={(event) => {
-								const next = (event.currentTarget as HTMLInputElement).value;
-								if (next !== rank.description) patchRank(rank.id, { description: next });
-							}}
-						/>
-					</Field>
+					<IconChevronDown
+						size={18}
+						class="shrink-0 text-text-muted transition-transform {open ? 'rotate-180' : ''}"
+					/>
+				</button>
 
-					<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-						<div class="flex items-center gap-2">
-							<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">Colour</span>
-							<ColorInput
-								value={rank.color}
-								disabled={busyId === rank.id}
-								oncommit={(color) => patchRank(rank.id, { color })}
-							/>
-						</div>
+				{#if open}
+					<div class="space-y-6 border-t border-border-base p-4">
+						<FieldGroup
+							title="Access"
+							description="What members holding this rank can do here."
+							columns={1}
+						>
+							<div class="flex flex-wrap items-center gap-1">
+								{#each levels as option (option.level)}
+									{@const active = rank.permissionLevel === option.level}
+									<button
+										type="button"
+										disabled={isOwner || busyId === rank.id}
+										title={PERMISSION_DESCRIPTIONS[option.level]}
+										aria-pressed={active}
+										onclick={() => patchRank(rank.id, { permissionLevel: option.level })}
+										class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors
+											disabled:cursor-not-allowed disabled:opacity-50
+											{active
+											? 'border-accent bg-accent/15 text-accent'
+											: 'border-border-base text-text-subtle hover:text-text'}"
+									>
+										<option.icon size={17} />
+										{PERMISSION_LABELS[option.level]}
+									</button>
+								{/each}
+							</div>
 
-						<div class="min-w-56 flex-1">
+							{#if isOwner}
+								<p class="text-xs text-text-subtle">
+									The owner rank always keeps full access, so it cannot be changed here.
+								</p>
+							{/if}
+						</FieldGroup>
+
+						<FieldGroup
+							title="Staff list"
+							description="How this rank appears on the group's public page."
+							columns={1}
+						>
 							<Toggle
 								checked={rank.visible}
-								label="Show on public roster"
+								label="Show on the public staff list"
 								description="Lists this rank and the people holding it on your public page."
+								disabled={busyId === rank.id}
 								onchange={(visible) => patchRank(rank.id, { visible })}
 							/>
-						</div>
 
-						<div class="flex gap-1">
+							<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
+								<Field
+									label="Description"
+									hint="Shown under this rank on the group's public staff list."
+								>
+									<Input
+										value={rank.description}
+										maxlength={300}
+										disabled={busyId === rank.id}
+										placeholder="e.g. Drives assigned routes on shift."
+										onblur={(event) => {
+											const next = (event.currentTarget as HTMLInputElement).value;
+											if (next !== rank.description) patchRank(rank.id, { description: next });
+										}}
+									/>
+								</Field>
+
+								<Field label="Colour">
+									<ColorInput
+										value={rank.color}
+										disabled={busyId === rank.id}
+										oncommit={(color) => patchRank(rank.id, { color })}
+									/>
+								</Field>
+							</div>
+						</FieldGroup>
+
+						<RankSignupEditor
+							{groupId}
+							groupSlug={data.group.slug}
+							rankId={rank.id}
+							rankName={rank.cachedName}
+							rankColor={rank.color}
+							signup={sheet}
+							botConnected={data.botConnected}
+							channelNames={data.channelNames}
+							roleNames={data.roleNames}
+						/>
+
+						<div class="flex flex-wrap gap-2 border-t border-border-base pt-4">
 							<Button
 								size="sm"
-								variant="ghost"
+								variant="secondary"
 								onclick={() => patchRank(rank.id, { refresh: true })}
 								disabled={busyId === rank.id}
 							>
-								<IconRefresh size={15} /> Refresh
+								<IconRefresh size={15} /> Refresh from Roblox
 							</Button>
 
 							{#if !isOwner}
@@ -194,23 +264,12 @@
 									onclick={() => unbindRank(rank.id, rank.cachedName)}
 									disabled={busyId === rank.id}
 								>
-									<IconTrash size={15} />
+									<IconTrash size={15} /> Unbind
 								</Button>
 							{/if}
 						</div>
 					</div>
-				</div>
-				<RankSignupEditor
-					{groupId}
-					groupSlug={data.group.slug}
-					rankId={rank.id}
-					rankName={rank.cachedName}
-					rankColor={rank.color}
-					signup={data.signups[rank.id] ?? null}
-					botConnected={data.botConnected}
-					channelNames={data.channelNames}
-					roleNames={data.roleNames}
-				/>
+				{/if}
 			</div>
 		{/each}
 	</div>

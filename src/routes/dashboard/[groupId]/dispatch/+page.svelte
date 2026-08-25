@@ -1,30 +1,30 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { refreshData } from '$lib/utils/refresh';
-	import {
-		IconBolt,
-		IconClipboardText,
-		IconKeyboard,
-		IconPlayerStop,
-		IconSearch,
-		IconUsers
-	} from '@tabler/icons-svelte';
+	import { IconClipboardText, IconPlayerStop } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import Field from '$lib/components/ui/Field.svelte';
-	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import VehicleRow from '$lib/components/dispatch/VehicleRow.svelte';
+	import VehicleSection from '$lib/components/dispatch/VehicleSection.svelte';
+	import DispatchToolbar from '$lib/components/dispatch/DispatchToolbar.svelte';
+	import ImportVehiclesModal from '$lib/components/dispatch/ImportVehiclesModal.svelte';
+	import RoomStatus from '$lib/components/dispatch/RoomStatus.svelte';
 	import ShiftCountdown from '$lib/components/dispatch/ShiftCountdown.svelte';
 	import PresenceModal from '$lib/components/dispatch/PresenceModal.svelte';
-	import { DispatchNav } from '$lib/components/dispatch/keyboardNav.svelte';
+	import { DispatchNav, type NavCell, type NavRow } from '$lib/components/dispatch/keyboardNav.svelte';
 	import { DispatchRoom } from '$lib/stores/dispatch.svelte';
+	import { OwnerDirectory } from '$lib/stores/owners.svelte';
+	import { ListCollapse } from '$lib/components/dispatch/listCollapse.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
-	import { VEHICLE_CATEGORY_LABELS, VEHICLE_CATEGORY_ORDER } from '$lib/api/types';
-	import type { DispatchVehicle } from '$lib/api/types';
+	import {
+		NOTE_ROUTE,
+		VEHICLE_BUCKET_LABELS,
+		VEHICLE_BUCKET_ORDER,
+		vehicleBucket
+	} from '$lib/api/types';
+	import type { DispatchVehicle, ServiceStatus, VehicleBucket } from '$lib/api/types';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -45,38 +45,10 @@
 
 	onDestroy(() => room.disconnect());
 
-	// --- owner name resolution -------------------------------------------------
-
-	let owners = $state<Record<string, { displayName: string | null; username: string | null; avatar: string | null }>>({});
-	let resolvedIds = new Set<string>();
+	const owners = new OwnerDirectory();
 
 	$effect(() => {
-		const missing = room.vehicles
-			.map((vehicle) => vehicle.ownerId)
-			.filter((id) => id && id !== '0' && !resolvedIds.has(id));
-
-		if (missing.length === 0) return;
-
-		const batch = [...new Set(missing)];
-		batch.forEach((id) => resolvedIds.add(id));
-
-		api.users.roblox.resolve
-			.post({ robloxIds: batch })
-			.then(({ data: profiles }) => {
-				if (!profiles) return;
-				const next = { ...owners };
-				for (const profile of profiles) {
-					next[profile.robloxId] = {
-						displayName: profile.displayName,
-						username: profile.username,
-						avatar: profile.avatar
-					};
-				}
-				owners = next;
-			})
-			.catch(() => {
-				// Names are a nicety; ids still render.
-			});
+		owners.resolve(room.vehicles.map((vehicle) => vehicle.ownerId));
 	});
 
 	// --- filtering and grouping ------------------------------------------------
@@ -90,12 +62,17 @@
 		if (!term) return room.vehicles;
 
 		return room.vehicles.filter((vehicle) => {
-			const owner = owners[vehicle.ownerId];
+			const owner = owners.profiles[vehicle.ownerId];
 			return [
 				vehicle.id,
 				vehicle.name,
 				vehicle.depot,
 				vehicle.routeName ?? '',
+				// Only the note actually on show: a vehicle put back on a route
+				// keeps its old note in case it goes back, and matching text
+				// nobody can see makes a search result look like a bug.
+				vehicle.route === NOTE_ROUTE ? vehicle.note : '',
+				vehicle.location,
 				owner?.displayName ?? '',
 				owner?.username ?? ''
 			]
@@ -106,28 +83,163 @@
 	});
 
 	let grouped = $derived.by(() => {
-		const buckets: Record<string, DispatchVehicle[]> = {
-			TROLLEYBUS: [],
+		const buckets: Record<VehicleBucket, DispatchVehicle[]> = {
 			SERVICE: [],
 			STAFF: [],
-			OTHER: []
+			NORMAL: [],
+			DECORATIVE: []
 		};
 
-		for (const vehicle of filtered) buckets[vehicle.category]?.push(vehicle);
+		for (const vehicle of filtered) buckets[vehicleBucket(vehicle)].push(vehicle);
 
-		for (const key of Object.keys(buckets)) {
-			buckets[key]!.sort(
-				(a, b) => a.depot.localeCompare(b.depot) || a.id.localeCompare(b.id, undefined, { numeric: true })
-			);
+		// Ascending by vehicle number, which is how a dispatcher reads a list
+		// and how the game itself numbers them. Grouping by depot first meant
+		// scanning two blocks to find 1051.
+		for (const list of Object.values(buckets)) {
+			list.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 		}
 
 		return buckets;
 	});
 
 	/** The rows in the order they are painted, which is the order the cursor walks. */
-	let ordered = $derived(VEHICLE_CATEGORY_ORDER.flatMap((category) => grouped[category] ?? []));
+	let ordered = $derived(VEHICLE_BUCKET_ORDER.flatMap((bucket) => grouped[bucket]));
 
-	let assignedCount = $derived(room.vehicles.filter((vehicle) => vehicle.route).length);
+	/**
+	 * The lists with something in them, in the order they are drawn.
+	 *
+	 * The number keys count these rather than counting all four: on a shift
+	 * with no staff cars, `2` reaching past an empty heading to the third list
+	 * is what somebody looking at the screen would expect, and a shortcut that
+	 * lands on nothing is just a key that does not work.
+	 */
+	let shownBuckets = $derived(VEHICLE_BUCKET_ORDER.filter((bucket) => grouped[bucket].length > 0));
+
+	/**
+	 * Who is towing whom.
+	 *
+	 * The tow lives on the tow truck, so a vehicle under tow only learns about
+	 * it by being looked up here. Keyed by the *towed* vehicle for that reason.
+	 */
+	let towedBy = $derived.by(() => {
+		const map = new Map<string, DispatchVehicle>();
+		for (const vehicle of room.vehicles) {
+			if (vehicle.towing) map.set(vehicle.towing, vehicle);
+		}
+		return map;
+	});
+
+	let byId = $derived(new Map(room.vehicles.map((vehicle) => [vehicle.id, vehicle])));
+
+	/** Only vehicles that can carry a route count towards the board's figures. */
+	let passenger = $derived(room.vehicles.filter((vehicle) => vehicleBucket(vehicle) === 'NORMAL'));
+	let assignedCount = $derived(
+		passenger.filter((vehicle) => vehicle.route && vehicle.route !== NOTE_ROUTE).length
+	);
+
+	const lists = new ListCollapse();
+
+	$effect(() => lists.load(group.id));
+
+	// --- towing ----------------------------------------------------------------
+
+	/** The service vehicle currently choosing something to tow. */
+	let towPick = $state<string | null>(null);
+	/** The service vehicle whose tow button is being pointed at. */
+	let towHover = $state<string | null>(null);
+
+	// A tow truck that leaves the room takes its half-finished choice with it.
+	$effect(() => {
+		if (towPick && !room.vehicles.some((vehicle) => vehicle.id === towPick)) towPick = null;
+	});
+
+	/** True while this vehicle is a legal target for the tow being set up. */
+	function isCandidate(vehicle: DispatchVehicle): boolean {
+		return (
+			towPick !== null &&
+			vehicleBucket(vehicle) === 'NORMAL' &&
+			vehicle.id !== towPick &&
+			!towedBy.has(vehicle.id)
+		);
+	}
+
+	function startTowPick(serviceId: string) {
+		towPick = towPick === serviceId ? null : serviceId;
+	}
+
+	async function confirmTow(targetId: string) {
+		const source = towPick;
+		if (!source) return;
+
+		towPick = null;
+		await patchVehicle(source, { towing: targetId });
+	}
+
+	// --- keyboard cursor rows --------------------------------------------------
+
+	/**
+	 * The controls each row has, in the order the cursor walks them.
+	 *
+	 * Kept here rather than inside the row so the cursor and the row cannot
+	 * disagree about what exists — a cursor landing on a control a row does not
+	 * draw is indistinguishable, from the keyboard, from the mode being broken.
+	 */
+	function cellsFor(vehicle: DispatchVehicle, bucket: VehicleBucket): NavCell[] {
+		if (bucket === 'SERVICE') return ['status', 'location', 'tow', 'delete'];
+
+		if (bucket === 'NORMAL') {
+			if (towedBy.has(vehicle.id)) return ['endtow', 'delete'];
+			// A vehicle carrying a written note has no solve button: the solver
+			// refuses to overwrite a note, so offering it would be a button
+			// that reports having done nothing.
+			return vehicle.route === NOTE_ROUTE
+				? ['route', 'note', 'assigned', 'delete']
+				: ['route', 'solve', 'assigned', 'delete'];
+		}
+
+		// Staff cars and scenery carry no dispatch state to change.
+		return ['delete'];
+	}
+
+	let navRows: NavRow[] = $derived(
+		ordered.map((vehicle) => {
+			const bucket = vehicleBucket(vehicle);
+			return { id: vehicle.id, bucket, cells: cellsFor(vehicle, bucket) };
+		})
+	);
+
+	const nav = new DispatchNav();
+
+	// A vehicle leaving the room, or a row's controls changing under the
+	// cursor, must not strand it on something that is no longer there.
+	$effect(() => {
+		nav.clamp(navRows);
+	});
+
+	/**
+	 * Walking into a folded list opens it.
+	 *
+	 * Only on the way in, though: reacting to the cursor merely *being* there
+	 * made a list the cursor sat in impossible to fold, because the click that
+	 * folded it re-ran this and opened it again.
+	 */
+	let cursorWasOn = -1;
+
+	$effect(() => {
+		if (!nav.enabled) {
+			cursorWasOn = -1;
+			return;
+		}
+
+		const row = nav.row;
+		if (row === cursorWasOn) return;
+		cursorWasOn = row;
+
+		untrack(() => {
+			const bucket = navRows[row]?.bucket;
+			if (bucket) lists.open(bucket);
+		});
+	});
 
 	// --- actions ---------------------------------------------------------------
 
@@ -153,6 +265,23 @@
 		}
 	}
 
+	/**
+	 * Choosing from the route dropdown.
+	 *
+	 * "Custom note" is a value in the same list because it occupies the same
+	 * place in a dispatcher's head — it is what this vehicle has been told to
+	 * do — and it lands in the same field, so the solver leaves it alone
+	 * without needing to be told about notes separately.
+	 */
+	function setRoute(vehicle: DispatchVehicle, next: string) {
+		if (next === NOTE_ROUTE) {
+			patchVehicle(vehicle.id, { route: NOTE_ROUTE });
+			return;
+		}
+
+		patchVehicle(vehicle.id, { route: next === '' ? null : next });
+	}
+
 	async function deleteVehicle(id: string) {
 		if (!roomId) return;
 
@@ -169,6 +298,44 @@
 	}
 
 	let solving = $state(false);
+
+	/**
+	 * Placing one vehicle.
+	 *
+	 * `includeAssigned` is on because this button's whole purpose is the
+	 * vehicle that already has a route — a driver swapped, a route filled up —
+	 * which is precisely the one the board-wide solve leaves alone. The room
+	 * still counts towards the spread it is placed into; only this vehicle
+	 * moves.
+	 */
+	async function solveVehicle(vehicle: DispatchVehicle) {
+		if (!roomId) return;
+
+		setBusy(vehicle.id, true);
+		try {
+			const { data: result, error } = await api
+				.dispatch({ roomId })
+				.solve.post({ includeAssigned: true, vehicleIds: [vehicle.id] });
+			if (!result) throw error;
+
+			const [assignment] = result.assignments;
+			if (!assignment?.route) {
+				toasts.error(
+					`Nothing to give ${vehicle.id} — no route serving ${vehicle.depot || 'its depot'} takes automatic assignment.`
+				);
+				return;
+			}
+
+			room.patchLocal(vehicle.id, { route: assignment.route });
+
+			const named = data.routes.find((route) => route.id === assignment.route);
+			toasts.success(`${vehicle.id} → ${named?.name ?? assignment.route}`);
+		} catch (error) {
+			toasts.error(errorMessage(error, 'Could not assign a route to that vehicle'));
+		} finally {
+			setBusy(vehicle.id, false);
+		}
+	}
 
 	async function solve(includeAssigned: boolean) {
 		if (!roomId) return;
@@ -235,48 +402,9 @@
 		}
 	}
 
-	// --- vehicle import --------------------------------------------------------
-
 	let importOpen = $state(false);
-	let importText = $state('');
-	let importing = $state(false);
-
-	async function importVehicles() {
-		if (!roomId) return;
-
-		let parsed: unknown;
-		try {
-			parsed = JSON.parse(importText);
-		} catch {
-			toasts.error('That is not valid JSON');
-			return;
-		}
-
-		if (!Array.isArray(parsed)) {
-			toasts.error('The JSON must be an array of vehicles');
-			return;
-		}
-
-		importing = true;
-		try {
-			const { data: result, error } = await api
-				.dispatch({ roomId })
-				.vehicles.post(parsed as never);
-			if (!result) throw error;
-
-			toasts.success(`Added ${result.added}, removed ${result.removed}, now tracking ${result.total}`);
-			importOpen = false;
-			importText = '';
-		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not import those vehicles'));
-		} finally {
-			importing = false;
-		}
-	}
 
 	// --- keyboard --------------------------------------------------------------
-
-	const nav = new DispatchNav();
 
 	function onKeydown(event: KeyboardEvent) {
 		const target = event.target as HTMLElement | null;
@@ -284,15 +412,42 @@
 			target &&
 			(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
+		// Backing out of a half-finished tow comes before everything else: it
+		// is the one mode the board can be in where other keys would act on the
+		// wrong thing.
+		if (event.key === 'Escape' && towPick) {
+			event.preventDefault();
+			towPick = null;
+			return;
+		}
+
 		// Backslash sits outside every text field's alphabet and next to Enter,
 		// so it can toggle the cursor without stealing a character.
 		if (event.key === '\\' && !typing) {
 			event.preventDefault();
-			nav.toggle(ordered.length);
+			nav.toggle(navRows);
 			return;
 		}
 
-		if (nav.handle(event, ordered.length)) {
+		// The lists are numbered as they are drawn, counting only the ones on
+		// screen — the heading a shortcut lands on is the nth heading you can
+		// see, not the nth that could exist.
+		if (!typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
+			const digit = Number(event.key);
+			if (digit >= 1 && digit <= shownBuckets.length) {
+				event.preventDefault();
+				jumpToList(shownBuckets[digit - 1]!);
+				return;
+			}
+
+			if (event.key === '[' || event.key === ']') {
+				event.preventDefault();
+				stepList(event.key === ']' ? 1 : -1);
+				return;
+			}
+		}
+
+		if (nav.handle(event, navRows, Boolean(typing))) {
 			event.preventDefault();
 			return;
 		}
@@ -308,52 +463,52 @@
 		if (event.key === 'Escape' && !typing) search = '';
 	}
 
-	// A vehicle leaving the room must not strand the cursor past the end.
-	$effect(() => {
-		if (nav.row > ordered.length - 1) nav.row = Math.max(ordered.length - 1, 0);
-	});
+	function jumpToList(bucket: VehicleBucket) {
+		lists.open(bucket);
+		if (!nav.jumpTo(navRows, bucket)) {
+			// Nothing to put a cursor on, but the heading still tells the story.
+			nav.exit();
+		}
+	}
 
-	const statusTone = {
-		idle: { label: 'Offline', tone: 'neutral' as const },
-		connecting: { label: 'Connecting', tone: 'warning' as const },
-		live: { label: 'Live', tone: 'success' as const },
-		retrying: { label: 'Reconnecting', tone: 'warning' as const },
-		closed: { label: 'Closed', tone: 'danger' as const }
-	};
+	/** The next or previous list that actually has something in it. */
+	function stepList(direction: 1 | -1) {
+		const current = nav.bucket(navRows);
+		const from = current ? VEHICLE_BUCKET_ORDER.indexOf(current) : direction > 0 ? -1 : 0;
+
+		const count = VEHICLE_BUCKET_ORDER.length;
+
+		for (let step = 1; step <= count; step += 1) {
+			const index = (((from + direction * step) % count) + count) % count;
+			const bucket = VEHICLE_BUCKET_ORDER[index]!;
+			if (grouped[bucket].length > 0) {
+				jumpToList(bucket);
+				return;
+			}
+		}
+	}
+
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 <PageHeader title="Dispatch" description="Assign routes together, in real time.">
-	{#snippet actions()}
+	{#snippet meta()}
 		{#if roomId}
-			<Badge tone={statusTone[room.status].tone}>
-				<span class="relative flex size-2">
-					{#if room.status === 'live'}
-						<span class="absolute inline-flex size-full animate-ping rounded-full bg-current opacity-70"
-						></span>
-					{/if}
-					<span class="relative inline-flex size-2 rounded-full bg-current"></span>
-				</span>
-				{statusTone[room.status].label}
-			</Badge>
+			<RoomStatus
+				status={room.status}
+				endsAt={data.roomEndsAt}
+				presence={room.presence.length}
+				onpresence={() => (presenceOpen = true)}
+			/>
+		{/if}
+	{/snippet}
 
-			<button
-				type="button"
-				onclick={() => (presenceOpen = true)}
-				title="See who is in this room"
-				class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5
-					text-xs text-text-muted transition-colors hover:border-accent hover:text-text"
-			>
-				<IconUsers size={13} />
-				{room.presence.length}
-			</button>
-
-			{#if canHost}
-				<Button variant="secondary" onclick={closeRoom}>
-					<IconPlayerStop size={16} /> Close room
-				</Button>
-			{/if}
+	{#snippet actions()}
+		{#if roomId && canHost}
+			<Button variant="secondary" onclick={closeRoom}>
+				<IconPlayerStop size={16} /> Close room
+			</Button>
 		{/if}
 	{/snippet}
 </PageHeader>
@@ -373,53 +528,38 @@
 		onopen={openRoom}
 	/>
 {:else}
-	<!-- Toolbar -->
-	<div class="mb-4 flex flex-wrap items-center gap-2">
-		<div class="relative min-w-48 flex-1">
-			<IconSearch
-				size={15}
-				class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-subtle"
-			/>
-			<input
-				bind:this={searchInput}
-				bind:value={search}
-				type="search"
-				placeholder="Search vehicles   /"
-				aria-label="Search vehicles"
-				class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-9 text-sm
-					text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
-			/>
+	<DispatchToolbar
+		bind:search
+		bind:searchInput
+		{solving}
+		tracked={room.vehicles.length}
+		assigned={assignedCount}
+		routable={passenger.length}
+		matching={search ? filtered.length : null}
+		navEnabled={nav.enabled}
+		onimport={() => (importOpen = true)}
+		onsolve={solve}
+	/>
+
+	{#if towPick}
+		<div
+			class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-tow bg-tow/10 px-3 py-2
+				text-sm text-text"
+		>
+			<span>
+				Pick the vehicle <span class="font-mono font-semibold">{towPick}</span> is towing.
+			</span>
+			<button
+				type="button"
+				onclick={() => (towPick = null)}
+				class="ml-auto inline-flex items-center gap-2 rounded-md border border-border-base
+					px-2.5 py-1 text-xs text-text-muted transition-colors hover:border-danger
+					hover:text-danger"
+			>
+				Cancel <kbd>Esc</kbd>
+			</button>
 		</div>
-
-		<Button variant="secondary" onclick={() => (importOpen = true)}>
-			<IconClipboardText size={16} /> Import
-		</Button>
-
-		<Button onclick={() => solve(false)} loading={solving}>
-			<IconBolt size={16} /> Solve routes
-		</Button>
-
-		<Button variant="ghost" onclick={() => solve(true)} disabled={solving}>Reassign all</Button>
-	</div>
-
-	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-subtle">
-		<p>
-			{room.vehicles.length} tracked · {assignedCount} assigned
-			{#if search}· {filtered.length} matching{/if}
-		</p>
-
-		<p class="flex items-center gap-1.5">
-			<IconKeyboard size={14} />
-			{#if nav.enabled}
-				<span class="text-accent">
-					Keyboard mode · <kbd>↑</kbd><kbd>↓</kbd> vehicle · <kbd>→</kbd> or <kbd>Enter</kbd> to go
-					in · <kbd>←</kbd> or <kbd>Esc</kbd> to go back
-				</span>
-			{:else}
-				<span>Press <kbd>\</kbd> for keyboard navigation</span>
-			{/if}
-		</p>
-	</div>
+	{/if}
 
 	{#if room.vehicles.length === 0}
 		<EmptyState
@@ -434,33 +574,48 @@
 		</EmptyState>
 	{:else}
 		<div class="space-y-6">
-			{#each VEHICLE_CATEGORY_ORDER as category (category)}
-				{@const vehicles = grouped[category] ?? []}
-				{#if vehicles.length > 0}
-					<section>
-						<h2 class="mb-2 flex items-center gap-2 text-sm font-semibold text-text">
-							{VEHICLE_CATEGORY_LABELS[category]}
-							<span class="text-xs font-normal text-text-subtle">{vehicles.length}</span>
-						</h2>
-
-						<div class="card divide-y divide-border-base p-1">
-							{#each vehicles as vehicle (vehicle.id)}
-								{@const index = ordered.indexOf(vehicle)}
-								<VehicleRow
-									{vehicle}
-									routes={data.routes}
-									owner={owners[vehicle.ownerId]}
-									busy={Boolean(busyIds[vehicle.id])}
-									navActive={nav.enabled && nav.row === index}
-									navCell={nav.enabled && nav.row === index ? nav.cell : null}
-									onroute={(route) => patchVehicle(vehicle.id, { route })}
-									ontoggle={(field, value) => patchVehicle(vehicle.id, { [field]: value })}
-									ondelete={() => deleteVehicle(vehicle.id)}
-								/>
-							{/each}
-						</div>
-					</section>
-				{/if}
+			{#each shownBuckets as bucket, index (bucket)}
+				{@const vehicles = grouped[bucket]}
+				<VehicleSection
+					label={VEHICLE_BUCKET_LABELS[bucket]}
+					count={vehicles.length}
+					open={!lists.closed[bucket]}
+					shortcut={index + 1}
+					ontoggle={() => lists.toggle(bucket)}
+				>
+					{#each vehicles as vehicle (vehicle.id)}
+						{@const row = ordered.indexOf(vehicle)}
+						{@const tower = towedBy.get(vehicle.id) ?? null}
+						<VehicleRow
+							{vehicle}
+							{bucket}
+							routes={data.routes}
+							owner={owners.profiles[vehicle.ownerId]}
+							busy={Boolean(busyIds[vehicle.id])}
+							navActive={nav.enabled && nav.row === row}
+							navCell={nav.enabled && nav.row === row ? nav.cell : null}
+							towedBy={tower}
+							towing={vehicle.towing ? (byId.get(vehicle.towing) ?? null) : null}
+							selecting={isCandidate(vehicle)}
+							dimmed={towPick !== null && !isCandidate(vehicle) && vehicle.id !== towPick}
+							highlighted={towHover !== null && tower?.id === towHover}
+							onroute={(next) => setRoute(vehicle, next)}
+							onnote={(note) => patchVehicle(vehicle.id, { note })}
+							onassigned={(value) => patchVehicle(vehicle.id, { assigned: value })}
+							onsolve={() => solveVehicle(vehicle)}
+							onstatus={(status: ServiceStatus) => patchVehicle(vehicle.id, { status })}
+							onlocation={(location) => patchVehicle(vehicle.id, { location })}
+							ontowpick={() => startTowPick(vehicle.id)}
+							ontowend={() =>
+								// From the casualty's row it is the tow truck that has to be
+								// told; from the truck's own row that is this vehicle.
+								patchVehicle(tower ? tower.id : vehicle.id, { towing: null })}
+							onselect={() => confirmTow(vehicle.id)}
+							ontowhover={(hovering) => (towHover = hovering ? vehicle.id : null)}
+							ondelete={() => deleteVehicle(vehicle.id)}
+						/>
+					{/each}
+				</VehicleSection>
 			{/each}
 		</div>
 	{/if}
@@ -468,36 +623,15 @@
 	<PresenceModal bind:open={presenceOpen} {roomId} present={room.presence} />
 {/if}
 
-<Modal
-	bind:open={importOpen}
-	title="Import vehicles"
-	description="Paste the vehicle JSON from the game. Vehicles missing from the list are removed; existing ones keep their assignments."
-	size="lg"
->
-	<Field label="Vehicle JSON">
-		<Textarea
-			bind:value={importText}
-			rows={10}
-			spellcheck="false"
-			class="font-mono text-xs"
-			placeholder={'[{"Id":101,"OwnerId":1,"Name":"ZiU-9 Trolleybus","Depot":"Main Island Depot"}]'}
-		/>
-	</Field>
-
-	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (importOpen = false)}>Cancel</Button>
-		<Button onclick={importVehicles} loading={importing} disabled={!importText.trim()}>
-			Import
-		</Button>
-	{/snippet}
-</Modal>
+<ImportVehiclesModal bind:open={importOpen} {roomId} />
 
 <style>
 	kbd {
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.25rem;
-		padding: 0 0.25rem;
+		padding: 0.05rem 0.3rem;
 		font-family: inherit;
 		font-size: 0.9em;
+		line-height: 1.3;
 	}
 </style>

@@ -13,6 +13,7 @@
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import IconUploader from '$lib/components/media/IconUploader.svelte';
+	import VehicleTypesCard from '$lib/components/dispatch/VehicleTypesCard.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatRelative } from '$lib/utils/format';
@@ -139,7 +140,11 @@
 			<div class="space-y-3 sm:col-span-2">
 				<Toggle bind:checked={form.showRoutes} label="Show routes" description="List public routes on the page." />
 				<Toggle bind:checked={form.showShifts} label="Show shifts" description="List upcoming public shifts." />
-				<Toggle bind:checked={form.showRoster} label="Show roster" description="List ranks marked visible." />
+				<Toggle
+					bind:checked={form.showRoster}
+					label="Show staff list"
+					description="List ranks marked visible."
+				/>
 			</div>
 		</div>
 
@@ -186,6 +191,8 @@
 			<Button onclick={save} loading={saving}>Save</Button>
 		{/snippet}
 	</Card>
+
+	<VehicleTypesCard groupId={group.id} types={data.vehicleTypes} />
 
 	<Card title="Roblox Open Cloud" description="How TrP Tools reads ranks for this group.">
 		{#snippet actions()}

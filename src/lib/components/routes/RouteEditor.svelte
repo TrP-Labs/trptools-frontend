@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { IconLock, IconTrash } from '@tabler/icons-svelte';
+	import { IconEyeOff, IconLock, IconTrash } from '@tabler/icons-svelte';
 	import RouteBadge from './RouteBadge.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
+	import FieldGroup from '$lib/components/ui/FieldGroup.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -22,6 +23,8 @@
 		autoAssign: boolean;
 		targetShare: number;
 		visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
+		/** Whether the group's public page lists this route. */
+		showOnGroupPage: boolean;
 		archived: boolean;
 		depots: string[];
 	}
@@ -94,58 +97,82 @@
 			? draft.depots.filter((depot) => depot !== id)
 			: [...draft.depots, id];
 	}
+
+	/** Nothing under "public page" can take effect once the route is private. */
+	let published = $derived(draft.visibility === 'PUBLIC');
 </script>
 
-<div class="grid gap-5 md:grid-cols-[auto_1fr]">
-	<div class="flex flex-col items-center gap-2 md:w-32">
-		<RouteBadge
-			label={draft.name || '??'}
-			color={draft.color}
-			textColor={draft.textColor}
-			shape={draft.shape}
-			{icon}
-			size="lg"
-		/>
-		<p class="text-center text-xs text-text-subtle">
-			{icon ? 'Uploaded badge' : 'Live preview'}
-		</p>
-	</div>
+<div class="space-y-6">
+	<FieldGroup title="Route" description="Its name, and how the badge is drawn." columns={1}>
+		<div class="grid gap-5 sm:grid-cols-[auto_1fr]">
+			<div class="flex flex-col items-center gap-2 sm:w-32">
+				<RouteBadge
+					label={draft.name || '??'}
+					color={draft.color}
+					textColor={draft.textColor}
+					shape={draft.shape}
+					{icon}
+					size="lg"
+				/>
+				<p class="text-center text-xs text-text-subtle">
+					{icon ? 'Uploaded badge' : 'Live preview'}
+				</p>
+			</div>
 
-	<div class="grid gap-4 sm:grid-cols-2">
-		<Field
-			label="Route name"
-			hint={builtIn
-				? 'Built-in routes keep the name the game uses.'
-				: 'Must match the route name in game. Up to 10 characters shown.'}
-		>
-			<Input bind:value={draft.name} maxlength={24} disabled={builtIn} placeholder="e.g. 14 or EXPRESS" />
-		</Field>
+			<div class="grid gap-4 sm:grid-cols-2">
+				<Field
+					label="Route name"
+					hint={builtIn
+						? 'Built-in routes keep the name the game uses.'
+						: 'Must match the route name in game. Up to 10 characters shown.'}
+				>
+					<Input
+						bind:value={draft.name}
+						maxlength={24}
+						disabled={builtIn}
+						placeholder="e.g. 14 or EXPRESS"
+					/>
+				</Field>
 
-		<Field label="Shape" hint="Automatic makes short names round and long names rectangular.">
-			<Select bind:value={draft.shape} options={shapes} />
-		</Field>
+				<Field label="Shape" hint="Automatic makes short names round and long names rectangular.">
+					<Select bind:value={draft.shape} options={shapes} />
+				</Field>
 
-		<Field label="Route colour">
-			<ColorInput bind:value={draft.color} />
-		</Field>
+				<Field label="Route colour">
+					<ColorInput bind:value={draft.color} />
+				</Field>
 
-		<Field label="Label colour" hint="The ink used for the route number itself.">
-			<ColorInput bind:value={draft.textColor} />
-		</Field>
+				<Field label="Label colour" hint="The ink used for the route number itself.">
+					<ColorInput bind:value={draft.textColor} />
+				</Field>
 
-		<Field label="Description" class="sm:col-span-2">
-			<Textarea
-				bind:value={draft.description}
-				rows={2}
-				maxlength={1000}
-				placeholder="Where this route runs, and anything drivers should know."
+				<Field label="Description" class="sm:col-span-2">
+					<Textarea
+						bind:value={draft.description}
+						rows={2}
+						maxlength={1000}
+						placeholder="Where this route runs, and anything drivers should know."
+					/>
+				</Field>
+			</div>
+		</div>
+
+		{#if mode === 'edit' && routeId && groupId}
+			<IconUploader
+				{groupId}
+				ownerType="ROUTE"
+				ownerId={routeId}
+				current={icon}
+				label="Route badge"
+				hint="Replaces the drawn roundel everywhere this route appears, including the dispatch table. Square images work best. Saved as soon as it uploads."
 			/>
-		</Field>
+		{/if}
+	</FieldGroup>
 
+	<FieldGroup title="Dispatch" description="How automatic assignment treats it." columns={1}>
 		<Field
 			label="Depots served"
 			hint="Automatic assignment only puts vehicles on routes their depot serves. Select none to serve every depot."
-			class="sm:col-span-2"
 		>
 			{#if depots.length === 0}
 				<p class="text-sm text-text-muted">No depots configured yet.</p>
@@ -173,7 +200,6 @@
 		<Field
 			label="Target share"
 			hint="The portion of dispatchable vehicles this route should carry. Shares are weighed against the other routes each depot serves, so they need not total 100."
-			class="sm:col-span-2"
 		>
 			<div class="flex items-center gap-3">
 				<input
@@ -209,69 +235,73 @@
 			</div>
 		</Field>
 
-		<Field label="Visibility" hint="Public routes appear on the group's public page.">
-			<Select bind:value={draft.visibility} options={visibilities} />
+		<Toggle
+			bind:checked={draft.autoAssign}
+			label="Include in automatic assignment"
+			description="Turn off for routes that should only ever be assigned by hand."
+		/>
+	</FieldGroup>
+
+	<FieldGroup title="Public page" description="What visitors to the group see." columns={1}>
+		<Field label="Visibility" hint="Members only keeps this route inside the dashboard.">
+			<Select bind:value={draft.visibility} options={visibilities} class="sm:max-w-64" />
 		</Field>
 
-		<div class="space-y-3 sm:col-span-2">
-			<Toggle
-				bind:checked={draft.autoAssign}
-				label="Include in automatic assignment"
-				description="Turn off for routes that should only ever be assigned by hand."
-			/>
-
-			{#if mode === 'edit'}
-				<Toggle
-					bind:checked={draft.archived}
-					label="Disabled"
-					description={builtIn
-						? 'Hides this built-in route from dispatch and the public page. You can turn it back on at any time.'
-						: 'Hidden from dispatch and public pages, without deleting its history.'}
-				/>
-			{/if}
-		</div>
+		<Toggle
+			bind:checked={draft.showOnGroupPage}
+			disabled={!published}
+			label="List on the group page"
+			description={published
+				? 'Off keeps the route at its own address without crowding the group page.'
+				: 'Members-only routes never appear on the group page.'}
+		/>
 
 		{#if mode === 'edit' && routeId && groupId}
-			<div class="sm:col-span-2">
-				<IconUploader
-					{groupId}
-					ownerType="ROUTE"
-					ownerId={routeId}
-					current={icon}
-					label="Route badge"
-					hint="Replaces the drawn roundel everywhere this route appears, including the dispatch table. Square images work best. Saved as soon as it uploads."
-				/>
-			</div>
+			<ImageManager
+				{groupId}
+				ownerType="ROUTE"
+				ownerId={routeId}
+				{images}
+				label="Route maps"
+				hint="Shown on the public page. Up to 12 images."
+				onchange={onimageschanged}
+			/>
+		{/if}
+	</FieldGroup>
 
-			<div class="sm:col-span-2">
-				<ImageManager
-					{groupId}
-					ownerType="ROUTE"
-					ownerId={routeId}
-					{images}
-					label="Route maps"
-					hint="Shown on the public page. Up to 12 images."
-					onchange={onimageschanged}
-				/>
-			</div>
+	{#if mode === 'edit'}
+		<FieldGroup title="Availability" columns={1}>
+			<Toggle
+				bind:checked={draft.archived}
+				label="Disabled"
+				description={builtIn
+					? 'Hides this built-in route from dispatch and the public page. You can turn it back on at any time.'
+					: 'Hidden from dispatch and public pages, without deleting its history.'}
+			/>
+		</FieldGroup>
+	{/if}
+
+	<div class="flex flex-wrap items-center gap-2 border-t border-border-base pt-4">
+		<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>
+			{mode === 'create' ? 'Create route' : 'Save changes'}
+		</Button>
+
+		{#if mode === 'edit'}
+			{#if builtIn}
+				<span class="inline-flex items-center gap-1.5 text-xs text-text-subtle">
+					<IconLock size={14} /> Built-in routes can be disabled but not deleted
+				</span>
+			{:else if ondelete}
+				<Button variant="danger" onclick={ondelete} disabled={busy}>
+					<IconTrash size={16} /> Delete
+				</Button>
+			{/if}
 		{/if}
 
-		<div class="flex flex-wrap items-center gap-2 sm:col-span-2">
-			<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>
-				{mode === 'create' ? 'Create route' : 'Save changes'}
-			</Button>
-
-			{#if mode === 'edit'}
-				{#if builtIn}
-					<span class="inline-flex items-center gap-1.5 text-xs text-text-subtle">
-						<IconLock size={14} /> Built-in routes can be disabled but not deleted
-					</span>
-				{:else if ondelete}
-					<Button variant="danger" onclick={ondelete} disabled={busy}>
-						<IconTrash size={16} /> Delete
-					</Button>
-				{/if}
-			{/if}
-		</div>
+		{#if published && !draft.showOnGroupPage}
+			<span class="ml-auto inline-flex items-center gap-1.5 text-xs text-text-subtle">
+				<IconEyeOff size={14} /> Not listed on the group page
+			</span>
+		{/if}
 	</div>
 </div>

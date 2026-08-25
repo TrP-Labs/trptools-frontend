@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { refreshData } from '$lib/utils/refresh';
-	import { IconChevronDown, IconLock, IconPlus, IconRoute } from '@tabler/icons-svelte';
+	import { IconChevronDown, IconEyeOff, IconLock, IconPlus, IconRoute } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -28,6 +28,7 @@
 			autoAssign: true,
 			targetShare: 20,
 			visibility: 'PUBLIC',
+			showOnGroupPage: true,
 			archived: false,
 			depots: []
 		};
@@ -43,6 +44,7 @@
 			autoAssign: route.autoAssign,
 			targetShare: route.targetShare,
 			visibility: route.visibility,
+			showOnGroupPage: route.showOnGroupPage,
 			archived: route.archived,
 			depots: [...route.depots]
 		};
@@ -197,7 +199,11 @@
 						{#if route.archived}<Badge>Disabled</Badge>{/if}
 						{#if route.moderation === 'HIDDEN'}<Badge tone="danger">Hidden</Badge>{/if}
 						{#if !route.autoAssign}<Badge tone="warning">Manual only</Badge>{/if}
-						{#if route.visibility !== 'PUBLIC'}<Badge>Members only</Badge>{/if}
+						{#if route.visibility !== 'PUBLIC'}
+							<Badge>Members only</Badge>
+						{:else if !route.showOnGroupPage}
+							<Badge><IconEyeOff size={13} /> Not on group page</Badge>
+						{/if}
 						<Badge tone="accent">{formatShare(route.targetShare)}%</Badge>
 						<Badge>
 							{route.depots.length === 0
