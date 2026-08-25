@@ -113,9 +113,16 @@ export interface DispatchVehicle {
 	routeColor: string | null;
 	category: 'TROLLEYBUS' | 'SERVICE' | 'STAFF' | 'OTHER';
 	assigned: boolean;
-	towing: boolean;
+	/** The id of the vehicle this one is towing, or null. Service vehicles only. */
+	towing: string | null;
+	/** Free text shown in place of a route, when the dispatcher wrote one. */
 	note: string;
+	/** Where a service vehicle is, in the dispatcher's own words. */
+	location: string;
+	status: ServiceStatus;
 }
+
+export type ServiceStatus = 'AWAITING' | 'ENROUTE' | 'ON_SCENE' | 'RETURNING';
 
 export type DispatchStreamEvent =
 	| { event: 'SYNC'; data: DispatchVehicle[] }
@@ -126,16 +133,78 @@ export type DispatchStreamEvent =
 	| { event: 'CLOSED' }
 	| { event: 'HEARTBEAT' };
 
+/** How a manager labels a vehicle in group settings. */
 export const VEHICLE_CATEGORY_LABELS: Record<DispatchVehicle['category'], string> = {
-	TROLLEYBUS: 'Trolleybuses',
-	SERVICE: 'Service vehicles',
-	STAFF: 'Staff vehicles',
-	OTHER: 'Other vehicles'
+	SERVICE: 'Service vehicle',
+	STAFF: 'Staff vehicle',
+	TROLLEYBUS: 'Vehicle',
+	OTHER: 'Vehicle (unclassified)'
 };
 
-export const VEHICLE_CATEGORY_ORDER: DispatchVehicle['category'][] = [
-	'TROLLEYBUS',
-	'SERVICE',
-	'STAFF',
-	'OTHER'
+/**
+ * The lists the dispatch page draws.
+ *
+ * A *bucket* is not quite a category: scenery is recognised by having no
+ * owner rather than by its model, and the two categories that take routes —
+ * a classified vehicle and one nobody has classified — belong in the same
+ * list, because a dispatcher assigning routes does not care which it is.
+ */
+export type VehicleBucket = 'SERVICE' | 'STAFF' | 'NORMAL' | 'DECORATIVE';
+
+export const VEHICLE_BUCKET_ORDER: VehicleBucket[] = ['SERVICE', 'STAFF', 'NORMAL', 'DECORATIVE'];
+
+export const VEHICLE_BUCKET_LABELS: Record<VehicleBucket, string> = {
+	SERVICE: 'Service vehicles',
+	STAFF: 'Staff vehicles',
+	// Not "Trolleybuses": the same list carries trams and monorails.
+	NORMAL: 'Vehicles',
+	DECORATIVE: 'Decorative vehicles'
+};
+
+/** Owner 0 is the game itself, which is what marks a vehicle as scenery. */
+export function vehicleBucket(vehicle: DispatchVehicle): VehicleBucket {
+	if (vehicle.ownerId === '0') return 'DECORATIVE';
+	if (vehicle.category === 'SERVICE') return 'SERVICE';
+	if (vehicle.category === 'STAFF') return 'STAFF';
+	return 'NORMAL';
+}
+
+export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
+	AWAITING: 'Awaiting assignment',
+	ENROUTE: 'En route',
+	ON_SCENE: 'On scene',
+	RETURNING: 'Returning'
+};
+
+export const SERVICE_STATUS_ORDER: ServiceStatus[] = [
+	'AWAITING',
+	'ENROUTE',
+	'ON_SCENE',
+	'RETURNING'
 ];
+
+/**
+ * A colour per status, so a board reads at a glance without being read.
+ *
+ * Literal hues rather than theme tokens, because the Discord board paints the
+ * same four and the two pictures have to agree — `src/bot/manifest.ts` holds
+ * the matching copy.
+ */
+export const SERVICE_STATUS_COLORS: Record<ServiceStatus, string> = {
+	AWAITING: '#8b949e',
+	ENROUTE: '#f0883e',
+	ON_SCENE: '#3fb950',
+	RETURNING: '#4287f5'
+};
+
+/**
+ * The `route` value meaning "this vehicle carries a written note instead".
+ *
+ * It lives in the same field as a route id because it occupies the same place
+ * in a dispatcher's head: it is what this vehicle has been told to do. The
+ * solver knows to leave it alone. Route ids are UUIDs, so nothing collides.
+ */
+export const NOTE_ROUTE = 'NOTE';
+
+/** A vehicle type as group settings edits it. */
+export type VehicleType = Data<ReturnType<ReturnType<Api['groups']>['vehicle-types']['get']>>[number];

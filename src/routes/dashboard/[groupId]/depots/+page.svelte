@@ -1,11 +1,18 @@
 <script lang="ts">
 	import { refreshData } from '$lib/utils/refresh';
-	import { IconBuildingWarehouse, IconChevronDown, IconPlus, IconTrash } from '@tabler/icons-svelte';
+	import {
+		IconBuildingWarehouse,
+		IconChevronDown,
+		IconEyeOff,
+		IconPlus,
+		IconTrash
+	} from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
+	import FieldGroup from '$lib/components/ui/FieldGroup.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -32,6 +39,8 @@
 		/** Free text in the form; split into the array the API wants on save. */
 		aliases: string;
 		visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
+		/** Whether the group's public page lists this depot. */
+		showOnGroupPage: boolean;
 		archived: boolean;
 	}
 
@@ -44,6 +53,7 @@
 			color: '#4287f5',
 			aliases: '',
 			visibility: 'PUBLIC',
+			showOnGroupPage: true,
 			archived: false
 		};
 	}
@@ -56,6 +66,7 @@
 			color: depot.color,
 			aliases: depot.aliases.join(', '),
 			visibility: depot.visibility,
+			showOnGroupPage: depot.showOnGroupPage,
 			archived: depot.archived
 		};
 	}
@@ -87,6 +98,7 @@
 		color: '#4287f5',
 		aliases: '',
 		visibility: 'PUBLIC',
+		showOnGroupPage: true,
 		archived: false
 	});
 	let creating = $state(false);
@@ -215,7 +227,11 @@
 					<div class="hidden shrink-0 items-center gap-2 sm:flex">
 						{#if depot.archived}<Badge>Disabled</Badge>{/if}
 						{#if depot.moderation === 'HIDDEN'}<Badge tone="danger">Hidden</Badge>{/if}
-						{#if depot.visibility !== 'PUBLIC'}<Badge>Members only</Badge>{/if}
+						{#if depot.visibility !== 'PUBLIC'}
+							<Badge>Members only</Badge>
+						{:else if !depot.showOnGroupPage}
+							<Badge><IconEyeOff size={13} /> Not on group page</Badge>
+						{/if}
 						{#if depot.images.length > 0}
 							<Badge>{depot.images.length} {depot.images.length === 1 ? 'image' : 'images'}</Badge>
 						{/if}
@@ -228,60 +244,67 @@
 				</button>
 
 				{#if open}
-					<div class="grid gap-4 border-t border-border-base p-4 sm:grid-cols-2">
-						<Field label="Depot number" hint="The number the game uses for this spawn location.">
-							<Input type="number" min="0" max="9999" bind:value={editDraft.number} />
-						</Field>
+					<div class="space-y-6 border-t border-border-base p-4">
+						<FieldGroup title="Depot" description="How the game identifies this spawn.">
+							<Field label="Depot number" hint="The number the game uses for this spawn location.">
+								<Input type="number" min="0" max="9999" bind:value={editDraft.number} />
+							</Field>
 
-						<Field label="Name">
-							<Input bind:value={editDraft.name} maxlength={60} />
-						</Field>
+							<Field label="Name">
+								<Input bind:value={editDraft.name} maxlength={60} />
+							</Field>
 
-						<Field label="Colour">
-							<ColorInput bind:value={editDraft.color} />
-						</Field>
+							<Field label="Colour">
+								<ColorInput bind:value={editDraft.color} />
+							</Field>
 
-						<Field label="Visibility" hint="Public depots appear on the group's public page.">
-							<Select bind:value={editDraft.visibility} options={visibilities} />
-						</Field>
+							<Field label="Description" class="sm:col-span-2">
+								<Textarea
+									bind:value={editDraft.description}
+									rows={3}
+									maxlength={2000}
+									placeholder="Where it is, what runs from it, anything worth knowing."
+								/>
+							</Field>
 
-						<Field label="Description" class="sm:col-span-2">
-							<Textarea
-								bind:value={editDraft.description}
-								rows={3}
-								maxlength={2000}
-								placeholder="Where it is, what runs from it, anything worth knowing."
-							/>
-						</Field>
+							<Field
+								label="Other names in game"
+								hint="Comma separated. Dispatch matches the spawn name the game reports against this depot; the trailing word 'Depot' and punctuation are ignored automatically, so this is only needed when the game calls it something genuinely different."
+								class="sm:col-span-2"
+							>
+								<Input bind:value={editDraft.aliases} placeholder="e.g. Hardbass Island" />
+							</Field>
 
-						<Field
-							label="Other names in game"
-							hint="Comma separated. Dispatch matches the spawn name the game reports against this depot; the trailing word 'Depot' and punctuation are ignored automatically, so this is only needed when the game calls it something genuinely different."
-							class="sm:col-span-2"
-						>
-							<Input bind:value={editDraft.aliases} placeholder="e.g. Hardbass Island" />
-						</Field>
+							<div class="sm:col-span-2">
+								<IconUploader
+									groupId={data.group.id}
+									ownerType="DEPOT"
+									ownerId={depot.id}
+									current={depot.icon}
+									label="Depot icon"
+									hint="Replaces the numbered tile wherever this depot appears. Square images work best. Saved as soon as it uploads."
+								/>
+							</div>
+						</FieldGroup>
 
-						<div class="sm:col-span-2">
-							<IconUploader
-								groupId={data.group.id}
-								ownerType="DEPOT"
-								ownerId={depot.id}
-								current={depot.icon}
-								label="Depot icon"
-								hint="Replaces the numbered tile wherever this depot appears. Square images work best. Saved as soon as it uploads."
-							/>
-						</div>
+						<FieldGroup title="Public page" description="What visitors to the group see." columns={1}>
+							<Field label="Visibility" hint="Members only keeps this depot inside the dashboard.">
+								<Select
+									bind:value={editDraft.visibility}
+									options={visibilities}
+									class="sm:max-w-64"
+								/>
+							</Field>
 
-						<div class="sm:col-span-2">
 							<Toggle
-								bind:checked={editDraft.archived}
-								label="Disabled"
-								description="Hidden from dispatch and the public page. Routes keep their link to it."
+								bind:checked={editDraft.showOnGroupPage}
+								disabled={editDraft.visibility !== 'PUBLIC'}
+								label="List on the group page"
+								description={editDraft.visibility === 'PUBLIC'
+									? 'Off keeps the depot at its own address without crowding the group page.'
+									: 'Members-only depots never appear on the group page.'}
 							/>
-						</div>
 
-						<div class="sm:col-span-2">
 							<ImageManager
 								groupId={data.group.id}
 								ownerType="DEPOT"
@@ -290,13 +313,25 @@
 								label="Depot images"
 								hint="Shown on the public page. Up to 12 images."
 							/>
-						</div>
+						</FieldGroup>
 
-						<div class="flex flex-wrap gap-2 sm:col-span-2">
+						<FieldGroup title="Availability" columns={1}>
+							<Toggle
+								bind:checked={editDraft.archived}
+								label="Disabled"
+								description="Hidden from dispatch and the public page. Routes keep their link to it."
+							/>
+						</FieldGroup>
+
+						<div class="flex flex-wrap gap-2 border-t border-border-base pt-4">
 							<Button onclick={() => saveDepot(depot.id)} loading={savingId === depot.id}>
 								Save changes
 							</Button>
-							<Button variant="danger" onclick={() => deleteDepot(depot)} disabled={savingId === depot.id}>
+							<Button
+								variant="danger"
+								onclick={() => deleteDepot(depot)}
+								disabled={savingId === depot.id}
+							>
 								<IconTrash size={16} /> Delete
 							</Button>
 						</div>
@@ -308,34 +343,45 @@
 {/if}
 
 <Modal bind:open={createOpen} title="New depot" description="Give it the number the game uses.">
-	<div class="grid gap-4 sm:grid-cols-2">
-		<Field label="Depot number">
-			<Input type="number" min="0" max="9999" bind:value={createDraft.number} />
-		</Field>
+	<div class="space-y-6">
+		<FieldGroup title="Depot" description="How the game identifies this spawn.">
+			<Field label="Depot number">
+				<Input type="number" min="0" max="9999" bind:value={createDraft.number} />
+			</Field>
 
-		<Field label="Name">
-			<Input bind:value={createDraft.name} maxlength={60} placeholder="e.g. Cat Island" />
-		</Field>
+			<Field label="Name">
+				<Input bind:value={createDraft.name} maxlength={60} placeholder="e.g. Cat Island" />
+			</Field>
 
-		<Field label="Colour">
-			<ColorInput bind:value={createDraft.color} />
-		</Field>
+			<Field label="Colour">
+				<ColorInput bind:value={createDraft.color} />
+			</Field>
 
-		<Field label="Visibility">
-			<Select bind:value={createDraft.visibility} options={visibilities} />
-		</Field>
+			<Field label="Description" class="sm:col-span-2">
+				<Textarea bind:value={createDraft.description} rows={3} maxlength={2000} />
+			</Field>
 
-		<Field label="Description" class="sm:col-span-2">
-			<Textarea bind:value={createDraft.description} rows={3} maxlength={2000} />
-		</Field>
+			<Field
+				label="Other names in game"
+				hint="Comma separated. Only needed when the game calls this depot something different."
+				class="sm:col-span-2"
+			>
+				<Input bind:value={createDraft.aliases} placeholder="e.g. Hardbass Island" />
+			</Field>
+		</FieldGroup>
 
-		<Field
-			label="Other names in game"
-			hint="Comma separated. Only needed when the game calls this depot something different."
-			class="sm:col-span-2"
-		>
-			<Input bind:value={createDraft.aliases} placeholder="e.g. Hardbass Island" />
-		</Field>
+		<FieldGroup title="Public page" columns={1}>
+			<Field label="Visibility">
+				<Select bind:value={createDraft.visibility} options={visibilities} class="sm:max-w-64" />
+			</Field>
+
+			<Toggle
+				bind:checked={createDraft.showOnGroupPage}
+				disabled={createDraft.visibility !== 'PUBLIC'}
+				label="List on the group page"
+				description="Off keeps the depot at its own address without crowding the group page."
+			/>
+		</FieldGroup>
 	</div>
 
 	<p class="mt-3 text-xs text-text-subtle">

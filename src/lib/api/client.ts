@@ -42,15 +42,28 @@ export function loginUrl() {
  * The backend answers failures with a bare string literal, so most of the time
  * the value is already the message we want.
  *
- * A thrown `Error` is deliberately *not* shown. Anything reaching here that is
- * a real exception is a fault in our own code, and putting its text in a toast
- * only ever produced things like "Cannot read properties of undefined" in
- * front of a user who could do nothing with it. It goes to the console
- * instead, where it is actually useful.
+ * A thrown `Error`'s *own* text is deliberately never shown. Anything reaching
+ * here that is a real exception is a fault in our own code, and putting its
+ * text in a toast only ever produced things like "Cannot read properties of
+ * undefined" in front of a user who could do nothing with it. It goes to the
+ * console instead, where it is actually useful.
+ *
+ * `value` is the exception to that, and has to be read *before* the `Error`
+ * check rather than after it: Eden hands a failed request back as an `Error`
+ * carrying the response, so testing `instanceof Error` first swallowed every
+ * message the API deliberately writes for a person to read — a refused tow
+ * arrived as "could not update that vehicle" while the server had said exactly
+ * which vehicle was already being towed. `value` is a response body, never an
+ * exception's own words, so showing it breaks nothing the rule was there for.
  */
 export function errorMessage(error: unknown, fallback = 'Something went wrong'): string {
 	if (!error) return fallback;
 	if (typeof error === 'string') return error;
+
+	if (typeof error === 'object') {
+		const shape = error as { value?: unknown; status?: number };
+		if (typeof shape.value === 'string' && shape.value.length > 0) return shape.value;
+	}
 
 	if (error instanceof Error) {
 		console.error('[api]', error);
@@ -58,12 +71,11 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong'):
 	}
 
 	if (typeof error === 'object') {
-		const value = error as { value?: unknown; message?: unknown; status?: number };
-		if (typeof value.value === 'string') return value.value;
-		if (typeof value.message === 'string') return value.message;
-		if (value.status === 401) return 'You need to sign in to do that';
-		if (value.status === 403) return 'You do not have permission to do that';
-		if (value.status === 404) return 'Not found';
+		const shape = error as { message?: unknown; status?: number };
+		if (typeof shape.message === 'string') return shape.message;
+		if (shape.status === 401) return 'You need to sign in to do that';
+		if (shape.status === 403) return 'You do not have permission to do that';
+		if (shape.status === 404) return 'Not found';
 	}
 
 	return fallback;

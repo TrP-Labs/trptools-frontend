@@ -112,6 +112,20 @@
 	--color-warning: var(--warning);
 	--color-danger: var(--danger);
 
+	/*
+	 * Two fixed hues that mean one thing each on the dispatch board.
+	 *
+	 * They do not follow the theme accent deliberately: the accent is already
+	 * the keyboard cursor, and a tow highlight the same colour as the cursor
+	 * says nothing at all — which is exactly what a plain blue did, sitting
+	 * between this project's two accents (#5b9dff and #2563eb). The tow blue
+	 * is pulled towards cyan so the two never read as the same thing, and the
+	 * treatments differ too: the cursor is a ring, a tow candidate is a dashed
+	 * border. Both stay legible on all three backgrounds.
+	 */
+	--color-tow: #06b6d4;
+	--color-note: #a371f7;
+
 	--font-sans:
 		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;

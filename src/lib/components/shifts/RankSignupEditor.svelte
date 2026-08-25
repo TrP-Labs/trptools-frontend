@@ -138,7 +138,7 @@
 	}
 </script>
 
-<div class="mt-4 space-y-4 border-t border-border-base pt-4">
+<div class="space-y-4 border-t border-border-base pt-4">
 	<div class="flex flex-wrap items-start justify-between gap-3">
 		<div class="min-w-0">
 			<p class="flex items-center gap-1.5 text-sm font-medium text-text">

@@ -2,7 +2,9 @@
 	import {
 		IconBuildingWarehouse,
 		IconCalendarTime,
+		IconChevronDown,
 		IconChevronRight,
+		IconChevronUp,
 		IconExternalLink,
 		IconFlag,
 		IconLink,
@@ -27,6 +29,23 @@
 
 	let { data }: PageProps = $props();
 	let group = $derived(data.group);
+
+	/**
+	 * A group page opens as a summary, not a catalogue.
+	 *
+	 * Groups that run thirty routes would otherwise push their depots, staff
+	 * and shifts several screens down. The first few are enough to show what a
+	 * group is, and the rest are one button away. Depots are capped tighter
+	 * because they stack one per row rather than two across.
+	 */
+	const ROUTE_PREVIEW = 4;
+	const DEPOT_PREVIEW = 2;
+
+	let allRoutes = $state(false);
+	let allDepots = $state(false);
+
+	let visibleRoutes = $derived(allRoutes ? group.routes : group.routes.slice(0, ROUTE_PREVIEW));
+	let visibleDepots = $derived(allDepots ? group.depots : group.depots.slice(0, DEPOT_PREVIEW));
 
 	async function copyLink(path: string) {
 		try {
@@ -140,7 +159,7 @@
 						list unreadable; they live on that page now.
 					-->
 					<ul class="grid gap-3 sm:grid-cols-2">
-						{#each group.routes as route (route.id)}
+						{#each visibleRoutes as route (route.id)}
 							{@const href = `/g/${group.slug}/route/${route.slug}`}
 							<li class="card group relative flex items-center gap-3 p-4 transition-colors hover:border-accent/50">
 								<a {href} class="absolute inset-0" aria-label="Open route {route.name}"></a>
@@ -194,6 +213,22 @@
 							</li>
 						{/each}
 					</ul>
+
+					{#if group.routes.length > ROUTE_PREVIEW}
+						<button
+							type="button"
+							onclick={() => (allRoutes = !allRoutes)}
+							aria-expanded={allRoutes}
+							class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
+								text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
+						>
+							{#if allRoutes}
+								Show less <IconChevronUp size={15} />
+							{:else}
+								Show {group.routes.length - ROUTE_PREVIEW} more <IconChevronDown size={15} />
+							{/if}
+						</button>
+					{/if}
 				{/if}
 			</section>
 		{/if}
@@ -203,7 +238,7 @@
 				<h2 class="mb-3 text-lg font-semibold">Depots</h2>
 
 				<ul class="space-y-3">
-					{#each group.depots as depot (depot.id)}
+					{#each visibleDepots as depot (depot.id)}
 						{@const href = `/g/${group.slug}/depot/${depot.slug}`}
 						<li class="card group relative flex items-center gap-3 p-4 transition-colors hover:border-accent/50">
 							<a {href} class="absolute inset-0" aria-label="Open depot {depot.name}"></a>
@@ -256,12 +291,28 @@
 						</li>
 					{/each}
 				</ul>
+
+				{#if group.depots.length > DEPOT_PREVIEW}
+					<button
+						type="button"
+						onclick={() => (allDepots = !allDepots)}
+						aria-expanded={allDepots}
+						class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
+							text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
+					>
+						{#if allDepots}
+							Show less <IconChevronUp size={15} />
+						{:else}
+							Show {group.depots.length - DEPOT_PREVIEW} more <IconChevronDown size={15} />
+						{/if}
+					</button>
+				{/if}
 			</section>
 		{/if}
 
 		{#if group.showRoster && group.roster.length > 0}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Roster</h2>
+				<h2 class="mb-3 text-lg font-semibold">Staff</h2>
 				<RankRoster roster={group.roster} />
 			</section>
 		{/if}
