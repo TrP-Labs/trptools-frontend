@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconBuildingWarehouse, IconPhoto } from '@tabler/icons-svelte';
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
+	import RoutePreferenceButton from '$lib/components/routes/RoutePreferenceButton.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
 	import GroupCrumb from '$lib/components/layout/GroupCrumb.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -48,6 +49,21 @@
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
 					{#if !route.autoAssign}<Badge tone="warning">Assigned by hand</Badge>{/if}
+
+					<!--
+						Labelled here, unlike the icon on a route card: there is
+						room for it, and this is where somebody reading about a
+						route decides whether they want to drive it.
+					-->
+					{#if data.user}
+						<RoutePreferenceButton
+							routeId={route.id}
+							routeName={route.name}
+							builtIn={route.builtIn}
+							showLabel
+						/>
+					{/if}
+
 					<ReportButton targetType="ROUTE" targetId={route.id} label="route {route.name}" />
 				</div>
 			</div>

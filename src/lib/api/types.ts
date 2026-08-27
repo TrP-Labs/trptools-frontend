@@ -99,6 +99,24 @@ export const PERMISSION_DESCRIPTIONS: Record<number, string> = {
 	3: 'Full control, including ranks, routes and settings.'
 };
 
+/**
+ * A route as the dispatch board needs it.
+ *
+ * Structural on purpose: a group's own route rows satisfy it, and so do the
+ * built-in routes the personal board at `/tools/dispatch` is given, which are
+ * not rows anywhere and carry none of what a group decides for itself.
+ */
+export interface BoardRoute {
+	id: string;
+	name: string;
+	color: string;
+	textColor: string;
+	shape: RouteShape;
+	icon: string | null;
+	/** Depot ids this route runs from. Empty means every depot. */
+	depots: string[];
+}
+
 /** A dispatch vehicle as it arrives over the realtime stream. */
 export interface DispatchVehicle {
 	id: string;

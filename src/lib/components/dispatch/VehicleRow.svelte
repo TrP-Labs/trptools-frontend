@@ -10,8 +10,8 @@
 		SERVICE_STATUS_COLORS,
 		SERVICE_STATUS_LABELS,
 		SERVICE_STATUS_ORDER,
+		type BoardRoute,
 		type DispatchVehicle,
-		type RouteRecord,
 		type ServiceStatus,
 		type VehicleBucket
 	} from '$lib/api/types';
@@ -25,8 +25,16 @@
 	interface Props {
 		vehicle: DispatchVehicle;
 		bucket: VehicleBucket;
-		routes: RouteRecord[];
+		routes: BoardRoute[];
 		owner?: OwnerProfile;
+		/**
+		 * What this vehicle's driver asked for, as route ids.
+		 *
+		 * The solver already honours these; showing them here is what lets a
+		 * dispatcher assigning by hand make the same call, and see at a glance
+		 * whether the route somebody is on is one they wanted.
+		 */
+		preference?: { favorite: string[]; disliked: string[] };
 		busy: boolean;
 		navActive: boolean;
 		navCell: NavCell | null;
@@ -62,6 +70,7 @@
 		bucket,
 		routes,
 		owner,
+		preference,
 		busy,
 		navActive,
 		navCell,
@@ -108,10 +117,35 @@
 		)
 	);
 
-	function servesDepot(route: RouteRecord): boolean {
+	function servesDepot(route: BoardRoute): boolean {
 		if (!vehicle.depotId || route.depots.length === 0) return true;
 		return route.depots.includes(vehicle.depotId);
 	}
+
+	let favourite = $derived(new Set(preference?.favorite ?? []));
+	let disliked = $derived(new Set(preference?.disliked ?? []));
+
+	/**
+	 * Three marks, in the order they matter.
+	 *
+	 * A depot that cannot reach the route comes first and is red: it is about
+	 * whether the vehicle can run the route at all, which outranks anything
+	 * the driver would prefer. Then their favourites in green and the routes
+	 * they would rather avoid in amber — a preference, not a fault, which is
+	 * why it is not the same red.
+	 */
+	function toneFor(route: BoardRoute): 'favourite' | 'disliked' | 'blocked' | null {
+		if (!servesDepot(route)) return 'blocked';
+		if (favourite.has(route.id)) return 'favourite';
+		if (disliked.has(route.id)) return 'disliked';
+		return null;
+	}
+
+	const TONE_HINTS = {
+		blocked: 'other depot',
+		favourite: 'favourite',
+		disliked: 'disliked'
+	} as const;
 
 	let routeOptions = $derived([
 		{ value: '', label: 'Unassigned' },
@@ -119,13 +153,29 @@
 		...(selectValue === '__literal__'
 			? [{ value: '__literal__', label: vehicle.route ?? '', disabled: true }]
 			: []),
-		...routes.map((route) => ({
-			value: route.id,
-			label: route.name,
-			color: route.color,
-			hint: servesDepot(route) ? undefined : 'other depot'
-		}))
+		...routes.map((route) => {
+			const tone = toneFor(route);
+			return {
+				value: route.id,
+				label: route.name,
+				color: route.color,
+				tone,
+				hint: tone ? TONE_HINTS[tone] : undefined
+			};
+		})
 	]);
+
+	/**
+	 * The closed control says whether this driver got what they asked for.
+	 *
+	 * Only the favourite case is coloured. A vehicle sitting on a route its
+	 * driver dislikes is usually the solver having no alternative, and marking
+	 * every one of those amber would paint a correctly solved board in
+	 * warnings — it is visible in the list the moment the dropdown is opened.
+	 */
+	let selectTone = $derived(
+		matched && favourite.has(matched.id) ? ('favourite' as const) : null
+	);
 
 	let statusOptions = $derived(
 		SERVICE_STATUS_ORDER.map((status) => ({
@@ -281,10 +331,13 @@
 					disabled={towed}
 					size="sm"
 					invalid={mismatch}
+					tone={selectTone}
 					ariaLabel="Route for vehicle {vehicle.id}"
 					title={mismatch
 						? `${matched?.name} does not run from ${vehicle.depot}`
-						: `Route for vehicle ${vehicle.id}`}
+						: selectTone
+							? `${matched?.name} is one of this driver's favourite routes`
+							: `Route for vehicle ${vehicle.id}`}
 					class="min-w-28 flex-1"
 					onchange={onroute}
 				/>

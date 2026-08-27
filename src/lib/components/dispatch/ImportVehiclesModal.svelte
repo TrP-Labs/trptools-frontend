@@ -1,27 +1,32 @@
 <script lang="ts">
 	/**
-	 * Pasting the game's vehicle list into the room.
+	 * Pasting the game's vehicle list into a board.
 	 *
 	 * Reconciling rather than replacing: vehicles missing from the paste have
 	 * been deleted in game and go, vehicles already here keep everything a
 	 * dispatcher has done to them. Which list each one belongs in is re-read
-	 * from the group's vehicle table, so a misfiled vehicle can be fixed in
-	 * settings and put right here without closing the room.
+	 * on every import, so a misfiled vehicle can be fixed in settings and put
+	 * right here without closing the room.
+	 *
+	 * The paste is parsed and checked here; where it *goes* is the caller's,
+	 * because a group's room takes it over the API and the personal board at
+	 * `/tools/dispatch` keeps it in the browser.
 	 */
 	import { tick } from 'svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
-	import { api, errorMessage } from '$lib/api/client';
+	import { errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 
 	interface Props {
 		open: boolean;
-		roomId: string | null;
+		/** Takes the parsed list and reports what the board did with it. */
+		onsubmit: (vehicles: unknown[]) => Promise<{ added: number; removed: number; total: number }>;
 	}
 
-	let { open = $bindable(), roomId }: Props = $props();
+	let { open = $bindable(), onsubmit }: Props = $props();
 
 	let text = $state('');
 	let importing = $state(false);
@@ -42,8 +47,6 @@
 	});
 
 	async function submit() {
-		if (!roomId) return;
-
 		let parsed: unknown;
 		try {
 			parsed = JSON.parse(text);
@@ -59,10 +62,7 @@
 
 		importing = true;
 		try {
-			const { data: result, error } = await api
-				.dispatch({ roomId })
-				.vehicles.post(parsed as never);
-			if (!result) throw error;
+			const result = await onsubmit(parsed);
 
 			toasts.success(`Added ${result.added}, removed ${result.removed}, now tracking ${result.total}`);
 			open = false;

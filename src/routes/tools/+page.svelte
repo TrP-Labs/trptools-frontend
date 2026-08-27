@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconArrowRight, IconBulb, IconRadio, IconRoute } from '@tabler/icons-svelte';
+	import { IconArrowRight, IconBulb, IconRadio } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	const tools = [
@@ -11,17 +11,13 @@
 			available: true
 		},
 		{
-			href: '/dashboard',
+			// Dispatch on your own, with the game's built-in routes. Running a
+			// shift with other people is a group's board, which this one says
+			// so and links to.
+			href: '/tools/dispatch',
 			icon: IconRadio,
 			title: 'Dispatch',
-			body: 'Run a shift with your team. Open a room from your group dashboard.',
-			available: true
-		},
-		{
-			href: '/groups',
-			icon: IconRoute,
-			title: 'Route directory',
-			body: 'Browse the routes published by groups across TrP.',
+			body: "Assign the game's routes to a vehicle list on your own, with no group to set up.",
 			available: true
 		}
 	];

@@ -12,6 +12,7 @@
 		IconUsers
 	} from '@tabler/icons-svelte';
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
+	import RoutePreferenceButton from '$lib/components/routes/RoutePreferenceButton.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import RankRoster from '$lib/components/users/RankRoster.svelte';
@@ -185,7 +186,27 @@
 									{/if}
 								</div>
 
-								<div class="relative z-10 flex items-center gap-1">
+								<!--
+									`z-10` lifts these controls above the card's
+									own overlay link, and in doing so makes them
+									a stacking context — which trapped an open
+									menu inside it, behind the next card along.
+									Holding a menu lifts the whole container
+									above its neighbours instead.
+								-->
+								<div class="relative z-10 flex items-center gap-1 has-[[role=menu]]:z-30">
+									<!--
+										Signed out there is nowhere to keep the
+										answer, so the control is not offered.
+									-->
+									{#if data.user}
+										<RoutePreferenceButton
+											routeId={route.id}
+											routeName={route.name}
+											builtIn={route.builtIn}
+										/>
+									{/if}
+
 									<OverflowMenu label="Route actions">
 										{#snippet children(close)}
 											<MenuItem
@@ -263,7 +284,7 @@
 								{/if}
 							</div>
 
-							<div class="relative z-10 flex items-center gap-1">
+							<div class="relative z-10 flex items-center gap-1 has-[[role=menu]]:z-30">
 								<OverflowMenu label="Depot actions">
 									{#snippet children(close)}
 										<MenuItem
