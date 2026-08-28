@@ -22,6 +22,16 @@
 	 */
 	import { tick } from 'svelte';
 
+	/**
+	 * What an option means to whoever is choosing.
+	 *
+	 * Kept as names rather than colours so the meaning travels with the
+	 * option: the dispatch board marks the routes a driver asked for, the ones
+	 * they would rather avoid, and the ones their depot cannot reach, and the
+	 * three have to look different at a glance without being read.
+	 */
+	type Tone = 'favourite' | 'disliked' | 'blocked';
+
 	interface Option {
 		value: T;
 		label: string;
@@ -32,6 +42,7 @@
 		dot?: 'note' | null;
 		/** Secondary text, shown dimmed after the label. */
 		hint?: string;
+		tone?: Tone | null;
 	}
 
 	interface Props {
@@ -46,6 +57,12 @@
 		title?: string;
 		size?: 'sm' | 'md';
 		class?: string;
+		/**
+		 * Colours the closed control after what it is holding — green for a
+		 * route its driver asked for. `invalid` still wins, because a warning
+		 * about the choice matters more than approval of it.
+		 */
+		tone?: Tone | null;
 		/** The trigger button, so a page-level keyboard cursor can focus it. */
 		element?: HTMLElement | null;
 		onchange?: (value: T) => void;
@@ -61,10 +78,17 @@
 		invalid = false,
 		title,
 		size = 'md',
+		tone = null,
 		class: className = '',
 		element = $bindable(null),
 		onchange
 	}: Props = $props();
+
+	const TONE_TEXT: Record<Tone, string> = {
+		favourite: 'text-success',
+		disliked: 'text-warning',
+		blocked: 'text-danger'
+	};
 
 	let open = $state(false);
 	let active = $state(-1);
@@ -290,12 +314,16 @@
 		{onkeydown}
 		onclick={() => (open ? hide() : show())}
 		onblur={() => hide()}
-		class="flex w-full items-center rounded-lg border bg-background-secondary pr-8 text-left text-text
+		class="flex w-full items-center rounded-lg border bg-background-secondary pr-8 text-left
 			transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60
 			{sizing}
 			{invalid
 			? 'border-danger bg-danger/10 text-danger focus:border-danger'
-			: 'border-border-base focus:border-accent'}"
+			: tone === 'favourite'
+				? 'border-success/60 bg-success/10 text-success focus:border-success'
+				: tone === 'disliked'
+					? 'border-warning/60 bg-warning/10 text-warning focus:border-warning'
+					: 'border-border-base text-text focus:border-accent'}"
 	>
 		{#if selected?.color}
 			<span
@@ -347,7 +375,8 @@
 					aria-disabled={option.disabled}
 					class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm
 						{option.disabled ? 'cursor-not-allowed opacity-50' : ''}
-						{index === active ? 'bg-accent/15 text-text' : 'text-text-muted'}"
+						{option.tone ? TONE_TEXT[option.tone] : index === active ? 'text-text' : 'text-text-muted'}
+						{index === active ? 'bg-accent/15' : ''}"
 					onpointerenter={() => {
 						if (!option.disabled) active = index;
 					}}
@@ -371,7 +400,9 @@
 					<span class="min-w-0 flex-1 truncate">{option.label}</span>
 
 					{#if option.hint}
-						<span class="shrink-0 text-xs text-text-subtle">{option.hint}</span>
+						<span class="shrink-0 text-xs {option.tone ? 'opacity-80' : 'text-text-subtle'}">
+							{option.hint}
+						</span>
 					{/if}
 
 					{#if option.value === value}

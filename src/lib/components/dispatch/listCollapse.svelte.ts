@@ -3,9 +3,10 @@ import { VEHICLE_BUCKET_ORDER, type VehicleBucket } from '$lib/api/types';
 /**
  * Which of the board's lists are folded away.
  *
- * Remembered per group in `localStorage`, because which lists a dispatcher
+ * Remembered per board in `localStorage`, because which lists a dispatcher
  * cares about is a property of the group they are working rather than of the
- * browser they are sitting at.
+ * browser they are sitting at. The personal board at `/tools/dispatch` has a
+ * key of its own for the same reason.
  */
 export class ListCollapse {
 	closed = $state<Record<VehicleBucket, boolean>>({
@@ -17,9 +18,9 @@ export class ListCollapse {
 
 	#key = '';
 
-	/** Call from an effect, so it runs in the browser and follows the group. */
-	load(groupId: string) {
-		this.#key = `trptools:dispatch:collapsed:${groupId}`;
+	/** Call from an effect, so it runs in the browser and follows the board. */
+	load(board: string) {
+		this.#key = `trptools:dispatch:collapsed:${board}`;
 
 		const stored = localStorage.getItem(this.#key);
 		if (!stored) return;
