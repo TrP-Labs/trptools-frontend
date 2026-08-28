@@ -42,11 +42,22 @@
 	const ROUTE_PREVIEW = 4;
 	const DEPOT_PREVIEW = 2;
 
+	/**
+	 * Shifts are capped tightest of all. They lead the page on a phone, and a
+	 * group running a daily service would otherwise put half a dozen cards
+	 * between someone and the routes they came to read.
+	 */
+	const SHIFT_PREVIEW = 2;
+
 	let allRoutes = $state(false);
 	let allDepots = $state(false);
+	let allShifts = $state(false);
 
 	let visibleRoutes = $derived(allRoutes ? group.routes : group.routes.slice(0, ROUTE_PREVIEW));
 	let visibleDepots = $derived(allDepots ? group.depots : group.depots.slice(0, DEPOT_PREVIEW));
+	let visibleShifts = $derived(
+		allShifts ? group.upcomingShifts : group.upcomingShifts.slice(0, SHIFT_PREVIEW)
+	);
 
 	async function copyLink(path: string) {
 		try {
@@ -139,7 +150,14 @@
 </section>
 
 <div class="mx-auto grid max-w-5xl gap-8 px-4 py-10 lg:grid-cols-3">
-	<div class="space-y-10 lg:col-span-2">
+	<!--
+		The columns hold `min-w-0` because a grid item sizes to its content
+		by default: the roster's sideways member strip is wide enough to push
+		the whole track past the viewport on a phone, taking every card with
+		it. Zeroing the minimum lets the strip scroll inside its own box
+		instead of widening the page.
+	-->
+	<div class="min-w-0 space-y-10 lg:col-span-2">
 		{#if group.about}
 			<section>
 				<h2 class="mb-3 text-lg font-semibold">About</h2>
@@ -162,7 +180,7 @@
 					<ul class="grid gap-3 sm:grid-cols-2">
 						{#each visibleRoutes as route (route.id)}
 							{@const href = `/g/${group.slug}/route/${route.slug}`}
-							<li class="card group relative flex items-center gap-3 p-4 transition-colors hover:border-accent/50">
+							<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
 								<a {href} class="absolute inset-0" aria-label="Open route {route.name}"></a>
 
 								<RouteBadge
@@ -261,7 +279,7 @@
 				<ul class="space-y-3">
 					{#each visibleDepots as depot (depot.id)}
 						{@const href = `/g/${group.slug}/depot/${depot.slug}`}
-						<li class="card group relative flex items-center gap-3 p-4 transition-colors hover:border-accent/50">
+						<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
 							<a {href} class="absolute inset-0" aria-label="Open depot {depot.name}"></a>
 
 							<DepotBadge
@@ -339,17 +357,22 @@
 		{/if}
 	</div>
 
-	<aside class="lg:col-span-1">
+	<!--
+		On a phone the schedule is what someone came for, so it leads instead
+		of sitting below every route, depot and rank. From `lg` up it returns
+		to document order as the right-hand column.
+	-->
+	<aside class="order-first min-w-0 lg:order-none lg:col-span-1">
 		{#if group.showShifts}
 			<h2 class="mb-3 text-lg font-semibold">Upcoming shifts</h2>
 
 			{#if group.upcomingShifts.length === 0}
-				<EmptyState title="Nothing scheduled" description="No shifts in the next two weeks.">
+				<EmptyState title="Nothing scheduled" description="This group has no shifts coming up.">
 					{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
 				</EmptyState>
 			{:else}
 				<ul class="space-y-3">
-					{#each group.upcomingShifts as shift (shift.eventId + shift.start)}
+					{#each visibleShifts as shift (shift.eventId + shift.start)}
 						<li class="card overflow-hidden">
 							<a
 								href="/g/{group.slug}/shift/{shift.slug}"
@@ -366,6 +389,22 @@
 						</li>
 					{/each}
 				</ul>
+
+				{#if group.upcomingShifts.length > SHIFT_PREVIEW}
+					<button
+						type="button"
+						onclick={() => (allShifts = !allShifts)}
+						aria-expanded={allShifts}
+						class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
+							text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
+					>
+						{#if allShifts}
+							Show less <IconChevronUp size={15} />
+						{:else}
+							Show {group.upcomingShifts.length - SHIFT_PREVIEW} more <IconChevronDown size={15} />
+						{/if}
+					</button>
+				{/if}
 			{/if}
 		{/if}
 	</aside>
