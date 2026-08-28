@@ -41,7 +41,7 @@
 					aria-label="{rank.name} members"
 				>
 					{#each rank.members as member (member.robloxId)}
-						<li class="snap-start">
+						<li class="shrink-0 snap-start">
 							<a
 								href="https://www.roblox.com/users/{member.robloxId}/profile"
 								target="_blank"
