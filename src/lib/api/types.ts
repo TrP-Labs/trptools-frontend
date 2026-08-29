@@ -31,6 +31,7 @@ type PublicGroupPage = Data<ReturnType<ReturnType<Api['public']['groups']>['get'
 export type RosterEntry = PublicGroupPage['roster'][number];
 export type PublicDepot = PublicGroupPage['depots'][number];
 export type PublicRoute = PublicGroupPage['routes'][number];
+export type PublicOpenApplication = PublicGroupPage['openApplications'][number];
 
 /** The standalone route, depot and shift pages under a group. */
 type PublicGroupApi = ReturnType<Api['public']['groups']>;
@@ -69,6 +70,67 @@ export type BotCleanup = Data<ReturnType<ReturnType<Api['bot']>['cleanup']['get'
 /** A rank's sign-up sheet as the ranks dashboard edits it. */
 export type RankSignup = NonNullable<Data<ReturnType<ReturnType<Api['ranks']>['signup']['get']>>>;
 export type RankSignupSlot = RankSignup['slots'][number];
+
+/** Staff application forms, as the dashboard manages them. */
+export type ApplicationSummary = Data<ReturnType<Api['applications']['get']>>[number];
+export type ApplicationDetail = Data<ReturnType<ReturnType<Api['applications']>['get']>>;
+export type ApplicationQuestion = ApplicationDetail['questions'][number];
+export type ApplicationQuestionType = ApplicationQuestion['type'];
+export type ApplicationSubmission = Data<
+	ReturnType<ReturnType<Api['applications']>['submissions']['get']>
+>[number];
+export type ApplicationSubmissionDetail = Data<
+	ReturnType<ReturnType<Api['applications']['submissions']>['get']>
+>;
+export type ApplicationAnswer = ApplicationSubmissionDetail['answers'][number];
+export type ApplicationStatus = ApplicationSubmission['status'];
+
+/** The same form as an applicant reads it, and what they have already sent. */
+export type PublicApplication = Data<
+	ReturnType<ReturnType<PublicGroupApi['applications']>['get']>
+>;
+/** Where the signed-in caller stands with one form. */
+export type ApplicationStanding = Data<ReturnType<ReturnType<Api['applications']>['me']['get']>>;
+export type ApplicationBlocker = ApplicationStanding['blockedBy'];
+
+/**
+ * A question as the builder edits it.
+ *
+ * Structural rather than the API's own type: a question being written has no
+ * id yet, and none of the fields the server fills in.
+ */
+export interface QuestionDraft {
+	id?: string;
+	type: ApplicationQuestionType;
+	prompt: string;
+	description: string;
+	required: boolean;
+	options: string[];
+	maxLength: number | null;
+	mediaId: string | null;
+	image: string | null;
+}
+
+/** What each component is called where a group picks one. */
+export const QUESTION_TYPE_LABELS: Record<ApplicationQuestionType, string> = {
+	SHORT_TEXT: 'Short answer',
+	LONG_TEXT: 'Long answer',
+	MULTIPLE_CHOICE: 'Multiple choice',
+	CHECKBOXES: 'Checkboxes',
+	SECTION: 'Text block',
+	IMAGE: 'Image'
+};
+
+/** Components that are read rather than answered. */
+export const STATIC_QUESTION_TYPES: ApplicationQuestionType[] = ['SECTION', 'IMAGE'];
+
+export const CHOICE_QUESTION_TYPES: ApplicationQuestionType[] = ['MULTIPLE_CHOICE', 'CHECKBOXES'];
+
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
+	PENDING: 'Waiting',
+	APPROVED: 'Approved',
+	DENIED: 'Denied'
+};
 
 export type PublicGroupSummary = Data<ReturnType<Api['public']['groups']['get']>>[number];
 
