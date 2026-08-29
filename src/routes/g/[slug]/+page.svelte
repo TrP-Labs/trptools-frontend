@@ -362,50 +362,94 @@
 		of sitting below every route, depot and rank. From `lg` up it returns
 		to document order as the right-hand column.
 	-->
-	<aside class="order-first min-w-0 lg:order-none lg:col-span-1">
-		{#if group.showShifts}
-			<h2 class="mb-3 text-lg font-semibold">Upcoming shifts</h2>
+	<aside class="order-first min-w-0 space-y-10 lg:order-none lg:col-span-1">
+		<!--
+			Applications lead the column, above the schedule, on every width —
+			they are the one thing on this page aimed at somebody who is not
+			staff yet, and a group only ever has a couple open, so they are
+			listed in full rather than behind a "show more".
+		-->
+		{#if group.openApplications.length > 0}
+			<section>
+				<h2 class="mb-3 text-lg font-semibold">Applications</h2>
 
-			{#if group.upcomingShifts.length === 0}
-				<EmptyState title="Nothing scheduled" description="This group has no shifts coming up.">
-					{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
-				</EmptyState>
-			{:else}
 				<ul class="space-y-3">
-					{#each visibleShifts as shift (shift.eventId + shift.start)}
+					{#each group.openApplications as application (application.id)}
 						<li class="card overflow-hidden">
 							<a
-								href="/g/{group.slug}/shift/{shift.slug}"
+								href="/g/{group.slug}/apply/{application.slug}"
 								class="flex items-start gap-3 p-4 transition-colors hover:bg-background-secondary/60"
 							>
-								<span class="mt-1 h-10 w-1 shrink-0 rounded-full" style="background: {shift.color}"
+								<span
+									class="mt-1 h-10 w-1 shrink-0 rounded-full"
+									style="background: {application.color}"
 								></span>
 								<div class="min-w-0 flex-1">
-									<p class="font-medium text-text">{shift.name}</p>
-									<p class="mt-0.5 text-sm text-text-muted">{formatDateTime(shift.start)}</p>
-									<p class="text-xs text-text-subtle">{formatRelative(shift.start)}</p>
+									<p class="font-medium text-text">{application.name}</p>
+									{#if application.rankName}
+										<p class="mt-0.5 text-sm text-text-muted">
+											Applying for {application.rankName}
+										</p>
+									{/if}
+									{#if application.description}
+										<p class="mt-0.5 line-clamp-2 text-xs text-text-subtle">
+											{application.description}
+										</p>
+									{/if}
 								</div>
+								<IconChevronRight size={16} class="mt-0.5 shrink-0 text-text-subtle" />
 							</a>
 						</li>
 					{/each}
 				</ul>
+			</section>
+		{/if}
 
-				{#if group.upcomingShifts.length > SHIFT_PREVIEW}
-					<button
-						type="button"
-						onclick={() => (allShifts = !allShifts)}
-						aria-expanded={allShifts}
-						class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
-							text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
-					>
-						{#if allShifts}
-							Show less <IconChevronUp size={15} />
-						{:else}
-							Show {group.upcomingShifts.length - SHIFT_PREVIEW} more <IconChevronDown size={15} />
-						{/if}
-					</button>
+		{#if group.showShifts}
+			<section>
+				<h2 class="mb-3 text-lg font-semibold">Upcoming shifts</h2>
+
+				{#if group.upcomingShifts.length === 0}
+					<EmptyState title="Nothing scheduled" description="This group has no shifts coming up.">
+						{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
+					</EmptyState>
+				{:else}
+					<ul class="space-y-3">
+						{#each visibleShifts as shift (shift.eventId + shift.start)}
+							<li class="card overflow-hidden">
+								<a
+									href="/g/{group.slug}/shift/{shift.slug}"
+									class="flex items-start gap-3 p-4 transition-colors hover:bg-background-secondary/60"
+								>
+									<span class="mt-1 h-10 w-1 shrink-0 rounded-full" style="background: {shift.color}"
+									></span>
+									<div class="min-w-0 flex-1">
+										<p class="font-medium text-text">{shift.name}</p>
+										<p class="mt-0.5 text-sm text-text-muted">{formatDateTime(shift.start)}</p>
+										<p class="text-xs text-text-subtle">{formatRelative(shift.start)}</p>
+									</div>
+								</a>
+							</li>
+						{/each}
+					</ul>
+
+					{#if group.upcomingShifts.length > SHIFT_PREVIEW}
+						<button
+							type="button"
+							onclick={() => (allShifts = !allShifts)}
+							aria-expanded={allShifts}
+							class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
+								text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
+						>
+							{#if allShifts}
+								Show less <IconChevronUp size={15} />
+							{:else}
+								Show {group.upcomingShifts.length - SHIFT_PREVIEW} more <IconChevronDown size={15} />
+							{/if}
+						</button>
+					{/if}
 				{/if}
-			{/if}
+			</section>
 		{/if}
 	</aside>
 </div>
