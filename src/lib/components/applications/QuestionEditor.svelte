@@ -24,12 +24,13 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import {
 		CHOICE_QUESTION_TYPES,
-		QUESTION_TYPE_LABELS,
+		questionTypeLabel,
 		STATIC_QUESTION_TYPES,
 		type ApplicationQuestion,
 		type ApplicationQuestionType,
 		type QuestionDraft
 	} from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * The form builder.
@@ -81,7 +82,7 @@
 	];
 
 	let typeOptions = $derived(
-		TYPES.map(({ type }) => ({ value: type, label: QUESTION_TYPE_LABELS[type] }))
+		TYPES.map(({ type }) => ({ value: type, label: questionTypeLabel(type) }))
 	);
 
 	const isStatic = (type: ApplicationQuestionType) => STATIC_QUESTION_TYPES.includes(type);
@@ -155,7 +156,7 @@
 			drafts[index].image = item.url;
 			dirty = true;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not upload that image'));
+			toasts.error(errorMessage(error, m.applications_question_editor_could_not_upload_image()));
 		} finally {
 			uploadingIndex = null;
 		}
@@ -181,10 +182,10 @@
 			if (error) throw error;
 
 			dirty = false;
-			toasts.success('Form saved');
+			toasts.success(m.applications_question_editor_form_saved());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save the form'));
+			toasts.error(errorMessage(error, m.applications_question_editor_could_not_save_form()));
 		} finally {
 			busy = false;
 		}
@@ -209,8 +210,8 @@
 <div class="space-y-4">
 	{#if drafts.length === 0}
 		<EmptyState
-			title="Nothing on this form yet"
-			description="Add the questions you want applicants to answer, and any text or pictures that explain them."
+			title={m.applications_question_editor_nothing_form_yet()}
+			description={m.applications_question_editor_add_questions_want_applicants_answer_any()}
 		>
 			{#snippet icon()}<IconTextCaption size={28} stroke={1.5} />{/snippet}
 		</EmptyState>
@@ -239,7 +240,7 @@
 								type="button"
 								onclick={() => move(index, -1)}
 								disabled={index === 0}
-								aria-label="Move up"
+								aria-label={m.applications_question_editor_move_up()}
 								class="rounded-lg p-2 text-text-subtle transition-colors hover:text-text disabled:opacity-30"
 							>
 								<IconArrowUp size={16} />
@@ -248,7 +249,7 @@
 								type="button"
 								onclick={() => move(index, 1)}
 								disabled={index === drafts.length - 1}
-								aria-label="Move down"
+								aria-label={m.applications_question_editor_move_down()}
 								class="rounded-lg p-2 text-text-subtle transition-colors hover:text-text disabled:opacity-30"
 							>
 								<IconArrowDown size={16} />
@@ -256,7 +257,7 @@
 							<button
 								type="button"
 								onclick={() => remove(index)}
-								aria-label="Remove"
+								aria-label={m.applications_question_editor_remove()}
 								class="rounded-lg p-2 text-text-subtle transition-colors hover:text-danger"
 							>
 								<IconTrash size={16} />
@@ -288,40 +289,40 @@
 									>
 										<IconPhotoPlus size={15} />
 										{uploadingIndex === index
-											? 'Uploading…'
+											? m.applications_question_editor_uploading()
 											: draft.image
-												? 'Replace image'
-												: 'Upload an image'}
+												? m.applications_question_editor_replace_image()
+												: m.applications_question_editor_upload_image()}
 									</span>
 								</label>
 
-								<Field label="Caption" hint="Optional, shown under the picture.">
+								<Field label={m.applications_question_editor_caption()} hint={m.applications_question_editor_optional_shown_under_picture()}>
 									<Input
 										bind:value={draft.prompt}
 										maxlength={300}
-										placeholder="e.g. The evening service at Cat Island"
+										placeholder={m.applications_question_editor_e_g_evening_service_at_cat()}
 										oninput={() => (dirty = true)}
 									/>
 								</Field>
 							</div>
 						</div>
 					{:else}
-						<Field label={draft.type === 'SECTION' ? 'Heading' : 'Question'}>
+						<Field label={draft.type === 'SECTION' ? m.applications_question_editor_heading() : m.applications_question_editor_question()}>
 							<Input
 								bind:value={draft.prompt}
 								maxlength={300}
 								placeholder={draft.type === 'SECTION'
-									? 'e.g. Before you start'
-									: 'e.g. Why do you want to drive for us?'}
+									? m.applications_question_editor_e_g_before_start()
+									: m.applications_question_editor_e_g_why_do_want_drive()}
 								oninput={() => (dirty = true)}
 							/>
 						</Field>
 
 						<Field
-							label={draft.type === 'SECTION' ? 'Text' : 'Help text'}
+							label={draft.type === 'SECTION' ? m.applications_question_editor_text() : m.applications_question_editor_help_text()}
 							hint={draft.type === 'SECTION'
-								? 'Shown to applicants as a paragraph.'
-								: 'Optional guidance under the question.'}
+								? m.applications_question_editor_shown_applicants_as_paragraph()
+								: m.applications_question_editor_optional_guidance_under_question()}
 						>
 							<Textarea
 								bind:value={draft.description}
@@ -336,7 +337,7 @@
 						<div>
 							<div class="mb-2 flex items-center justify-between">
 								<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">
-									Choices
+									{m.applications_question_editor_choices()}
 								</span>
 								<Button
 									size="sm"
@@ -346,13 +347,13 @@
 										dirty = true;
 									}}
 								>
-									<IconPlus size={15} /> Add choice
+									<IconPlus size={15} /> {m.applications_question_editor_add_choice()}
 								</Button>
 							</div>
 
 							{#if draft.options.filter((option) => option.trim()).length === 0}
 								<p class="mb-2 text-xs text-warning">
-									A question with no choices cannot be answered, so it will not be required.
+									{m.applications_question_editor_question_with_no_choices_cannot_answered()}
 								</p>
 							{/if}
 
@@ -363,12 +364,12 @@
 										<Input
 											bind:value={draft.options[optionIndex]}
 											maxlength={120}
-											placeholder="e.g. Weekends only"
+											placeholder={m.applications_question_editor_e_g_weekends_only()}
 											oninput={() => (dirty = true)}
 										/>
 										<button
 											type="button"
-											aria-label="Remove choice"
+											aria-label={m.applications_question_editor_remove_choice()}
 											onclick={() => {
 												draft.options = draft.options.filter((_, at) => at !== optionIndex);
 												dirty = true;
@@ -387,8 +388,8 @@
 						<div class="grid gap-4 sm:grid-cols-2">
 							<Toggle
 								checked={draft.required}
-								label="Required"
-								description="An applicant cannot send the form without answering."
+								label={m.applications_question_editor_required()}
+								description={m.applications_question_editor_applicant_cannot_send_form_without_answering()}
 								onchange={(required) => {
 									draft.required = required;
 									dirty = true;
@@ -396,13 +397,13 @@
 							/>
 
 							{#if draft.type === 'SHORT_TEXT' || draft.type === 'LONG_TEXT'}
-								<Field label="Length limit" hint="Characters. Leave empty for no limit.">
+								<Field label={m.applications_question_editor_length_limit()} hint={m.applications_question_editor_characters_leave_empty_no_limit()}>
 									<Input
 										type="number"
 										min="1"
 										max="5000"
 										value={draft.maxLength ?? ''}
-										placeholder="No limit"
+										placeholder={m.applications_question_editor_no_limit()}
 										oninput={(event) => {
 											const raw = (event.currentTarget as HTMLInputElement).value;
 											draft.maxLength = raw ? Number(raw) : null;
@@ -419,7 +420,7 @@
 	{/if}
 
 	<div class="card p-4">
-		<p class="mb-3 text-xs font-semibold tracking-wide text-text-muted uppercase">Add a component</p>
+		<p class="mb-3 text-xs font-semibold tracking-wide text-text-muted uppercase">{m.applications_question_editor_add_component()}</p>
 		<div class="flex flex-wrap gap-2">
 			{#each TYPES as option (option.type)}
 				<button
@@ -429,7 +430,7 @@
 						text-text-muted transition-colors hover:border-accent/50 hover:text-text"
 				>
 					<option.icon size={16} />
-					{QUESTION_TYPE_LABELS[option.type]}
+					{questionTypeLabel(option.type)}
 				</button>
 			{/each}
 		</div>
@@ -444,10 +445,10 @@
 			class="sticky bottom-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40
 				bg-surface/95 px-4 py-3 shadow-lg backdrop-blur"
 		>
-			<p class="text-sm text-text-muted">You have unsaved changes to this form.</p>
+			<p class="text-sm text-text-muted">{m.applications_question_editor_have_unsaved_changes_form()}</p>
 			<div class="flex gap-2">
-				<Button size="sm" variant="ghost" onclick={discard} disabled={busy}>Discard</Button>
-				<Button size="sm" loading={busy} onclick={save}>Save form</Button>
+				<Button size="sm" variant="ghost" onclick={discard} disabled={busy}>{m.applications_question_editor_discard()}</Button>
+				<Button size="sm" loading={busy} onclick={save}>{m.applications_question_editor_save_form()}</Button>
 			</div>
 		</div>
 	{/if}

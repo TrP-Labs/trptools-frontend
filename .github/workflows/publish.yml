@@ -34,8 +34,30 @@ jobs:
       - working-directory: trptools-frontend
         run: bun install --frozen-lockfile
 
+      # `bun run check` compiles the messages, verifies every API error the
+      # backend can return has a translation, and type-checks. The backend is
+      # already checked out above, which is what makes the error check able to
+      # read the literals it compares against.
       - working-directory: trptools-frontend
         run: bun run check
+
+      # The messages in the tree are vendored from TrP-Labs/Locales, so they
+      # can fall behind it. Re-pulling and diffing says so on the pull request
+      # rather than at the next release. A warning, not a failure: a build must
+      # not start depending on GitHub's API being reachable, and translations
+      # land on their own schedule.
+      - name: Check messages against TrP-Labs/Locales
+        working-directory: trptools-frontend
+        continue-on-error: true
+        run: |
+          ./scripts/pull-locales.sh
+          if git diff --quiet -- messages; then
+            echo "messages are in step with TrP-Labs/Locales."
+          else
+            echo "::warning::messages/ is behind TrP-Labs/Locales. Run ./scripts/pull-locales.sh and commit."
+            git diff --stat -- messages
+            git checkout -- messages
+          fi
 
   publish:
     needs: check

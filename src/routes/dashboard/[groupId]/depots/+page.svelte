@@ -26,6 +26,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { Depot } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -86,8 +87,8 @@
 	}
 
 	const visibilities = [
-		{ value: 'PUBLIC' as const, label: 'Public' },
-		{ value: 'PRIVATE' as const, label: 'Members only' }
+		{ value: 'PUBLIC' as const, label: m.common_public() },
+		{ value: 'PRIVATE' as const, label: m.common_members_only() }
 	];
 
 	let createOpen = $state(false);
@@ -129,11 +130,11 @@
 			const { data: created, error } = await api.depots.post({ groupId, ...values });
 			if (!created) throw error;
 
-			toasts.success(`Depot ${createDraft.number} created`);
+			toasts.success(m.dashboard_depots_created({ number: createDraft.number }));
 			createOpen = false;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not create that depot'));
+			toasts.error(errorMessage(error, m.dashboard_depots_could_not_create_depot()));
 		} finally {
 			creating = false;
 		}
@@ -145,10 +146,10 @@
 			const { error } = await api.depots({ depotId }).patch(payload(editDraft));
 			if (error) throw error;
 
-			toasts.success('Depot saved');
+			toasts.success(m.dashboard_depots_depot_saved());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save that depot'));
+			toasts.error(errorMessage(error, m.dashboard_depots_could_not_save_depot()));
 		} finally {
 			savingId = null;
 		}
@@ -157,7 +158,7 @@
 	async function deleteDepot(depot: Depot) {
 		if (
 			!confirm(
-				`Delete depot ${depot.number} (${depot.name})? Routes that only served this depot will fall back to serving all depots.`
+				m.dashboard_depots_delete_confirm({ number: depot.number, name: depot.name })
 			)
 		)
 			return;
@@ -167,11 +168,11 @@
 			const { error } = await api.depots({ depotId: depot.id }).delete();
 			if (error) throw error;
 
-			toasts.success('Depot deleted');
+			toasts.success(m.dashboard_depots_depot_deleted());
 			expandedId = null;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete that depot'));
+			toasts.error(errorMessage(error, m.dashboard_depots_could_not_delete_depot()));
 		} finally {
 			savingId = null;
 		}
@@ -179,23 +180,23 @@
 </script>
 
 <PageHeader
-	title="Depots"
-	description="Spawn locations in game, identified by number. Routes declare which depots they run from."
+	title={m.common_depots()}
+	description={m.dashboard_depots_spawn_locations_game_identified_by_number()}
 >
 	{#snippet actions()}
-		<Button variant="secondary" href="/dashboard/{data.group.slug}/routes">Routes</Button>
-		<Button onclick={openCreate}><IconPlus size={16} /> New depot</Button>
+		<Button variant="secondary" href="/dashboard/{data.group.slug}/routes">{m.common_routes()}</Button>
+		<Button onclick={openCreate}><IconPlus size={16} /> {m.dashboard_depots_new_depot()}</Button>
 	{/snippet}
 </PageHeader>
 
 {#if data.depots.length === 0}
 	<EmptyState
-		title="No depots"
-		description="Every group normally starts with Main Island and Cat Island. Add them back to enable automatic assignment."
+		title={m.dashboard_depots_no_depots()}
+		description={m.dashboard_depots_every_group_normally_starts_with_main()}
 	>
 		{#snippet icon()}<IconBuildingWarehouse size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
-			<Button onclick={openCreate}><IconPlus size={16} /> New depot</Button>
+			<Button onclick={openCreate}><IconPlus size={16} /> {m.dashboard_depots_new_depot()}</Button>
 		{/snippet}
 	</EmptyState>
 {:else}
@@ -225,12 +226,12 @@
 					</div>
 
 					<div class="hidden shrink-0 items-center gap-2 sm:flex">
-						{#if depot.archived}<Badge>Disabled</Badge>{/if}
-						{#if depot.moderation === 'HIDDEN'}<Badge tone="danger">Hidden</Badge>{/if}
+						{#if depot.archived}<Badge>{m.common_disabled()}</Badge>{/if}
+						{#if depot.moderation === 'HIDDEN'}<Badge tone="danger">{m.common_hidden()}</Badge>{/if}
 						{#if depot.visibility !== 'PUBLIC'}
-							<Badge>Members only</Badge>
+							<Badge>{m.common_members_only()}</Badge>
 						{:else if !depot.showOnGroupPage}
-							<Badge><IconEyeOff size={13} /> Not on group page</Badge>
+							<Badge><IconEyeOff size={13} /> {m.dashboard_depots_not_group_page()}</Badge>
 						{/if}
 						{#if depot.images.length > 0}
 							<Badge>{depot.images.length} {depot.images.length === 1 ? 'image' : 'images'}</Badge>
@@ -245,34 +246,34 @@
 
 				{#if open}
 					<div class="space-y-6 border-t border-border-base p-4">
-						<FieldGroup title="Depot" description="How the game identifies this spawn.">
-							<Field label="Depot number" hint="The number the game uses for this spawn location.">
+						<FieldGroup title={m.dashboard_depots_depot()} description={m.dashboard_depots_how_game_identifies_spawn()}>
+							<Field label={m.dashboard_depots_depot_number()} hint={m.dashboard_depots_number_game_uses_spawn_location()}>
 								<Input type="number" min="0" max="9999" bind:value={editDraft.number} />
 							</Field>
 
-							<Field label="Name">
+							<Field label={m.common_name()}>
 								<Input bind:value={editDraft.name} maxlength={60} />
 							</Field>
 
-							<Field label="Colour">
+							<Field label={m.common_colour()}>
 								<ColorInput bind:value={editDraft.color} />
 							</Field>
 
-							<Field label="Description" class="sm:col-span-2">
+							<Field label={m.common_description()} class="sm:col-span-2">
 								<Textarea
 									bind:value={editDraft.description}
 									rows={3}
 									maxlength={2000}
-									placeholder="Where it is, what runs from it, anything worth knowing."
+									placeholder={m.dashboard_depots_where_what_runs_from_anything_worth()}
 								/>
 							</Field>
 
 							<Field
-								label="Other names in game"
-								hint="Comma separated. Dispatch matches the spawn name the game reports against this depot; the trailing word 'Depot' and punctuation are ignored automatically, so this is only needed when the game calls it something genuinely different."
+								label={m.dashboard_depots_other_names_game()}
+								hint={m.dashboard_depots_comma_separated_dispatch_matches_spawn_name()}
 								class="sm:col-span-2"
 							>
-								<Input bind:value={editDraft.aliases} placeholder="e.g. Hardbass Island" />
+								<Input bind:value={editDraft.aliases} placeholder={m.dashboard_depots_e_g_hardbass_island()} />
 							</Field>
 
 							<div class="sm:col-span-2">
@@ -281,14 +282,14 @@
 									ownerType="DEPOT"
 									ownerId={depot.id}
 									current={depot.icon}
-									label="Depot icon"
-									hint="Replaces the numbered tile wherever this depot appears. Square images work best. Saved as soon as it uploads."
+									label={m.dashboard_depots_depot_icon()}
+									hint={m.dashboard_depots_replaces_numbered_tile_wherever_depot_appears()}
 								/>
 							</div>
 						</FieldGroup>
 
-						<FieldGroup title="Public page" description="What visitors to the group see." columns={1}>
-							<Field label="Visibility" hint="Members only keeps this depot inside the dashboard.">
+						<FieldGroup title={m.common_public_page()} description={m.dashboard_depots_what_visitors_group_see()} columns={1}>
+							<Field label={m.common_visibility()} hint={m.dashboard_depots_members_only_keeps_depot_inside_dashboard()}>
 								<Select
 									bind:value={editDraft.visibility}
 									options={visibilities}
@@ -299,10 +300,10 @@
 							<Toggle
 								bind:checked={editDraft.showOnGroupPage}
 								disabled={editDraft.visibility !== 'PUBLIC'}
-								label="List on the group page"
+								label={m.dashboard_depots_list_group_page()}
 								description={editDraft.visibility === 'PUBLIC'
-									? 'Off keeps the depot at its own address without crowding the group page.'
-									: 'Members-only depots never appear on the group page.'}
+									? m.dashboard_depots_off_keeps_depot_at_its_own()
+									: m.dashboard_depots_members_only_depots_never_appear_group()}
 							/>
 
 							<ImageManager
@@ -310,29 +311,29 @@
 								ownerType="DEPOT"
 								ownerId={depot.id}
 								images={depot.images}
-								label="Depot images"
-								hint="Shown on the public page. Up to 12 images."
+								label={m.dashboard_depots_depot_images()}
+								hint={m.dashboard_depots_shown_public_page_up_12_images()}
 							/>
 						</FieldGroup>
 
-						<FieldGroup title="Availability" columns={1}>
+						<FieldGroup title={m.dashboard_depots_availability()} columns={1}>
 							<Toggle
 								bind:checked={editDraft.archived}
-								label="Disabled"
-								description="Hidden from dispatch and the public page. Routes keep their link to it."
+								label={m.common_disabled()}
+								description={m.dashboard_depots_hidden_from_dispatch_public_page_routes()}
 							/>
 						</FieldGroup>
 
 						<div class="flex flex-wrap gap-2 border-t border-border-base pt-4">
 							<Button onclick={() => saveDepot(depot.id)} loading={savingId === depot.id}>
-								Save changes
+								{m.common_save_changes()}
 							</Button>
 							<Button
 								variant="danger"
 								onclick={() => deleteDepot(depot)}
 								disabled={savingId === depot.id}
 							>
-								<IconTrash size={16} /> Delete
+								<IconTrash size={16} /> {m.common_delete()}
 							</Button>
 						</div>
 					</div>
@@ -342,56 +343,56 @@
 	</div>
 {/if}
 
-<Modal bind:open={createOpen} title="New depot" description="Give it the number the game uses.">
+<Modal bind:open={createOpen} title={m.dashboard_depots_new_depot()} description={m.dashboard_depots_give_number_game_uses()}>
 	<div class="space-y-6">
-		<FieldGroup title="Depot" description="How the game identifies this spawn.">
-			<Field label="Depot number">
+		<FieldGroup title={m.dashboard_depots_depot()} description={m.dashboard_depots_how_game_identifies_spawn()}>
+			<Field label={m.dashboard_depots_depot_number()}>
 				<Input type="number" min="0" max="9999" bind:value={createDraft.number} />
 			</Field>
 
-			<Field label="Name">
-				<Input bind:value={createDraft.name} maxlength={60} placeholder="e.g. Cat Island" />
+			<Field label={m.common_name()}>
+				<Input bind:value={createDraft.name} maxlength={60} placeholder={m.dashboard_depots_e_g_cat_island()} />
 			</Field>
 
-			<Field label="Colour">
+			<Field label={m.common_colour()}>
 				<ColorInput bind:value={createDraft.color} />
 			</Field>
 
-			<Field label="Description" class="sm:col-span-2">
+			<Field label={m.common_description()} class="sm:col-span-2">
 				<Textarea bind:value={createDraft.description} rows={3} maxlength={2000} />
 			</Field>
 
 			<Field
-				label="Other names in game"
-				hint="Comma separated. Only needed when the game calls this depot something different."
+				label={m.dashboard_depots_other_names_game()}
+				hint={m.dashboard_depots_comma_separated_only_needed_when_game()}
 				class="sm:col-span-2"
 			>
-				<Input bind:value={createDraft.aliases} placeholder="e.g. Hardbass Island" />
+				<Input bind:value={createDraft.aliases} placeholder={m.dashboard_depots_e_g_hardbass_island()} />
 			</Field>
 		</FieldGroup>
 
-		<FieldGroup title="Public page" columns={1}>
-			<Field label="Visibility">
+		<FieldGroup title={m.common_public_page()} columns={1}>
+			<Field label={m.common_visibility()}>
 				<Select bind:value={createDraft.visibility} options={visibilities} class="sm:max-w-64" />
 			</Field>
 
 			<Toggle
 				bind:checked={createDraft.showOnGroupPage}
 				disabled={createDraft.visibility !== 'PUBLIC'}
-				label="List on the group page"
-				description="Off keeps the depot at its own address without crowding the group page."
+				label={m.dashboard_depots_list_group_page()}
+				description={m.dashboard_depots_off_keeps_depot_at_its_own()}
 			/>
 		</FieldGroup>
 	</div>
 
 	<p class="mt-3 text-xs text-text-subtle">
-		The icon and images can be added once the depot exists.
+		{m.dashboard_depots_icon_images_can_added_once_depot()}
 	</p>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (createOpen = false)}>Cancel</Button>
+		<Button variant="secondary" onclick={() => (createOpen = false)}>{m.common_cancel()}</Button>
 		<Button onclick={createDepot} loading={creating} disabled={!createDraft.name.trim()}>
-			Create depot
+			{m.dashboard_depots_create_depot()}
 		</Button>
 	{/snippet}
 </Modal>

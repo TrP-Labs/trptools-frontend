@@ -9,6 +9,7 @@
 	import { signupTotals } from '$lib/utils/signups';
 	import { loginUrl } from '$lib/api/client';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -26,33 +27,33 @@
 </script>
 
 <svelte:head>
-	<title>Shifts — TrP Tools</title>
+	<title>{m.shifts_shifts_trp_tools()}</title>
 	<meta name="description" content="Upcoming shifts across your groups." />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-10">
-	<PageHeader title="Shifts" description="Everything scheduled across the groups you are in." />
+	<PageHeader title={m.common_shifts()} description={m.shifts_everything_scheduled_across_groups_are()} />
 
 	{#if !data.signedIn}
 		<EmptyState
-			title="Sign in to see your shifts"
-			description="Your shifts come from the groups your Roblox account belongs to."
+			title={m.shifts_sign_see_shifts()}
+			description={m.shifts_shifts_come_from_groups_roblox_account()}
 		>
 			{#snippet icon()}<IconCalendarTime size={28} stroke={1.5} />{/snippet}
 			{#snippet action()}
-				<Button href={loginUrl()} data-sveltekit-reload>Sign in with Roblox</Button>
+				<Button href={loginUrl()} data-sveltekit-reload>{m.common_sign_with_roblox()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else if data.occurrences.length === 0}
 		<EmptyState
-			title="Nothing scheduled"
+			title={m.common_nothing_scheduled()}
 			description={data.groups.length === 0
-				? 'You are not a member of any group on TrP Tools yet.'
-				: 'No shifts are coming up in the next month.'}
+				? m.shifts_are_not_member_any_group_trp()
+				: m.shifts_no_shifts_are_coming_up_next()}
 		>
 			{#snippet icon()}<IconCalendarTime size={28} stroke={1.5} />{/snippet}
 			{#snippet action()}
-				<Button href="/groups" variant="secondary">Browse groups</Button>
+				<Button href="/groups" variant="secondary">{m.shifts_browse_groups()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}

@@ -10,7 +10,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatRelative } from '$lib/utils/format';
-	import { PERMISSION, PERMISSION_LABELS, type DashboardGroup } from '$lib/api/types';
+	import { PERMISSION, permissionLabel, type DashboardGroup } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		group: DashboardGroup;
@@ -30,15 +31,15 @@
 	 */
 	let links = $derived(
 		[
-			{ href: `/dashboard/${group.slug}/dispatch`, label: 'Dispatch', icon: IconRadio, level: PERMISSION.DISPATCH },
-			{ href: `/dashboard/${group.slug}/shifts`, label: 'Shifts', icon: IconCalendarTime, level: PERMISSION.DISPATCH },
+			{ href: `/dashboard/${group.slug}/dispatch`, label: m.common_dispatch(), icon: IconRadio, level: PERMISSION.DISPATCH },
+			{ href: `/dashboard/${group.slug}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, level: PERMISSION.DISPATCH },
 			{
 				href: `/dashboard/${group.slug}/applications`,
-				label: 'Applications',
+				label: m.common_applications(),
 				icon: IconClipboardList,
 				level: PERMISSION.MANAGE
 			},
-			{ href: `/dashboard/${group.slug}/settings`, label: 'Settings', icon: IconSettings, level: PERMISSION.MANAGE }
+			{ href: `/dashboard/${group.slug}/settings`, label: m.common_settings(), icon: IconSettings, level: PERMISSION.MANAGE }
 		].filter((link) => group.permissionLevel >= link.level)
 	);
 </script>
@@ -59,7 +60,7 @@
 			<a href="/dashboard/{group.slug}" class="font-semibold text-text before:absolute before:inset-0">
 				<span class="wrap-anywhere">{group.name}</span>
 			</a>
-			<p class="mt-0.5 text-xs text-text-muted">{PERMISSION_LABELS[group.permissionLevel]}</p>
+			<p class="mt-0.5 text-xs text-text-muted">{permissionLabel(group.permissionLevel)}</p>
 		</div>
 
 		<!--
@@ -77,7 +78,7 @@
 			aria-busy={pinning === group.id}
 			aria-pressed={primary}
 			aria-label={primary ? `Unpin ${group.name}` : `Make ${group.name} your primary group`}
-			title={primary ? 'Your primary group' : 'Make this your primary group'}
+			title={primary ? m.dashboard_group_status_card_primary_group() : m.dashboard_group_status_card_make_primary_group()}
 			class="relative z-10 shrink-0 rounded-lg p-1.5 transition-colors
 				{pinning === group.id ? 'opacity-50' : ''}
 				{primary ? 'text-accent' : 'text-text-subtle hover:bg-background-secondary hover:text-text'}"
@@ -88,7 +89,7 @@
 
 	<div class="mt-4 flex flex-wrap items-center gap-2">
 		{#if group.roomId}
-			<Badge tone="success"><IconRadio size={12} /> Dispatch live</Badge>
+			<Badge tone="success"><IconRadio size={12} /> {m.dashboard_group_status_card_dispatch_live()}</Badge>
 		{/if}
 		{#if group.pendingApplications > 0}
 			<Badge tone="warning">
@@ -101,7 +102,7 @@
 				{formatRelative(group.nextShift.start)}
 			</Badge>
 		{:else}
-			<Badge>No shifts scheduled</Badge>
+			<Badge>{m.dashboard_group_status_card_no_shifts_scheduled()}</Badge>
 		{/if}
 	</div>
 

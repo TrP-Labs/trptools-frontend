@@ -1,4 +1,5 @@
 import { Frequency, RRule, rrulestr, Weekday } from 'rrule';
+import { m } from '$lib/paraglide/messages.js';
 
 /**
  * A small, opinionated slice of RRULE.
@@ -104,7 +105,7 @@ export function describeRule(rule: string): string {
 	try {
 		return (rrulestr(rule) as RRule).toText();
 	} catch {
-		return 'Custom recurrence';
+		return m.recurrence_custom();
 	}
 }
 

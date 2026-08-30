@@ -7,6 +7,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { AdminUser } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		/** The account being acted on, or null when the dialog is closed. */
@@ -22,12 +23,12 @@
 	// A ban is a suspension with no expiry, so one dialog covers both and the
 	// duration is the only thing that separates them.
 	const durations = [
-		{ value: 24, label: '1 day' },
-		{ value: 72, label: '3 days' },
-		{ value: 168, label: '7 days' },
-		{ value: 336, label: '14 days' },
-		{ value: 720, label: '30 days' },
-		{ value: 0, label: 'Permanent' }
+		{ value: 24, label: m.moderation_ban_dialog_1_day() },
+		{ value: 72, label: m.moderation_ban_dialog_3_days() },
+		{ value: 168, label: m.moderation_ban_dialog_7_days() },
+		{ value: 336, label: m.moderation_ban_dialog_14_days() },
+		{ value: 720, label: m.moderation_ban_dialog_30_days() },
+		{ value: 0, label: m.moderation_ban_dialog_permanent() }
 	];
 
 	let reason = $state('');
@@ -58,7 +59,7 @@
 			ondone();
 			onclose();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not suspend that account'));
+			toasts.error(errorMessage(error, m.moderation_ban_dialog_could_not_suspend_account()));
 		} finally {
 			saving = false;
 		}
@@ -67,8 +68,8 @@
 
 <Modal
 	open={target !== null}
-	title={mode === 'ban' ? 'Ban an account' : 'Suspend an account'}
-	description="Access stops immediately and every session the account holds is ended."
+	title={mode === 'ban' ? m.moderation_ban_dialog_ban_account() : m.moderation_ban_dialog_suspend_account()}
+	description={m.moderation_ban_dialog_access_stops_immediately_every_session_account()}
 	size="sm"
 	{onclose}
 >
@@ -78,19 +79,19 @@
 			{#if target?.username}<span class="text-text-subtle"> @{target.username}</span>{/if}
 		</p>
 
-		<Field label="Duration" hint="A permanent ban stays until an administrator lifts it.">
+		<Field label={m.moderation_ban_dialog_duration()} hint={m.moderation_ban_dialog_permanent_ban_stays_until_administrator_lifts()}>
 			<Select bind:value={hours} options={durations} />
 		</Field>
 
-		<Field label="Reason" hint="Kept for administrators. The account is never shown it.">
-			<Textarea bind:value={reason} rows={3} maxlength={500} placeholder="What happened" />
+		<Field label={m.moderation_ban_dialog_reason()} hint={m.moderation_ban_dialog_kept_administrators_account_never_shown()}>
+			<Textarea bind:value={reason} rows={3} maxlength={500} placeholder={m.moderation_ban_dialog_what_happened()} />
 		</Field>
 	</div>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={onclose}>Cancel</Button>
+		<Button variant="secondary" onclick={onclose}>{m.common_cancel()}</Button>
 		<Button variant="danger" loading={saving} onclick={submit}>
-			{hours > 0 ? 'Suspend' : 'Ban'}
+			{hours > 0 ? m.moderation_ban_dialog_suspend() : m.moderation_ban_dialog_ban()}
 		</Button>
 	{/snippet}
 </Modal>

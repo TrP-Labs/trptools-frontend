@@ -6,6 +6,7 @@
 	import { api, errorMessage, loginUrl } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { reportDialog } from '$lib/stores/report.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		signedIn: boolean;
@@ -51,7 +52,7 @@
 			reason = REASONS[0]!;
 			reportDialog.close();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not send that report'));
+			toasts.error(errorMessage(error, m.moderation_report_dialog_could_not_send_report()));
 		} finally {
 			sending = false;
 		}
@@ -62,16 +63,15 @@
 	open={target !== null}
 	onclose={() => reportDialog.close()}
 	title="Report {target?.label ?? 'content'}"
-	description="Reports are reviewed by TrP Tools moderators."
+	description={m.moderation_report_dialog_reports_are_reviewed_by_trp_tools()}
 >
 	{#if !signedIn}
 		<p class="text-sm text-text-muted">
-			You need to be signed in to report content, so we can act on abuse of the report system
-			itself.
+			{m.moderation_report_dialog_need_signed_report_content_so_we()}
 		</p>
 	{:else}
 		<div class="space-y-4">
-			<Field label="Reason">
+			<Field label={m.moderation_report_dialog_reason()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each REASONS as option (option)}
 						<button
@@ -89,22 +89,22 @@
 				</div>
 			</Field>
 
-			<Field label="Anything else?" hint="Optional, but it helps.">
+			<Field label={m.moderation_report_dialog_anything_else()} hint={m.moderation_report_dialog_optional_but_helps()}>
 				<Textarea bind:value={details} rows={3} maxlength={1000} />
 			</Field>
 
 			<p class="text-xs text-text-subtle">
-				Reported content is hidden straight away unless a moderator has already cleared it.
+				{m.moderation_report_dialog_reported_content_hidden_straight_away_unless()}
 			</p>
 		</div>
 	{/if}
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => reportDialog.close()}>Cancel</Button>
+		<Button variant="secondary" onclick={() => reportDialog.close()}>{m.common_cancel()}</Button>
 		{#if signedIn}
-			<Button variant="danger" onclick={submit} loading={sending}>Send report</Button>
+			<Button variant="danger" onclick={submit} loading={sending}>{m.moderation_report_dialog_send_report()}</Button>
 		{:else}
-			<Button href={loginUrl()} data-sveltekit-reload>Sign in</Button>
+			<Button href={loginUrl()} data-sveltekit-reload>{m.moderation_report_dialog_sign()}</Button>
 		{/if}
 	{/snippet}
 </Modal>

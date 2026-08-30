@@ -10,6 +10,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RankSignup } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * One rank's sign-up sheet.
@@ -65,7 +66,7 @@
 			if (error) throw error;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save the sign-up sheet'));
+			toasts.error(errorMessage(error, m.shifts_rank_signup_editor_could_not_save_sign_up_sheet()));
 		} finally {
 			busy = false;
 		}
@@ -84,11 +85,11 @@
 		});
 
 		dirty = false;
-		toasts.success('Sign-up slots saved');
+		toasts.success(m.shifts_rank_signup_editor_sign_up_slots_saved());
 	}
 
 	async function removeSheet() {
-		if (!confirm(`Remove the ${rankName} sign-up sheet? Sign-ups already made against it go too.`))
+		if (!confirm(m.shifts_rank_signup_editor_remove_sheet_confirm({ rank: rankName })))
 			return;
 
 		busy = true;
@@ -96,10 +97,10 @@
 			const { error } = await api.ranks({ rankId }).signup.delete();
 			if (error) throw error;
 
-			toasts.success('Sign-up sheet removed');
+			toasts.success(m.shifts_rank_signup_editor_sign_up_sheet_removed());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not remove the sheet'));
+			toasts.error(errorMessage(error, m.shifts_rank_signup_editor_could_not_remove_sheet()));
 		} finally {
 			busy = false;
 		}
@@ -118,7 +119,7 @@
 
 {#if !signup}
 	<EmptyState
-		title="No sign-up sheet"
+		title={m.shifts_rank_signup_editor_no_sign_up_sheet()}
 		description="Slots people at this rank or above can take on any shift. Nobody below {rankName} ever sees it."
 	>
 		{#snippet icon()}<IconClipboardList size={28} stroke={1.5} />{/snippet}
@@ -128,7 +129,7 @@
 				disabled={busy}
 				onclick={() => save({ enabled: true, name: rankName, color: rankColor })}
 			>
-				<IconPlus size={15} /> Add a sheet
+				<IconPlus size={15} /> {m.shifts_rank_signup_editor_add_sheet()}
 			</Button>
 		{/snippet}
 	</EmptyState>
@@ -136,14 +137,14 @@
 	<div class="space-y-4">
 		<Toggle
 			checked={signup.enabled}
-			label="Open for sign-ups"
-			description="Turning this off hides the sheet everywhere without deleting it."
+			label={m.shifts_rank_signup_editor_open_sign_ups()}
+			description={m.shifts_rank_signup_editor_turning_off_hides_sheet_everywhere_without()}
 			disabled={busy}
 			onchange={(enabled) => save({ enabled })}
 		/>
 
 		<div class="grid gap-3 sm:grid-cols-[1fr_auto]">
-			<Field label="Sheet name" hint="Shown as the heading on the shift page and in Discord.">
+			<Field label={m.shifts_rank_signup_editor_sheet_name()} hint={m.shifts_rank_signup_editor_shown_as_heading_shift_page_discord()}>
 				<Input
 					value={signup.name}
 					maxlength={60}
@@ -155,17 +156,17 @@
 				/>
 			</Field>
 
-			<Field label="Colour">
+			<Field label={m.common_colour()}>
 				<ColorInput value={signup.color} disabled={busy} oncommit={(color) => save({ color })} />
 			</Field>
 		</div>
 
-		<Field label="Description" hint="Optional, shown under the heading.">
+		<Field label={m.common_description()} hint={m.shifts_rank_signup_editor_optional_shown_under_heading()}>
 			<Input
 				value={signup.description}
 				maxlength={300}
 				disabled={busy}
-				placeholder="e.g. Runs the shift from the dispatch room."
+				placeholder={m.shifts_rank_signup_editor_e_g_runs_shift_from_dispatch()}
 				onblur={(event) => {
 					const next = (event.currentTarget as HTMLInputElement).value;
 					if (next !== signup.description) save({ description: next });
@@ -175,9 +176,9 @@
 
 		<div>
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">Slots</span>
+				<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">{m.shifts_rank_signup_editor_slots()}</span>
 				<Button size="sm" variant="ghost" onclick={addSlot} disabled={busy}>
-					<IconPlus size={15} /> Add slot
+					<IconPlus size={15} /> {m.shifts_rank_signup_editor_add_slot()}
 				</Button>
 			</div>
 
@@ -185,7 +186,7 @@
 				<p
 					class="rounded-lg border border-dashed border-border-base px-3 py-4 text-center text-sm text-text-muted"
 				>
-					No slots yet. A sheet with no slots is not shown to anyone.
+					{m.shifts_rank_signup_editor_no_slots_yet_sheet_with_no()}
 				</p>
 			{:else}
 				<ul class="space-y-2">
@@ -194,27 +195,27 @@
 							class="flex flex-wrap items-end gap-2 rounded-lg border border-border-base bg-background-secondary p-3"
 						>
 							<div class="min-w-32 flex-1">
-								<Field label="Name">
+								<Field label={m.common_name()}>
 									<Input
 										bind:value={slot.name}
 										maxlength={60}
-										placeholder="e.g. Dispatcher"
+										placeholder={m.shifts_rank_signup_editor_e_g_dispatcher()}
 										oninput={() => (dirty = true)}
 									/>
 								</Field>
 							</div>
 							<div class="min-w-40 flex-[2]">
-								<Field label="Description">
+								<Field label={m.common_description()}>
 									<Input
 										bind:value={slot.description}
 										maxlength={300}
-										placeholder="Optional"
+										placeholder={m.shifts_rank_signup_editor_optional()}
 										oninput={() => (dirty = true)}
 									/>
 								</Field>
 							</div>
 							<div class="w-24">
-								<Field label="Spaces">
+								<Field label={m.shifts_rank_signup_editor_spaces()}>
 									<Input
 										type="number"
 										min="1"
@@ -227,7 +228,7 @@
 							<button
 								type="button"
 								onclick={() => removeSlot(index)}
-								aria-label="Remove slot"
+								aria-label={m.shifts_rank_signup_editor_remove_slot()}
 								class="mb-1.5 rounded-lg p-2 text-text-subtle transition-colors hover:text-danger"
 							>
 								<IconTrash size={16} />
@@ -239,14 +240,14 @@
 
 			{#if dirty}
 				<div class="mt-2">
-					<Button size="sm" onclick={saveSlots} loading={busy}>Save slots</Button>
+					<Button size="sm" onclick={saveSlots} loading={busy}>{m.shifts_rank_signup_editor_save_slots()}</Button>
 				</div>
 			{/if}
 		</div>
 
 		<div class="flex justify-end border-t border-border-base pt-3">
 			<Button size="sm" variant="ghost" onclick={removeSheet} disabled={busy}>
-				<IconTrash size={15} /> Remove sheet
+				<IconTrash size={15} /> {m.shifts_rank_signup_editor_remove_sheet()}
 			</Button>
 		</div>
 	</div>

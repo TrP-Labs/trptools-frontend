@@ -15,6 +15,7 @@
 	import { buildRule, fromLocalInput, parseRule, toLocalInput } from '$lib/utils/recurrence';
 	import type { ShiftEvent } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -87,12 +88,12 @@
 			});
 			if (!created) throw error;
 
-			toasts.success('Shift created');
+			toasts.success(m.dashboard_shifts_shift_created());
 			createOpen = false;
 			createDraft = emptyDraft();
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not create that shift'));
+			toasts.error(errorMessage(error, m.dashboard_shifts_could_not_create_shift()));
 		} finally {
 			creating = false;
 		}
@@ -106,11 +107,11 @@
 			const { error } = await api.schedule({ eventId: editing.eventId }).patch(payload(editDraft));
 			if (error) throw error;
 
-			toasts.success('Shift saved');
+			toasts.success(m.dashboard_shifts_shift_saved());
 			editing = null;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save that shift'));
+			toasts.error(errorMessage(error, m.dashboard_shifts_could_not_save_shift()));
 		} finally {
 			savingEdit = false;
 		}
@@ -118,18 +119,18 @@
 
 	async function deleteShift() {
 		if (!editing) return;
-		if (!confirm(`Delete “${editing.name}”? Signups for it will be removed too.`)) return;
+		if (!confirm(m.dashboard_shifts_delete_confirm({ shift: editing.name }))) return;
 
 		savingEdit = true;
 		try {
 			const { error } = await api.schedule({ eventId: editing.eventId }).delete();
 			if (error) throw error;
 
-			toasts.success('Shift deleted');
+			toasts.success(m.dashboard_shifts_shift_deleted());
 			editing = null;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete that shift'));
+			toasts.error(errorMessage(error, m.dashboard_shifts_could_not_delete_shift()));
 		} finally {
 			savingEdit = false;
 		}
@@ -141,10 +142,10 @@
 	}
 </script>
 
-<PageHeader title="Shifts" description="Recurring services and who has signed up for each one.">
+<PageHeader title={m.common_shifts()} description={m.dashboard_shifts_recurring_services_who_has_signed_up()}>
 	{#snippet actions()}
 		{#if canManage}
-			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New shift</Button>
+			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_shifts_new_shift()}</Button>
 		{/if}
 	{/snippet}
 </PageHeader>
@@ -152,14 +153,14 @@
 <div class="grid gap-6 lg:grid-cols-[1fr_22rem]">
 	<!-- Upcoming occurrences with signups -->
 	<div>
-		<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">Upcoming</h2>
+		<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">{m.dashboard_shifts_upcoming()}</h2>
 
 		{#if data.occurrences.length === 0}
 			<EmptyState
-				title="Nothing scheduled"
+				title={m.common_nothing_scheduled()}
 				description={canManage
-					? 'Create a shift and its occurrences will appear here.'
-					: 'No shifts are scheduled for the next month.'}
+					? m.dashboard_shifts_create_shift_its_occurrences_will_appear()
+					: m.dashboard_shifts_no_shifts_are_scheduled_next_month()}
 			>
 				{#snippet icon()}<IconCalendarTime size={28} stroke={1.5} />{/snippet}
 			</EmptyState>
@@ -202,11 +203,11 @@
 
 	<!-- The recurring definitions -->
 	<aside>
-		<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">Schedules</h2>
+		<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">{m.dashboard_shifts_schedules()}</h2>
 
 		{#if data.shifts.length === 0}
 			<p class="rounded-xl border border-dashed border-border-base px-4 py-6 text-center text-sm text-text-muted">
-				No recurring shifts defined.
+				{m.dashboard_shifts_no_recurring_shifts_defined()}
 			</p>
 		{:else}
 			<ul class="space-y-2">
@@ -224,7 +225,7 @@
 								</p>
 								{#if shift.visibility !== 'PUBLIC'}
 									<div class="mt-2 flex flex-wrap gap-1.5">
-										<Badge>Members only</Badge>
+										<Badge>{m.common_members_only()}</Badge>
 									</div>
 								{/if}
 							</div>
@@ -237,7 +238,7 @@
 								class="mt-3 w-full"
 								onclick={() => openEditor(shift)}
 							>
-								Edit
+								{m.dashboard_shifts_edit()}
 							</Button>
 						{/if}
 					</li>
@@ -247,7 +248,7 @@
 	</aside>
 </div>
 
-<Modal bind:open={createOpen} title="New shift" size="lg">
+<Modal bind:open={createOpen} title={m.dashboard_shifts_new_shift()} size="lg">
 	<ShiftEditor
 		bind:draft={createDraft}
 		mode="create"
@@ -260,7 +261,7 @@
 <Modal
 	open={editing !== null}
 	onclose={() => (editing = null)}
-	title={editing ? `Edit ${editing.name}` : 'Edit shift'}
+	title={editing ? `Edit ${editing.name}` : m.dashboard_shifts_edit_shift()}
 	size="lg"
 >
 	<ShiftEditor

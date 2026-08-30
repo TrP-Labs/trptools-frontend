@@ -9,6 +9,7 @@
 	import ReportButton from '$lib/components/moderation/ReportButton.svelte';
 	import { withAlpha } from '$lib/utils/color';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -64,16 +65,16 @@
 <div class="mx-auto max-w-4xl space-y-10 px-4 py-10">
 	{#if depot.description}
 		<section>
-			<h2 class="mb-3 text-lg font-semibold">About this depot</h2>
+			<h2 class="mb-3 text-lg font-semibold">{m.g_depot_about_depot()}</h2>
 			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{depot.description}</p>
 		</section>
 	{/if}
 
 	<section>
-		<h2 class="mb-3 text-lg font-semibold">Routes from here</h2>
+		<h2 class="mb-3 text-lg font-semibold">{m.g_depot_routes_from_here()}</h2>
 
 		{#if data.routes.length === 0}
-			<EmptyState title="No routes" description="Nothing published runs from this depot yet.">
+			<EmptyState title={m.g_depot_no_routes()} description={m.g_depot_nothing_published_runs_from_depot_yet()}>
 				{#snippet icon()}<IconRoute size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
 		{:else}
@@ -107,10 +108,10 @@
 	</section>
 
 	<section>
-		<h2 class="mb-3 text-lg font-semibold">Photos</h2>
+		<h2 class="mb-3 text-lg font-semibold">{m.g_depot_photos()}</h2>
 
 		{#if depot.images.length === 0}
-			<EmptyState title="No images yet" description="This depot has no photos published.">
+			<EmptyState title={m.g_depot_no_images_yet()} description={m.g_depot_depot_has_no_photos_published()}>
 				{#snippet icon()}<IconPhoto size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
 		{:else}

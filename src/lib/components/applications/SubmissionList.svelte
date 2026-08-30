@@ -22,10 +22,11 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import {
-		APPLICATION_STATUS_LABELS,
+		applicationStatusLabel,
 		type ApplicationSubmission,
 		type ApplicationSubmissionDetail
 	} from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * A queue of submitted applications, and the decision on each.
@@ -77,7 +78,7 @@
 			// must not paint itself over the one they are reading now.
 			if (openId === submissionId) detail = data;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not read that application'));
+			toasts.error(errorMessage(error, m.applications_submission_list_could_not_read_application()));
 		} finally {
 			loading = false;
 		}
@@ -95,31 +96,31 @@
 			const { error } = await api.applications.submissions({ submissionId }).clear.post();
 			if (error) throw error;
 
-			toasts.success('Record cleared — they can apply again');
+			toasts.success(m.applications_submission_list_record_cleared_they_can_apply_again());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not clear that record'));
+			toasts.error(errorMessage(error, m.applications_submission_list_could_not_clear_record()));
 		} finally {
 			busy = false;
 		}
 	}
 
 	async function deleteRecord(submissionId: string, name: string) {
-		if (!confirm(`Delete ${name}'s application? What they wrote and the decision go with it.`)) return;
+		if (!confirm(m.applications_submission_list_delete_confirm({ name }))) return;
 
 		busy = true;
 		try {
 			const { error } = await api.applications.submissions({ submissionId }).delete();
 			if (error) throw error;
 
-			toasts.success('Application deleted');
+			toasts.success(m.applications_submission_list_application_deleted());
 			if (openId === submissionId) {
 				openId = null;
 				detail = null;
 			}
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete that application'));
+			toasts.error(errorMessage(error, m.applications_submission_list_could_not_delete_application()));
 		} finally {
 			busy = false;
 		}
@@ -139,7 +140,7 @@
 			note = '';
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not record that decision'));
+			toasts.error(errorMessage(error, m.applications_submission_list_could_not_record_decision()));
 		} finally {
 			busy = false;
 		}
@@ -173,12 +174,12 @@
 
 					{#if submission.status !== 'PENDING'}
 						<Badge tone={submission.status === 'APPROVED' ? 'success' : 'danger'}>
-							{APPLICATION_STATUS_LABELS[submission.status]}
+							{applicationStatusLabel(submission.status)}
 						</Badge>
 					{/if}
 
 					{#if submission.clearedAt}
-						<Badge>Cleared</Badge>
+						<Badge>{m.applications_submission_list_cleared()}</Badge>
 					{/if}
 
 					<IconChevronDown
@@ -193,12 +194,12 @@
 						would make every press of it toggle the row as well.
 					-->
 					<div class="absolute top-4 right-4">
-						<OverflowMenu label="Record actions">
+						<OverflowMenu label={m.applications_submission_list_record_actions()}>
 							{#snippet children(close)}
 								<MenuItem
 									disabled={busy || Boolean(submission.clearedAt)}
 									title={submission.clearedAt
-										? 'This record has already been cleared'
+										? m.applications_submission_list_record_has_already_been_cleared()
 										: undefined}
 									onclick={() => {
 										close();
@@ -206,7 +207,7 @@
 									}}
 								>
 									<IconLockOpen size={15} />
-									{submission.clearedAt ? 'Record cleared' : 'Clear record'}
+									{submission.clearedAt ? m.applications_submission_list_record_cleared() : m.applications_submission_list_clear_record()}
 								</MenuItem>
 
 								<MenuItem
@@ -222,7 +223,7 @@
 										);
 									}}
 								>
-									<IconTrash size={15} /> Delete record
+									<IconTrash size={15} /> {m.applications_submission_list_delete_record()}
 								</MenuItem>
 							{/snippet}
 						</OverflowMenu>
@@ -242,7 +243,7 @@
 								href="/users/{submission.applicant.userId}"
 								class="inline-flex items-center gap-1 transition-colors hover:text-text"
 							>
-								View profile <IconExternalLink size={12} />
+								{m.applications_submission_list_view_profile()} <IconExternalLink size={12} />
 							</a>
 						</div>
 
@@ -265,12 +266,12 @@
 											{:else if answer.value}
 												{answer.value}
 											{:else}
-												<span class="text-text-subtle">No answer</span>
+												<span class="text-text-subtle">{m.applications_submission_list_no_answer()}</span>
 											{/if}
 										</dd>
 									</div>
 								{:else}
-									<p class="text-sm text-text-muted">This form asked nothing at the time.</p>
+									<p class="text-sm text-text-muted">{m.applications_submission_list_form_asked_nothing_at_time()}</p>
 								{/each}
 							</dl>
 
@@ -280,7 +281,7 @@
 										bind:value={note}
 										rows={2}
 										maxlength={1000}
-										placeholder="A note for your records, and for the applicant to read. Optional."
+										placeholder={m.applications_submission_list_note_records_applicant_read_optional()}
 									/>
 
 									<div class="flex flex-wrap justify-end gap-2">
@@ -290,22 +291,21 @@
 											loading={busy}
 											onclick={() => review(submission.id, 'DENY')}
 										>
-											<IconX size={15} /> Deny
+											<IconX size={15} /> {m.applications_submission_list_deny()}
 										</Button>
 										<Button size="sm" loading={busy} onclick={() => review(submission.id, 'APPROVE')}>
-											<IconCheck size={15} /> Approve
+											<IconCheck size={15} /> {m.applications_submission_list_approve()}
 										</Button>
 									</div>
 
 									<p class="text-xs text-text-subtle">
-										Approving records the decision here. Promotions still happen in your Roblox
-										group, and access follows from the rank as it always does.
+										{m.applications_submission_list_approving_records_decision_here_promotions_still()}
 									</p>
 								</div>
 							{:else if submission.reviewedAt}
 								<div class="space-y-1 border-t border-border-base pt-4 text-sm">
 									<p class="text-text-muted">
-										{APPLICATION_STATUS_LABELS[submission.status]} by
+										{applicationStatusLabel(submission.status)} by
 										{submission.reviewer?.displayName ??
 											submission.reviewer?.username ??
 											'a manager'}

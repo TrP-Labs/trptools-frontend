@@ -4,6 +4,7 @@
 	import Toaster from '$lib/components/ui/Toaster.svelte';
 	import ReportDialog from '$lib/components/moderation/ReportDialog.svelte';
 	import type { LayoutProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -13,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>TrP Tools</title>
+	<title>{m.common_trp_tools()}</title>
 	<meta
 		name="description"
 		content="Group management, shift scheduling and multi-user dispatch for TrP."
@@ -32,7 +33,7 @@
 			class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 text-xs text-text-subtle"
 		>
 			<p class="flex items-center gap-1.5">
-				TrP Tools
+				{m.common_trp_tools()}
 				<span aria-hidden="true">·</span>
 				<span class="font-mono">v{version}</span>
 			</p>

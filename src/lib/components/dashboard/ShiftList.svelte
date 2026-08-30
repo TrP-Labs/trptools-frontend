@@ -4,6 +4,7 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import type { DashboardShift } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		shifts: DashboardShift[];
@@ -37,7 +38,7 @@
 				</div>
 
 				{#if shift.signedUp}
-					<Badge tone="accent"><IconCheck size={12} /> In</Badge>
+					<Badge tone="accent"><IconCheck size={12} /> {m.dashboard_shift_list_in()}</Badge>
 				{/if}
 
 				<span class="hidden shrink-0 text-xs text-text-subtle sm:block">

@@ -8,6 +8,7 @@
 	import { signupTotals } from '$lib/utils/signups';
 	import { withAlpha } from '$lib/utils/color';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -92,7 +93,7 @@
 	-->
 	{#if openSignups.length > 0}
 		<section>
-			<h2 class="mb-3 text-lg font-semibold">Sign up</h2>
+			<h2 class="mb-3 text-lg font-semibold">{m.g_shift_sign_up()}</h2>
 
 			<ul class="space-y-4">
 				{#each openSignups as occurrence (occurrence.start)}
@@ -136,16 +137,16 @@
 
 	{#if shift.description}
 		<section>
-			<h2 class="mb-3 text-lg font-semibold">About this shift</h2>
+			<h2 class="mb-3 text-lg font-semibold">{m.g_shift_about_shift()}</h2>
 			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{shift.description}</p>
 		</section>
 	{/if}
 
 	<section>
-		<h2 class="mb-3 text-lg font-semibold">Next occurrences</h2>
+		<h2 class="mb-3 text-lg font-semibold">{m.g_shift_next_occurrences()}</h2>
 
 		{#if data.occurrences.length === 0}
-			<EmptyState title="Nothing scheduled" description="No occurrences in the next two months.">
+			<EmptyState title={m.common_nothing_scheduled()} description={m.g_shift_no_occurrences_next_two_months()}>
 				{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
 		{:else}

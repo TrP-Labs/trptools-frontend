@@ -14,15 +14,16 @@
 	import { formatDateTime, formatNumber, formatRelative } from '$lib/utils/format';
 	import { signupTotals } from '$lib/utils/signups';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
 	let group = $derived(data.group);
 
 	let stats = $derived([
-		{ label: 'Routes', value: formatNumber(data.routes.length), icon: IconRoute },
-		{ label: 'Shifts', value: formatNumber(data.shifts.length), icon: IconCalendarTime },
-		{ label: 'Members', value: formatNumber(group.members), icon: IconUsers }
+		{ label: m.common_routes(), value: formatNumber(data.routes.length), icon: IconRoute },
+		{ label: m.common_shifts(), value: formatNumber(data.shifts.length), icon: IconCalendarTime },
+		{ label: m.dashboard_members(), value: formatNumber(group.members), icon: IconUsers }
 	]);
 </script>
 
@@ -37,8 +38,8 @@
 				></span>
 				<span class="relative inline-flex size-2.5 rounded-full bg-success"></span>
 			</span>
-			<p class="flex-1 text-sm text-text">A dispatch room is open right now.</p>
-			<Button size="sm" href="/dashboard/{group.slug}/dispatch">Join dispatch</Button>
+			<p class="flex-1 text-sm text-text">{m.dashboard_dispatch_room_open_right_now()}</p>
+			<Button size="sm" href="/dashboard/{group.slug}/dispatch">{m.dashboard_join_dispatch()}</Button>
 		</div>
 	{/if}
 
@@ -57,13 +58,13 @@
 	</div>
 
 	<div class="grid gap-6 lg:grid-cols-2">
-		<Card title="Next shifts" description="The next occurrences across every schedule.">
+		<Card title={m.dashboard_next_shifts()} description={m.dashboard_next_occurrences_across_every_schedule()}>
 			{#snippet actions()}
-				<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/shifts">Manage</Button>
+				<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/shifts">{m.common_manage()}</Button>
 			{/snippet}
 
 			{#if data.upcoming.length === 0}
-				<EmptyState title="Nothing scheduled" description="Create a shift to get started.">
+				<EmptyState title={m.common_nothing_scheduled()} description={m.dashboard_create_shift_get_started()}>
 					{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
 				</EmptyState>
 			{:else}
@@ -92,15 +93,15 @@
 			{/if}
 		</Card>
 
-		<Card title="Routes" description="What automatic dispatch can assign.">
+		<Card title={m.common_routes()} description={m.dashboard_what_automatic_dispatch_can_assign()}>
 			{#snippet actions()}
 				{#if group.permissionLevel >= 3}
-					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/routes">Manage</Button>
+					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/routes">{m.common_manage()}</Button>
 				{/if}
 			{/snippet}
 
 			{#if data.routes.length === 0}
-				<EmptyState title="No routes yet" description="Add routes so dispatch has something to assign.">
+				<EmptyState title={m.dashboard_no_routes_yet()} description={m.dashboard_add_routes_so_dispatch_has_something()}>
 					{#snippet icon()}<IconRoute size={24} stroke={1.5} />{/snippet}
 				</EmptyState>
 			{:else}
@@ -119,15 +120,15 @@
 			{/if}
 		</Card>
 
-		<Card title="Depots" description="Where vehicles spawn, and what dispatch matches them against.">
+		<Card title={m.common_depots()} description={m.dashboard_where_vehicles_spawn_what_dispatch_matches()}>
 			{#snippet actions()}
 				{#if group.permissionLevel >= 3}
-					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/depots">Manage</Button>
+					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/depots">{m.common_manage()}</Button>
 				{/if}
 			{/snippet}
 
 			{#if data.depots.length === 0}
-				<EmptyState title="No depots" description="Automatic assignment needs depots to work.">
+				<EmptyState title={m.dashboard_no_depots()} description={m.dashboard_automatic_assignment_needs_depots_work()}>
 					{#snippet icon()}<IconBuildingWarehouse size={24} stroke={1.5} />{/snippet}
 				</EmptyState>
 			{:else}
@@ -151,18 +152,17 @@
 
 	{#if group.permissionLevel >= 3 && !group.hasOpenCloudKey}
 		<Card
-			title="Connect an Open Cloud key"
-			description="Roblox now requires authentication to read group membership."
+			title={m.dashboard_connect_open_cloud_key()}
+			description={m.dashboard_roblox_now_requires_authentication_read_group()}
 		>
 			{#snippet actions()}
-				<Button size="sm" href="/dashboard/{group.slug}/settings">Set up</Button>
+				<Button size="sm" href="/dashboard/{group.slug}/settings">{m.dashboard_set_up()}</Button>
 			{/snippet}
 
 			<p class="text-sm text-text-muted">
-				Without a key, TrP Tools falls back to slower endpoints that Roblox is retiring, and rank
-				checks may become unreliable. Adding a key scoped to <code
-					class="rounded bg-background-muted px-1 py-0.5 font-mono text-xs">group:read</code
-				> keeps permissions accurate and raises the rate limit substantially.
+				{m.dashboard_without_key_trp_tools_falls_back()} <code
+					class="rounded bg-background-muted px-1 py-0.5 font-mono text-xs">{m.dashboard_group_read()}</code
+				> {m.dashboard_keeps_permissions_accurate_raises_rate_limit()}
 			</p>
 		</Card>
 	{/if}

@@ -13,6 +13,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RouteRecord } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -76,12 +77,12 @@
 			const { data: created, error } = await api.routes.post({ groupId, ...values });
 			if (!created) throw error;
 
-			toasts.success(`Route ${createDraft.name} created`);
+			toasts.success(m.dashboard_routes_created({ name: createDraft.name }));
 			createOpen = false;
 			createDraft = emptyDraft();
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not create that route'));
+			toasts.error(errorMessage(error, m.dashboard_routes_could_not_create_route()));
 		} finally {
 			creating = false;
 		}
@@ -93,28 +94,28 @@
 			const { error } = await api.routes({ routeId }).patch({ ...editDraft });
 			if (error) throw error;
 
-			toasts.success('Route saved');
+			toasts.success(m.dashboard_routes_route_saved());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save that route'));
+			toasts.error(errorMessage(error, m.dashboard_routes_could_not_save_route()));
 		} finally {
 			savingId = null;
 		}
 	}
 
 	async function deleteRoute(route: RouteRecord) {
-		if (!confirm(`Delete route ${route.name}? This cannot be undone.`)) return;
+		if (!confirm(m.dashboard_routes_delete_confirm({ route: route.name }))) return;
 
 		savingId = route.id;
 		try {
 			const { error } = await api.routes({ routeId: route.id }).delete();
 			if (error) throw error;
 
-			toasts.success('Route deleted');
+			toasts.success(m.dashboard_routes_route_deleted());
 			expandedId = null;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete that route'));
+			toasts.error(errorMessage(error, m.dashboard_routes_could_not_delete_route()));
 		} finally {
 			savingId = null;
 		}
@@ -130,39 +131,37 @@
 </script>
 
 <PageHeader
-	title="Routes"
-	description="Every route here can be assigned automatically, including ones you invent."
+	title={m.common_routes()}
+	description={m.dashboard_routes_every_route_here_can_assigned_automatically()}
 >
 	{#snippet actions()}
-		<Button variant="secondary" href="/dashboard/{data.group.slug}/depots">Depots</Button>
-		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New route</Button>
+		<Button variant="secondary" href="/dashboard/{data.group.slug}/depots">{m.common_depots()}</Button>
+		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_routes_new_route()}</Button>
 	{/snippet}
 </PageHeader>
 
 {#if data.depots.length === 0}
 	<div class="mb-6 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm">
 		<p class="text-text">
-			This group has no depots. Automatic assignment uses depots to decide which routes a vehicle is
-			eligible for.
+			{m.dashboard_routes_group_has_no_depots_automatic_assignment()}
 		</p>
 		<Button size="sm" variant="secondary" class="mt-2.5" href="/dashboard/{data.group.slug}/depots">
-			Manage depots
+			{m.dashboard_routes_manage_depots()}
 		</Button>
 	</div>
 {/if}
 
 {#if shareTotal > 0}
 	<p class="mb-4 text-xs text-text-subtle">
-		Target shares are relative, not absolute — each vehicle goes to whichever eligible route is
-		furthest below its share.
+		{m.dashboard_routes_target_shares_are_relative_not_absolute()}
 	</p>
 {/if}
 
 {#if data.routes.length === 0}
-	<EmptyState title="No routes yet" description="Create your first route to give dispatch something to assign.">
+	<EmptyState title={m.dashboard_routes_no_routes_yet()} description={m.dashboard_routes_create_first_route_give_dispatch_something()}>
 		{#snippet icon()}<IconRoute size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
-			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New route</Button>
+			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_routes_new_route()}</Button>
 		{/snippet}
 	</EmptyState>
 {:else}
@@ -196,18 +195,18 @@
 					</div>
 
 					<div class="hidden shrink-0 items-center gap-2 sm:flex">
-						{#if route.archived}<Badge>Disabled</Badge>{/if}
-						{#if route.moderation === 'HIDDEN'}<Badge tone="danger">Hidden</Badge>{/if}
-						{#if !route.autoAssign}<Badge tone="warning">Manual only</Badge>{/if}
+						{#if route.archived}<Badge>{m.common_disabled()}</Badge>{/if}
+						{#if route.moderation === 'HIDDEN'}<Badge tone="danger">{m.common_hidden()}</Badge>{/if}
+						{#if !route.autoAssign}<Badge tone="warning">{m.dashboard_routes_manual_only()}</Badge>{/if}
 						{#if route.visibility !== 'PUBLIC'}
-							<Badge>Members only</Badge>
+							<Badge>{m.common_members_only()}</Badge>
 						{:else if !route.showOnGroupPage}
-							<Badge><IconEyeOff size={13} /> Not on group page</Badge>
+							<Badge><IconEyeOff size={13} /> {m.dashboard_routes_not_group_page()}</Badge>
 						{/if}
 						<Badge tone="accent">{formatShare(route.targetShare)}%</Badge>
 						<Badge>
 							{route.depots.length === 0
-								? 'All depots'
+								? m.dashboard_routes_all_depots()
 								: `${route.depots.length} ${route.depots.length === 1 ? 'depot' : 'depots'}`}
 						</Badge>
 					</div>
@@ -240,7 +239,7 @@
 	</div>
 {/if}
 
-<Modal bind:open={createOpen} title="New route" size="lg">
+<Modal bind:open={createOpen} title={m.dashboard_routes_new_route()} size="lg">
 	<RouteEditor
 		bind:draft={createDraft}
 		depots={data.depots}

@@ -6,6 +6,7 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatNumber } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -28,14 +29,14 @@
 </script>
 
 <svelte:head>
-	<title>Groups — TrP Tools</title>
+	<title>{m.groups_groups_trp_tools()}</title>
 	<meta name="description" content="Browse transit groups running on TrP Tools." />
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-10">
 	<PageHeader
-		title="Groups"
-		description="Transit operators that have published a page on TrP Tools."
+		title={m.common_groups()}
+		description={m.groups_transit_operators_have_published_page_trp()}
 	/>
 
 	<form onsubmit={submit} class="mb-6 flex max-w-md gap-2">
@@ -47,8 +48,8 @@
 			<input
 				bind:value={query}
 				type="search"
-				placeholder="Search groups"
-				aria-label="Search groups"
+				placeholder={m.groups_search_groups()}
+				aria-label={m.groups_search_groups()}
 				class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-9 text-sm
 					text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
 			/>
@@ -57,15 +58,15 @@
 
 	{#if data.failed}
 		<EmptyState
-			title="Could not reach the API"
-			description="The group directory is temporarily unavailable. Try again in a moment."
+			title={m.groups_could_not_reach_api()}
+			description={m.groups_group_directory_temporarily_unavailable_try_agai()}
 		/>
 	{:else if data.groups.length === 0}
 		<EmptyState
-			title={data.search ? `No groups match “${data.search}”` : 'No public groups yet'}
+			title={data.search ? `No groups match “${data.search}”` : m.groups_no_public_groups_yet()}
 			description={data.search
-				? 'Try a different search term.'
-				: 'Groups appear here once they set their visibility to public.'}
+				? m.groups_try_different_search_term()
+				: m.groups_groups_appear_here_once_they_set()}
 		>
 			{#snippet icon()}<IconUsersGroup size={28} stroke={1.5} />{/snippet}
 		</EmptyState>

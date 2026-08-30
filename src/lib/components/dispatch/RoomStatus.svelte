@@ -11,6 +11,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import ShiftEndChip from './ShiftEndChip.svelte';
 	import type { ConnectionStatus } from '$lib/stores/dispatch.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		status: ConnectionStatus;
@@ -23,11 +24,11 @@
 	let { status, endsAt, presence, onpresence }: Props = $props();
 
 	const tones = {
-		idle: { label: 'Offline', tone: 'neutral' as const },
-		connecting: { label: 'Connecting', tone: 'warning' as const },
-		live: { label: 'Live', tone: 'success' as const },
-		retrying: { label: 'Reconnecting', tone: 'warning' as const },
-		closed: { label: 'Closed', tone: 'danger' as const }
+		idle: { label: m.dispatch_room_status_offline(), tone: 'neutral' as const },
+		connecting: { label: m.dispatch_room_status_connecting(), tone: 'warning' as const },
+		live: { label: m.dispatch_room_status_live(), tone: 'success' as const },
+		retrying: { label: m.dispatch_room_status_reconnecting(), tone: 'warning' as const },
+		closed: { label: m.common_closed(), tone: 'danger' as const }
 	};
 </script>
 
@@ -47,7 +48,7 @@
 <button
 	type="button"
 	onclick={onpresence}
-	title="See who is in this room"
+	title={m.dispatch_room_status_see_who_room()}
 	class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5
 		text-xs text-text-muted transition-colors hover:border-accent hover:text-text"
 >

@@ -12,6 +12,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { detectTimezone } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -66,10 +67,10 @@
 			const { error } = await api.users.me.preferences.patch(patch);
 			if (error) throw error;
 
-			toasts.success('Settings saved');
+			toasts.success(m.settings_settings_saved());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save your settings'));
+			toasts.error(errorMessage(error, m.settings_could_not_save_settings()));
 		} finally {
 			busy(false);
 		}
@@ -89,7 +90,7 @@
 			const { error } = await api.auth['admin-mode'].post({ enabled });
 			if (error) throw error;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not change admin mode'));
+			toasts.error(errorMessage(error, m.settings_could_not_change_admin_mode()));
 			switching = false;
 			return;
 		}
@@ -98,21 +99,21 @@
 	}
 
 	async function signOutEverywhere() {
-		if (!confirm('Sign out of every device?')) return;
+		if (!confirm(m.settings_sign_out_every_device_confirm())) return;
 
 		try {
 			await api.auth.logout.all.post();
 			window.location.href = '/';
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not sign out'));
+			toasts.error(errorMessage(error, m.settings_could_not_sign_out()));
 		}
 	}
 </script>
 
-<PageHeader title="Account" description="Your TrP Tools profile and preferences." />
+<PageHeader title={m.common_account()} description={m.settings_trp_tools_profile_preferences()} />
 
 <div class="space-y-6">
-	<Card title="Roblox account" description="TrP Tools signs you in with Roblox.">
+	<Card title={m.settings_roblox_account()} description={m.settings_trp_tools_signs_with_roblox()}>
 		<div class="flex flex-wrap items-center justify-between gap-4">
 			<UserChip
 				displayName={user.displayName}
@@ -127,17 +128,17 @@
 		</div>
 	</Card>
 
-	<Card title="Preferences">
+	<Card title={m.settings_preferences()}>
 		{#snippet actions()}
 			<Button onclick={() => save({ timezone }, (value) => (saving = value))} loading={saving}>
-				Save
+				{m.common_save()}
 			</Button>
 		{/snippet}
 
-		<Field label="Time zone" hint="Shift times are shown in this zone.">
+		<Field label={m.settings_time_zone()} hint={m.settings_shift_times_are_shown_zone()}>
 			<div class="flex flex-wrap gap-2">
 				<Input bind:value={timezone} spellcheck="false" class="min-w-48 flex-1" />
-				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>Detect</Button>
+				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>{m.settings_detect()}</Button>
 			</div>
 		</Field>
 	</Card>
@@ -150,7 +151,7 @@
 		because they answer the same question — and because a profile switched
 		off publishes nothing at all, which the nesting here has to show.
 	-->
-	<Card title="Visibility" description="What other people can see about you.">
+	<Card title={m.common_visibility()} description={m.settings_what_other_people_can_see_about()}>
 		{#snippet actions()}
 			<Button
 				onclick={() =>
@@ -160,15 +161,15 @@
 					)}
 				loading={savingVisibility}
 			>
-				Save
+				{m.common_save()}
 			</Button>
 		{/snippet}
 
 		<div class="space-y-5">
 			<Toggle
 				bind:checked={profilePublic}
-				label="Public profile"
-				description="Let other people open your TrP Tools profile page."
+				label={m.settings_public_profile()}
+				description={m.settings_let_other_people_open_trp_tools()}
 			/>
 
 			<div
@@ -177,19 +178,19 @@
 			>
 				<Toggle
 					bind:checked={favoriteRoutesPublic}
-					label="Favourite routes"
-					description="Show the routes you have marked as favourites on your profile."
+					label={m.settings_favourite_routes()}
+					description={m.settings_show_routes_have_marked_as_favourites()}
 				/>
 
 				<Toggle
 					bind:checked={dislikedRoutesPublic}
-					label="Disliked routes"
-					description="Show the routes you would rather not be given on your profile."
+					label={m.settings_disliked_routes()}
+					description={m.settings_show_routes_would_rather_not_given()}
 				/>
 
 				{#if !profilePublic}
 					<p class="text-xs text-text-subtle">
-						Your profile is hidden, so neither list is published to anyone.
+						{m.settings_profile_hidden_so_neither_list_published()}
 					</p>
 				{/if}
 			</div>
@@ -202,8 +203,8 @@
 			who has turned it off has to be able to find the switch again.
 		-->
 		<Card
-			title="Admin mode"
-			description="Site-admin powers, for this browser session only."
+			title={m.settings_admin_mode()}
+			description={m.settings_site_admin_powers_browser_session_only()}
 		>
 			{#snippet actions()}
 				<IconShieldCheck size={18} class={adminMode ? 'text-warning' : 'text-text-subtle'} />
@@ -212,20 +213,18 @@
 			<Toggle
 				checked={adminMode}
 				disabled={switching}
-				label="Act as a site administrator"
-				description="On, you bypass every group's permissions and the administration portal opens. Off,
-					TrP Tools treats you as an ordinary account — only groups you actually hold a rank in appear
-					in your dashboard, on the home page and in your shifts."
+				label={m.settings_act_as_site_administrator()}
+				description={m.settings_bypass_every_group_s_permissions_administration()}
 				onchange={setAdminMode}
 			/>
 
 			<p class="mt-4 text-xs text-text-subtle">
-				It ends with this session, and it is off on every new sign-in. API keys are never elevated.
+				{m.settings_ends_with_session_off_every_new()}
 			</p>
 		</Card>
 	{/if}
 
-	<Card title="Sessions" description="Signed in on a device you no longer have?">
-		<Button variant="danger" onclick={signOutEverywhere}>Sign out everywhere</Button>
+	<Card title={m.settings_sessions()} description={m.settings_signed_device_no_longer_have()}>
+		<Button variant="danger" onclick={signOutEverywhere}>{m.settings_sign_out_everywhere()}</Button>
 	</Card>
 </div>

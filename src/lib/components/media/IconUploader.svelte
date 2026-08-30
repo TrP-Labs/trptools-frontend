@@ -5,6 +5,7 @@
 	import { API_URL, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { Snippet } from 'svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		groupId: string;
@@ -60,12 +61,16 @@
 				credentials: 'include'
 			});
 
-			if (!response.ok) throw (await response.text().catch(() => '')) || `Upload failed (${response.status})`;
+			if (!response.ok)
+				throw (
+					(await response.text().catch(() => '')) ||
+					m.media_upload_failed({ status: response.status })
+				);
 
-			toasts.success(`${label} updated`);
+			toasts.success(m.media_icon_uploader_updated({ label }));
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, `Could not upload that ${label.toLowerCase()}`));
+			toasts.error(errorMessage(error, m.media_icon_uploader_could_not_upload({ label: label.toLowerCase() })));
 		} finally {
 			busy = false;
 		}
@@ -84,10 +89,10 @@
 
 			if (!response.ok) throw await response.text();
 
-			toasts.success(`${label} removed`);
+			toasts.success(m.media_icon_uploader_removed({ label }));
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not remove that image'));
+			toasts.error(errorMessage(error, m.media_icon_uploader_could_not_remove_image()));
 		} finally {
 			busy = false;
 		}
@@ -119,19 +124,19 @@
 			{:else if placeholder}
 				{@render placeholder()}
 			{:else}
-				<span class="text-xs text-text-subtle">None</span>
+				<span class="text-xs text-text-subtle">{m.media_icon_uploader_none()}</span>
 			{/if}
 		</div>
 
 		<div class="flex flex-wrap gap-2">
 			<Button size="sm" variant="secondary" loading={busy} onclick={() => fileInput?.click()}>
 				<IconPhotoPlus size={15} />
-				{current ? 'Replace' : 'Upload'}
+				{current ? m.media_icon_uploader_replace() : m.media_icon_uploader_upload()}
 			</Button>
 
 			{#if current}
 				<Button size="sm" variant="ghost" disabled={busy} onclick={clear}>
-					<IconTrash size={15} /> Remove
+					<IconTrash size={15} /> {m.media_icon_uploader_remove()}
 				</Button>
 			{/if}
 		</div>

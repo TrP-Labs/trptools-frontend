@@ -14,6 +14,7 @@
 		picksDays,
 		type Repeat
 	} from '$lib/utils/recurrence';
+	import { m } from '$lib/paraglide/messages.js';
 
 	export interface ShiftDraft {
 		name: string;
@@ -41,23 +42,23 @@
 	let { draft = $bindable(), busy = false, mode, ranksHref, onsave, ondelete }: Props = $props();
 
 	const repeats = [
-		{ value: 'WEEKLY' as const, label: 'Weekly on chosen days' },
-		{ value: 'FORTNIGHTLY' as const, label: 'Every two weeks on chosen days' },
-		{ value: 'DAILY' as const, label: 'Every day' },
-		{ value: 'WEEKDAYS' as const, label: 'Weekdays' },
-		{ value: 'WEEKENDS' as const, label: 'Weekends' },
-		{ value: 'MONTHLY' as const, label: 'Monthly' }
+		{ value: 'WEEKLY' as const, label: m.shifts_shift_editor_weekly_chosen_days() },
+		{ value: 'FORTNIGHTLY' as const, label: m.shifts_shift_editor_every_two_weeks_chosen_days() },
+		{ value: 'DAILY' as const, label: m.shifts_shift_editor_every_day() },
+		{ value: 'WEEKDAYS' as const, label: m.shifts_shift_editor_weekdays() },
+		{ value: 'WEEKENDS' as const, label: m.shifts_shift_editor_weekends() },
+		{ value: 'MONTHLY' as const, label: m.shifts_shift_editor_monthly() }
 	];
 
 	const visibilities = [
-		{ value: 'PUBLIC' as const, label: 'Public' },
-		{ value: 'PRIVATE' as const, label: 'Members only' }
+		{ value: 'PUBLIC' as const, label: m.common_public() },
+		{ value: 'PRIVATE' as const, label: m.common_members_only() }
 	];
 
 	const hostLevels = [
-		{ value: 1, label: 'Dispatch and above' },
-		{ value: 2, label: 'Host and above' },
-		{ value: 3, label: 'Managers only' }
+		{ value: 1, label: m.shifts_shift_editor_dispatch_above() },
+		{ value: 2, label: m.shifts_shift_editor_host_above() },
+		{ value: 3, label: m.shifts_shift_editor_managers_only() }
 	];
 
 	let preview = $derived(
@@ -74,40 +75,40 @@
 </script>
 
 <div class="grid gap-4 sm:grid-cols-2">
-	<Field label="Shift name" class="sm:col-span-2">
-		<Input bind:value={draft.name} maxlength={100} placeholder="e.g. Evening Service" />
+	<Field label={m.shifts_shift_editor_shift_name()} class="sm:col-span-2">
+		<Input bind:value={draft.name} maxlength={100} placeholder={m.shifts_shift_editor_e_g_evening_service()} />
 	</Field>
 
-	<Field label="Description" class="sm:col-span-2">
+	<Field label={m.common_description()} class="sm:col-span-2">
 		<Textarea
 			bind:value={draft.description}
 			rows={2}
 			maxlength={2000}
-			placeholder="What happens on this shift."
+			placeholder={m.shifts_shift_editor_what_happens_shift()}
 		/>
 	</Field>
 
-	<Field label="First occurrence" hint="Shown in your local time.">
+	<Field label={m.shifts_shift_editor_first_occurrence()} hint={m.shifts_shift_editor_shown_local_time()}>
 		<Input type="datetime-local" bind:value={draft.startLocal} />
 	</Field>
 
-	<Field label="Length (minutes)">
+	<Field label={m.shifts_shift_editor_length_minutes()}>
 		<Input type="number" min="5" max="1440" step="5" bind:value={draft.duration} />
 	</Field>
 
-	<Field label="Repeats">
+	<Field label={m.shifts_shift_editor_repeats()}>
 		<Select bind:value={draft.repeat} options={repeats} />
 	</Field>
 
-	<Field label="Colour">
+	<Field label={m.common_colour()}>
 		<ColorInput bind:value={draft.color} />
 	</Field>
 
 	{#if picksDays(draft.repeat)}
 		<Field
-			label="Days"
+			label={m.shifts_shift_editor_days()}
 			hint={draft.repeat === 'FORTNIGHTLY'
-				? 'Counted from the first occurrence, then every second week.'
+				? m.shifts_shift_editor_counted_from_first_occurrence_then_every()
 				: undefined}
 			class="sm:col-span-2"
 		>
@@ -131,30 +132,30 @@
 	{/if}
 
 	<p class="rounded-lg bg-background-secondary px-3 py-2 text-sm text-text-muted sm:col-span-2">
-		Repeats <span class="font-medium text-text">{preview}</span>
+		{m.shifts_shift_editor_repeats()} <span class="font-medium text-text">{preview}</span>
 	</p>
 
-	<Field label="Visibility">
+	<Field label={m.common_visibility()}>
 		<Select bind:value={draft.visibility} options={visibilities} />
 	</Field>
 
-	<Field label="Who can host" hint="Opening a dispatch room requires this level.">
+	<Field label={m.shifts_shift_editor_who_can_host()} hint={m.shifts_shift_editor_opening_dispatch_room_requires_level()}>
 		<Select bind:value={draft.hostLevel} options={hostLevels} />
 	</Field>
 
 	<p class="rounded-lg border border-dashed border-border-base px-3 py-3 text-sm text-text-muted sm:col-span-2">
-		Sign-up sheets are set per rank, not per shift, so every shift shares them. Edit them on the
-		<a href={ranksHref} class="text-accent hover:underline">Ranks</a> page.
+		{m.shifts_shift_editor_sign_up_sheets_are_set_per()}
+		<a href={ranksHref} class="text-accent hover:underline">{m.common_ranks()}</a> {m.shifts_shift_editor_page()}
 	</p>
 
 	<div class="flex flex-wrap gap-2 sm:col-span-2">
 		<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>
-			{mode === 'create' ? 'Create shift' : 'Save changes'}
+			{mode === 'create' ? m.shifts_shift_editor_create_shift() : m.common_save_changes()}
 		</Button>
 
 		{#if mode === 'edit' && ondelete}
 			<Button variant="danger" onclick={ondelete} disabled={busy}>
-				<IconTrash size={16} /> Delete
+				<IconTrash size={16} /> {m.common_delete()}
 			</Button>
 		{/if}
 	</div>

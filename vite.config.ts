@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { defineConfig } from 'vite';
 import { version } from './package.json' with { type: 'json' };
 
@@ -13,6 +14,25 @@ export default defineConfig({
 	},
 	plugins: [
 		tailwindcss(),
+
+		// Messages compile to typed ESM functions in `src/lib/paraglide`, which
+		// is generated rather than committed. Only the locales actually used
+		// survive tree-shaking, so adding a language costs the browser nothing
+		// until someone selects it.
+		//
+		// `cookie` is read first so a choice made on this device wins, then the
+		// account preference stamped into the request by hooks.server.ts, then
+		// the browser's own header. No URL strategy: the app is almost entirely
+		// behind a login, and `/de/dashboard/…` would buy nothing for a routing
+		// layer's worth of complexity.
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale'],
+			cookieName: 'locale',
+			emitTsDeclarations: true
+		}),
+
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries.

@@ -13,6 +13,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatRelative } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -49,50 +50,50 @@
 			name = '';
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not create that key'));
+			toasts.error(errorMessage(error, m.settings_api_keys_could_not_create_key()));
 		} finally {
 			creating = false;
 		}
 	}
 
 	async function revoke(keyId: string, label: string) {
-		if (!confirm(`Revoke “${label}”? Anything using it will stop working immediately.`)) return;
+		if (!confirm(m.settings_api_keys_revoke_confirm({ label }))) return;
 
 		try {
 			const { error } = await api.auth.keys({ keyId }).delete();
 			if (error) throw error;
 
-			toasts.success('Key revoked');
+			toasts.success(m.settings_api_keys_key_revoked());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not revoke that key'));
+			toasts.error(errorMessage(error, m.settings_api_keys_could_not_revoke_key()));
 		}
 	}
 
 	async function copy(value: string) {
 		try {
 			await navigator.clipboard.writeText(value);
-			toasts.success('Copied');
+			toasts.success(m.settings_api_keys_copied());
 		} catch {
-			toasts.error('Could not copy — select it manually');
+			toasts.error(m.settings_api_keys_could_not_copy_select_manually());
 		}
 	}
 </script>
 
 <PageHeader
-	title="API keys"
-	description="For integrations such as the TrP Tools Discord bot. Keys act as you."
+	title={m.settings_api_keys_api_keys()}
+	description={m.settings_api_keys_integrations_such_as_trp_tools_discord()}
 >
 	{#snippet actions()}
-		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New key</Button>
+		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.settings_api_keys_new_key()}</Button>
 	{/snippet}
 </PageHeader>
 
 {#if data.keys.length === 0}
-	<EmptyState title="No API keys" description="Create one to let an integration act on your behalf.">
+	<EmptyState title={m.settings_api_keys_no_api_keys()} description={m.settings_api_keys_create_one_let_integration_act_behalf()}>
 		{#snippet icon()}<IconKey size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
-			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New key</Button>
+			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.settings_api_keys_new_key()}</Button>
 		{/snippet}
 	</EmptyState>
 {:else}
@@ -116,20 +117,20 @@
 				</div>
 
 				<Button variant="ghost" onclick={() => revoke(key.keyId, key.name)}>
-					<IconTrash size={16} /> Revoke
+					<IconTrash size={16} /> {m.settings_api_keys_revoke()}
 				</Button>
 			</li>
 		{/each}
 	</ul>
 {/if}
 
-<Modal bind:open={createOpen} title="New API key" description="Grant only what the integration needs.">
+<Modal bind:open={createOpen} title={m.settings_api_keys_new_api_key()} description={m.settings_api_keys_grant_only_what_integration_needs()}>
 	<div class="space-y-4">
-		<Field label="Name" hint="So you can recognise it later.">
-			<Input bind:value={name} maxlength={60} placeholder="e.g. Discord bot" />
+		<Field label={m.common_name()} hint={m.settings_api_keys_so_can_recognise_later()}>
+			<Input bind:value={name} maxlength={60} placeholder={m.settings_api_keys_e_g_discord_bot()} />
 		</Field>
 
-		<Field label="Scopes">
+		<Field label={m.settings_api_keys_scopes()}>
 			<div class="flex flex-wrap gap-1.5">
 				{#each SCOPES as scope (scope)}
 					{@const active = scopes.includes(scope)}
@@ -150,9 +151,9 @@
 	</div>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (createOpen = false)}>Cancel</Button>
+		<Button variant="secondary" onclick={() => (createOpen = false)}>{m.common_cancel()}</Button>
 		<Button onclick={create} loading={creating} disabled={!name.trim() || scopes.length === 0}>
-			Create key
+			{m.settings_api_keys_create_key()}
 		</Button>
 	{/snippet}
 </Modal>
@@ -160,8 +161,8 @@
 <Modal
 	open={issued !== null}
 	onclose={() => (issued = null)}
-	title="Copy your key now"
-	description="This is the only time it will be shown."
+	title={m.settings_api_keys_copy_key_now()}
+	description={m.settings_api_keys_only_time_will_shown()}
 >
 	<div class="flex gap-2">
 		<code
@@ -174,6 +175,6 @@
 	</div>
 
 	{#snippet footer()}
-		<Button onclick={() => (issued = null)}>Done</Button>
+		<Button onclick={() => (issued = null)}>{m.settings_api_keys_done()}</Button>
 	{/snippet}
 </Modal>

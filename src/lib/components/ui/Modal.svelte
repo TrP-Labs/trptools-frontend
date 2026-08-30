@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { IconX } from '@tabler/icons-svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		open: boolean;
@@ -61,7 +62,7 @@
 		<button
 			type="button"
 			onclick={close}
-			aria-label="Close"
+			aria-label={m.ui_modal_close()}
 			class="-m-1 rounded-lg p-1 text-text-muted transition-colors hover:bg-background-muted hover:text-text"
 		>
 			<IconX size={18} />

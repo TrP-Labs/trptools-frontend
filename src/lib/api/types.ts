@@ -7,6 +7,7 @@
 
 import type { App } from 'trptools-backend';
 import type { Treaty } from '@elysiajs/eden';
+import { m } from '$lib/paraglide/messages.js';
 
 type Api = Treaty.Create<App>;
 
@@ -117,26 +118,46 @@ export interface QuestionDraft {
 	image: string | null;
 }
 
-/** What each component is called where a group picks one. */
-export const QUESTION_TYPE_LABELS: Record<ApplicationQuestionType, string> = {
-	SHORT_TEXT: 'Short answer',
-	LONG_TEXT: 'Long answer',
-	MULTIPLE_CHOICE: 'Multiple choice',
-	CHECKBOXES: 'Checkboxes',
-	SECTION: 'Text block',
-	IMAGE: 'Image'
-};
+/**
+ * What each component is called where a group picks one.
+ *
+ * A function rather than a `Record`, like every label table below it. A
+ * constant object is built once when the module is first imported, which on
+ * the server happens before any request has established a locale — the first
+ * language to be rendered would have been baked in for every later one.
+ */
+export function questionTypeLabel(type: ApplicationQuestionType): string {
+	switch (type) {
+		case 'SHORT_TEXT':
+			return m.question_type_short_answer();
+		case 'LONG_TEXT':
+			return m.question_type_long_answer();
+		case 'MULTIPLE_CHOICE':
+			return m.question_type_multiple_choice();
+		case 'CHECKBOXES':
+			return m.question_type_checkboxes();
+		case 'SECTION':
+			return m.question_type_text_block();
+		case 'IMAGE':
+			return m.question_type_image();
+	}
+}
 
 /** Components that are read rather than answered. */
 export const STATIC_QUESTION_TYPES: ApplicationQuestionType[] = ['SECTION', 'IMAGE'];
 
 export const CHOICE_QUESTION_TYPES: ApplicationQuestionType[] = ['MULTIPLE_CHOICE', 'CHECKBOXES'];
 
-export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
-	PENDING: 'Waiting',
-	APPROVED: 'Approved',
-	DENIED: 'Denied'
-};
+export function applicationStatusLabel(status: ApplicationStatus): string {
+	switch (status) {
+		case 'PENDING':
+			return m.application_status_waiting();
+		case 'APPROVED':
+			return m.application_status_approved();
+		case 'DENIED':
+			return m.application_status_denied();
+	}
+}
 
 export type PublicGroupSummary = Data<ReturnType<Api['public']['groups']['get']>>[number];
 
@@ -153,19 +174,31 @@ export const PERMISSION = {
 	MANAGE: 3
 } as const;
 
-export const PERMISSION_LABELS: Record<number, string> = {
-	0: 'No access',
-	1: 'Dispatch',
-	2: 'Host',
-	3: 'Manage group'
-};
+export function permissionLabel(level: number): string {
+	switch (level) {
+		case PERMISSION.DISPATCH:
+			return m.permission_dispatch();
+		case PERMISSION.HOST:
+			return m.permission_host();
+		case PERMISSION.MANAGE:
+			return m.permission_manage_group();
+		default:
+			return m.permission_no_access();
+	}
+}
 
-export const PERMISSION_DESCRIPTIONS: Record<number, string> = {
-	0: 'Cannot use TrPTools for this group.',
-	1: 'Can join a dispatch room and assign routes.',
-	2: 'Can start and end shifts, and open dispatch rooms.',
-	3: 'Full control, including ranks, routes and settings.'
-};
+export function permissionDescription(level: number): string {
+	switch (level) {
+		case PERMISSION.DISPATCH:
+			return m.permission_description_dispatch();
+		case PERMISSION.HOST:
+			return m.permission_description_host();
+		case PERMISSION.MANAGE:
+			return m.permission_description_manage();
+		default:
+			return m.permission_description_none();
+	}
+}
 
 /**
  * A route as the dispatch board needs it.
@@ -220,12 +253,18 @@ export type DispatchStreamEvent =
 	| { event: 'HEARTBEAT' };
 
 /** How a manager labels a vehicle in group settings. */
-export const VEHICLE_CATEGORY_LABELS: Record<DispatchVehicle['category'], string> = {
-	SERVICE: 'Service vehicle',
-	STAFF: 'Staff vehicle',
-	TROLLEYBUS: 'Vehicle',
-	OTHER: 'Vehicle (unclassified)'
-};
+export function vehicleCategoryLabel(category: DispatchVehicle['category']): string {
+	switch (category) {
+		case 'SERVICE':
+			return m.vehicle_category_service();
+		case 'STAFF':
+			return m.vehicle_category_staff();
+		case 'TROLLEYBUS':
+			return m.vehicle_category_vehicle();
+		case 'OTHER':
+			return m.vehicle_category_unclassified();
+	}
+}
 
 /**
  * The lists the dispatch page draws.
@@ -239,13 +278,19 @@ export type VehicleBucket = 'SERVICE' | 'STAFF' | 'NORMAL' | 'DECORATIVE';
 
 export const VEHICLE_BUCKET_ORDER: VehicleBucket[] = ['SERVICE', 'STAFF', 'NORMAL', 'DECORATIVE'];
 
-export const VEHICLE_BUCKET_LABELS: Record<VehicleBucket, string> = {
-	SERVICE: 'Service vehicles',
-	STAFF: 'Staff vehicles',
-	// Not "Trolleybuses": the same list carries trams and monorails.
-	NORMAL: 'Vehicles',
-	DECORATIVE: 'Decorative vehicles'
-};
+export function vehicleBucketLabel(bucket: VehicleBucket): string {
+	switch (bucket) {
+		case 'SERVICE':
+			return m.vehicle_bucket_service();
+		case 'STAFF':
+			return m.vehicle_bucket_staff();
+		// Not "Trolleybuses": the same list carries trams and monorails.
+		case 'NORMAL':
+			return m.vehicle_bucket_normal();
+		case 'DECORATIVE':
+			return m.vehicle_bucket_decorative();
+	}
+}
 
 /** Owner 0 is the game itself, which is what marks a vehicle as scenery. */
 export function vehicleBucket(vehicle: DispatchVehicle): VehicleBucket {
@@ -255,12 +300,18 @@ export function vehicleBucket(vehicle: DispatchVehicle): VehicleBucket {
 	return 'NORMAL';
 }
 
-export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
-	AWAITING: 'Awaiting assignment',
-	ENROUTE: 'En route',
-	ON_SCENE: 'On scene',
-	RETURNING: 'Returning'
-};
+export function serviceStatusLabel(status: ServiceStatus): string {
+	switch (status) {
+		case 'AWAITING':
+			return m.service_status_awaiting();
+		case 'ENROUTE':
+			return m.service_status_enroute();
+		case 'ON_SCENE':
+			return m.service_status_on_scene();
+		case 'RETURNING':
+			return m.service_status_returning();
+	}
+}
 
 export const SERVICE_STATUS_ORDER: ServiceStatus[] = [
 	'AWAITING',

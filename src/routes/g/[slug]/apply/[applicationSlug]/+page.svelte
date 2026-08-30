@@ -23,6 +23,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import type { PublicApplication } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -127,7 +128,7 @@
 
 	async function submit() {
 		if (missing.length > 0) {
-			toasts.error('Answer every required question first');
+			toasts.error(m.g_apply_answer_every_required_question_first());
 			return;
 		}
 
@@ -144,12 +145,12 @@
 			});
 			if (error) throw error;
 
-			toasts.success('Application sent');
+			toasts.success(m.g_apply_application_sent());
 			values = blankText(questions);
 			choices = blankChoices(questions);
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not send that application'));
+			toasts.error(errorMessage(error, m.g_apply_could_not_send_application()));
 		} finally {
 			busy = false;
 		}
@@ -196,7 +197,7 @@
 						</Badge>
 					{/if}
 					{#if !application.open}
-						<Badge tone="warning"><IconLock size={13} /> Closed</Badge>
+						<Badge tone="warning"><IconLock size={13} /> {m.common_closed()}</Badge>
 					{/if}
 				</div>
 			</div>
@@ -213,7 +214,7 @@
 		<div class="card flex flex-wrap items-start gap-3 border-warning/40 p-4">
 			<IconAlertTriangle size={20} class="text-warning" />
 			<div class="min-w-0 flex-1">
-				<p class="font-medium text-text">You already rank above this</p>
+				<p class="font-medium text-text">{m.g_apply_already_rank_above()}</p>
 				<p class="text-sm text-text-muted">
 					{application.rankName
 						? `This form is for ${application.rankName}, and the rank you hold in ${group.name} is higher than that.`
@@ -227,7 +228,7 @@
 		<div class="card flex flex-wrap items-center gap-3 p-4">
 			<IconClock size={20} class="text-accent" />
 			<div class="min-w-0 flex-1">
-				<p class="font-medium text-text">Your application is with the group</p>
+				<p class="font-medium text-text">{m.g_apply_application_with_group()}</p>
 				<p class="text-sm text-text-muted">
 					Sent {formatDateTime(mine.submittedAt)}. You will not be able to send another until it has
 					been read.
@@ -250,7 +251,7 @@
 
 			<div class="min-w-0 flex-1">
 				<p class="font-medium text-text">
-					{approved ? 'Your application was approved' : 'Your application was not taken forward'}
+					{approved ? m.g_apply_application_was_approved() : m.g_apply_application_was_not_taken_forward()}
 				</p>
 				{#if mine.reviewedAt}
 					<p class="text-sm text-text-muted">Decided {formatDateTime(mine.reviewedAt)}.</p>
@@ -284,26 +285,26 @@
 
 	{#if !application.open}
 		<div class="card p-6 text-center">
-			<p class="font-medium text-text">Applications are closed</p>
+			<p class="font-medium text-text">{m.g_apply_applications_are_closed()}</p>
 			<p class="mt-1 text-sm text-text-muted">
 				{group.name} is not taking new applications for this at the moment.
 			</p>
 		</div>
 	{:else if !data.user}
 		<div class="card p-6 text-center">
-			<p class="font-medium text-text">Sign in to apply</p>
+			<p class="font-medium text-text">{m.g_apply_sign_apply()}</p>
 			<p class="mt-1 text-sm text-text-muted">
-				Applications are tied to your Roblox account, so the group knows who they are reading.
+				{m.g_apply_applications_are_tied_roblox_account_so()}
 			</p>
 			<div class="mt-4 flex justify-center">
-				<Button href={loginUrl()}>Sign in with Roblox</Button>
+				<Button href={loginUrl()}>{m.common_sign_with_roblox()}</Button>
 			</div>
 		</div>
 	{/if}
 
 	{#if questions.length === 0}
 		<div class="card p-6 text-center text-sm text-text-muted">
-			This form has no questions on it yet.
+			{m.g_apply_form_has_no_questions_yet()}
 		</div>
 	{:else}
 		<div class="space-y-5" class:opacity-60={!canApply} class:pointer-events-none={!canApply}>
@@ -337,7 +338,7 @@
 									bind:value={values[question.id]}
 									maxlength={question.maxLength ?? 300}
 									disabled={!canApply}
-									placeholder="Your answer"
+									placeholder={m.g_apply_answer()}
 								/>
 							{:else if question.type === 'LONG_TEXT'}
 								<Textarea
@@ -345,7 +346,7 @@
 									rows={5}
 									maxlength={question.maxLength ?? 2000}
 									disabled={!canApply}
-									placeholder="Your answer"
+									placeholder={m.g_apply_answer()}
 								/>
 							{:else}
 								{@const single = question.type === 'MULTIPLE_CHOICE'}
@@ -387,7 +388,7 @@
 						</Field>
 
 						{#if question.required}
-							<p class="mt-1.5 text-xs text-text-subtle">Required</p>
+							<p class="mt-1.5 text-xs text-text-subtle">{m.g_apply_required()}</p>
 						{/if}
 					{/if}
 				</div>
@@ -421,7 +422,7 @@
 				</div>
 
 				<Button loading={busy} disabled={missing.length > 0} onclick={submit}>
-					<IconSend size={16} /> Send application
+					<IconSend size={16} /> {m.g_apply_send_application()}
 				</Button>
 			</div>
 		{/if}
@@ -430,30 +431,30 @@
 
 <Modal
 	bind:open={localeOpen}
-	title="What goes with your application"
-	description="Your time zone and language are sent with the form so the group knows when you are around. This changes them for this application only."
+	title={m.g_apply_what_goes_with_application()}
+	description={m.g_apply_time_zone_language_are_sent_with()}
 	size="sm"
 >
 	<div class="space-y-4">
-		<Field label="Time zone" hint="Where you actually are, not where the group is.">
+		<Field label={m.g_apply_time_zone()} hint={m.g_apply_where_actually_are_not_where_group()}>
 			<div class="flex flex-wrap gap-2">
 				<Input bind:value={timezone} spellcheck="false" maxlength={64} class="min-w-40 flex-1" />
-				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>Detect</Button>
+				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>{m.g_apply_detect()}</Button>
 			</div>
 		</Field>
 
-		<Field label="Language" hint="A code such as en, en-GB or de.">
+		<Field label={m.g_apply_language()} hint={m.g_apply_code_such_as_en_en_gb()}>
 			<div class="flex flex-wrap gap-2">
 				<Input bind:value={locale} spellcheck="false" maxlength={8} class="min-w-40 flex-1" />
 				<Button variant="secondary" onclick={() => (locale = navigator.language || accountLocale)}>
-					Detect
+					{m.g_apply_detect()}
 				</Button>
 			</div>
 		</Field>
 
 		<p class="text-xs text-text-subtle">
 			Your account still says {accountTimezone} · {accountLocale}. Change that in
-			<a href="/settings" class="underline underline-offset-2">account settings</a>.
+			<a href="/settings" class="underline underline-offset-2">{m.g_apply_account_settings()}</a>.
 		</p>
 	</div>
 
@@ -465,8 +466,8 @@
 				locale = accountLocale;
 			}}
 		>
-			Reset
+			{m.g_apply_reset()}
 		</Button>
-		<Button onclick={() => (localeOpen = false)}>Done</Button>
+		<Button onclick={() => (localeOpen = false)}>{m.g_apply_done()}</Button>
 	{/snippet}
 </Modal>

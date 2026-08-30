@@ -2,38 +2,33 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { API_URL } from '$lib/api/client';
+	import { m } from '$lib/paraglide/messages.js';
 </script>
 
 <svelte:head>
-	<title>About — TrP Tools</title>
+	<title>{m.about_about_trp_tools()}</title>
 	<meta name="description" content="What TrP Tools is and how it works." />
 </svelte:head>
 
 <div class="mx-auto max-w-2xl px-4 py-10">
-	<PageHeader title="About" description="What this is and how it works." />
+	<PageHeader title={m.common_about()} description={m.about_what_how_works()} />
 
 	<div class="space-y-6">
-		<Card title="TrP Tools">
+		<Card title={m.common_trp_tools()}>
 			<p class="text-sm leading-relaxed text-text-muted">
-				TrP Tools makes running a Roblox transit group easier. It has been in continuous operation
-				since 2023; this is version 2.0, a full rewrite built around multi-user dispatch, real
-				shift scheduling and first-class support for custom routes.
+				{m.about_trp_tools_makes_running_roblox_transit()}
 			</p>
 		</Card>
 
-		<Card title="How access works">
+		<Card title={m.about_how_access_works()}>
 			<p class="text-sm leading-relaxed text-text-muted">
-				You sign in with Roblox, and your permissions come from the rank you hold in the group.
-				Group managers map each Roblox role to one of four levels, so promoting somebody in your
-				Roblox group is all it takes to give them access here. TrP Tools never stores a permission
-				that Roblox does not still back.
+				{m.about_sign_with_roblox_permissions_come_from()}
 			</p>
 		</Card>
 
 		<Card title="API">
 			<p class="text-sm leading-relaxed text-text-muted">
-				Everything the site does runs through a documented JSON API. Integrations authenticate with
-				a scoped API key you can create in your settings.
+				{m.about_everything_site_does_runs_through_documented()}
 			</p>
 			<p class="mt-3 text-sm">
 				<a
@@ -42,7 +37,7 @@
 					rel="noopener noreferrer"
 					class="text-accent hover:underline"
 				>
-					Read the API documentation
+					{m.about_read_api_documentation()}
 				</a>
 			</p>
 		</Card>

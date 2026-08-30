@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	const titles: Record<number, string> = {
 		403: 'You do not have access',
@@ -23,7 +24,7 @@
 	{/if}
 
 	<div class="mt-6 flex gap-2">
-		<Button href="/" variant="secondary">Go home</Button>
-		<Button href="/dashboard">Dashboard</Button>
+		<Button href="/" variant="secondary">{m.home_go_home()}</Button>
+		<Button href="/dashboard">{m.common_dashboard()}</Button>
 	</div>
 </div>

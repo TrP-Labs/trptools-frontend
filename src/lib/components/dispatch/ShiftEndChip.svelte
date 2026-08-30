@@ -10,6 +10,7 @@
 	 */
 	import { IconClock } from '@tabler/icons-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		/** When the shift this room was opened for ends. */
@@ -48,13 +49,13 @@
 			<span class="relative flex size-2">
 				<span class="relative inline-flex size-2 rounded-full bg-current"></span>
 			</span>
-			Shift over
+			{m.dispatch_shift_end_chip_shift_over()}
 		</Badge>
 	{:else}
 		<Badge tone="neutral">
 			<IconClock size={13} />
 			<span class="font-mono tabular-nums" aria-live="off">{countdown(remaining)}</span>
-			<span class="sr-only">until this shift ends</span>
+			<span class="sr-only">{m.dispatch_shift_end_chip_until_shift_ends()}</span>
 		</Badge>
 	{/if}
 {/if}

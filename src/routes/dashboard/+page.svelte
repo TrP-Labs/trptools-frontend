@@ -11,8 +11,9 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatNumber } from '$lib/utils/format';
-	import { PERMISSION_LABELS } from '$lib/api/types';
+	import { permissionLabel } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -25,37 +26,37 @@
 			const { data: created, error } = await api.groups.post({ robloxId });
 			if (!created) throw error;
 
-			toasts.success('Group added');
+			toasts.success(m.dashboard_group_added());
 			addOpen = false;
 			await refreshData();
 			await goto(`/dashboard/${created.slug}`);
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not add that group'));
+			toasts.error(errorMessage(error, m.dashboard_could_not_add_group()));
 		} finally {
 			addingId = null;
 		}
 	}
 </script>
 
-<svelte:head><title>Dashboard — TrP Tools</title></svelte:head>
+<svelte:head><title>{m.dashboard_dashboard_trp_tools()}</title></svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-10">
-	<PageHeader title="Dashboard" description="Groups you can manage or dispatch for.">
+	<PageHeader title={m.common_dashboard()} description={m.dashboard_groups_can_manage_dispatch()}>
 		{#snippet actions()}
 			<Button onclick={() => (addOpen = true)}>
-				<IconPlus size={16} /> Add group
+				<IconPlus size={16} /> {m.dashboard_add_group_2()}
 			</Button>
 		{/snippet}
 	</PageHeader>
 
 	{#if data.groups.length === 0}
 		<EmptyState
-			title="No groups yet"
-			description="Add a Roblox group you own to start managing routes, shifts and dispatch."
+			title={m.dashboard_no_groups_yet()}
+			description={m.dashboard_add_roblox_group_own_start_managing()}
 		>
 			{#snippet icon()}<IconUsersGroup size={28} stroke={1.5} />{/snippet}
 			{#snippet action()}
-				<Button onclick={() => (addOpen = true)}><IconPlus size={16} /> Add group</Button>
+				<Button onclick={() => (addOpen = true)}><IconPlus size={16} /> {m.dashboard_add_group_2()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
@@ -80,13 +81,13 @@
 						{/if}
 
 						<div class="mt-auto flex flex-wrap items-center gap-2 pt-4">
-							<Badge tone="accent">{PERMISSION_LABELS[group.permissionLevel]}</Badge>
+							<Badge tone="accent">{permissionLabel(group.permissionLevel)}</Badge>
 							<Badge tone={group.visibility === 'PUBLIC' ? 'success' : 'neutral'}>
 								{group.visibility === 'PUBLIC'
-									? 'Public'
+									? m.common_public()
 									: group.visibility === 'UNLISTED'
-										? 'Unlisted'
-										: 'Private'}
+										? m.dashboard_unlisted()
+										: m.dashboard_private()}
 							</Badge>
 						</div>
 					</a>
@@ -98,13 +99,12 @@
 
 <Modal
 	bind:open={addOpen}
-	title="Add a group"
-	description="Only Roblox groups you own can be added to TrP Tools."
+	title={m.dashboard_add_group()}
+	description={m.dashboard_only_roblox_groups_own_can_added()}
 >
 	{#if data.creatable.length === 0}
 		<p class="text-sm text-text-muted">
-			No eligible groups found. You need to be the owner of a Roblox group, and it must not already
-			be on TrP Tools. If you just claimed ownership, it can take a minute to show up here.
+			{m.dashboard_no_eligible_groups_found_need_owner()}
 		</p>
 	{:else}
 		<ul class="space-y-2">
@@ -122,7 +122,7 @@
 						loading={addingId === group.robloxId}
 						onclick={() => addGroup(group.robloxId)}
 					>
-						Add
+						{m.dashboard_add()}
 					</Button>
 				</li>
 			{/each}

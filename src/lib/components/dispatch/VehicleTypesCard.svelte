@@ -18,8 +18,9 @@
 	import { refreshData } from '$lib/utils/refresh';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
-	import { VEHICLE_CATEGORY_LABELS } from '$lib/api/types';
+	import { vehicleCategoryLabel } from '$lib/api/types';
 	import type { DispatchVehicle, VehicleType } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		groupId: string;
@@ -49,7 +50,7 @@
 
 	const options: Array<{ value: Category; label: string }> = (
 		['TROLLEYBUS', 'SERVICE', 'STAFF'] as const
-	).map((category) => ({ value: category, label: VEHICLE_CATEGORY_LABELS[category] }));
+	).map((category) => ({ value: category, label: vehicleCategoryLabel(category) }));
 
 	let duplicate = $derived.by(() => {
 		const seen = new Set<string>();
@@ -76,9 +77,9 @@
 			const { error } = await api.groups({ groupId })['vehicle-types'].put({ types: payload });
 			if (error) throw error;
 
-			toasts.success('Vehicle types saved');
+			toasts.success(m.dispatch_vehicle_types_card_vehicle_types_saved());
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save those vehicle types'));
+			toasts.error(errorMessage(error, m.dispatch_vehicle_types_card_could_not_save_those_vehicle_types()));
 			saving = false;
 			return;
 		}
@@ -93,11 +94,11 @@
 </script>
 
 <Card
-	title="Vehicles"
-	description="Which list each vehicle appears in on the dispatch board. Names must match the game exactly; anything not listed is guessed from its name."
+	title={m.dispatch_vehicle_types_card_vehicles()}
+	description={m.dispatch_vehicle_types_card_which_list_each_vehicle_appears_dispatch()}
 >
 	{#snippet actions()}
-		<Button onclick={save} loading={saving} disabled={Boolean(duplicate)}>Save</Button>
+		<Button onclick={save} loading={saving} disabled={Boolean(duplicate)}>{m.common_save()}</Button>
 	{/snippet}
 
 	<div class="space-y-2">
@@ -107,7 +108,7 @@
 					bind:value={rows[index]!.name}
 					maxlength={120}
 					spellcheck="false"
-					placeholder="Vehicle name as the game reports it"
+					placeholder={m.dispatch_vehicle_types_card_vehicle_name_as_game_reports()}
 					class="min-w-48 flex-1"
 				/>
 
@@ -131,7 +132,7 @@
 
 		{#if rows.length === 0}
 			<p class="text-sm text-text-muted">
-				No vehicles classified yet — every vehicle will be guessed from its name.
+				{m.dispatch_vehicle_types_card_no_vehicles_classified_yet_every_vehicle()}
 			</p>
 		{/if}
 
@@ -142,7 +143,7 @@
 		{/if}
 
 		<Button variant="secondary" onclick={add}>
-			<IconPlus size={16} /> Add vehicle
+			<IconPlus size={16} /> {m.dispatch_vehicle_types_card_add_vehicle()}
 		</Button>
 	</div>
 </Card>

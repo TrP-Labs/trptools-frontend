@@ -6,6 +6,7 @@
 	import { api, loginUrl, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { SessionUser } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		user: SessionUser | null;
@@ -41,9 +42,9 @@
 			await api.auth.logout.post();
 			await refreshData();
 			await goto('/');
-			toasts.success('Signed out');
+			toasts.success(m.layout_user_menu_signed_out());
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not sign out'));
+			toasts.error(errorMessage(error, m.layout_user_menu_could_not_sign_out()));
 		}
 	}
 </script>
@@ -60,7 +61,7 @@
 		>
 			<Avatar src={user.avatar} name={user.displayName ?? user.username} size={28} />
 			<span class="hidden max-w-32 truncate text-sm font-medium sm:block">
-				{user.displayName ?? user.username ?? 'Account'}
+				{user.displayName ?? user.username ?? m.common_account()}
 			</span>
 			<IconChevronDown size={15} class="text-text-muted" />
 		</button>
@@ -87,7 +88,7 @@
 						onclick={() => (open = false)}
 						class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-text transition-colors hover:bg-background-muted"
 					>
-						<IconUser size={16} /> Profile
+						<IconUser size={16} /> {m.layout_user_menu_profile()}
 					</a>
 					<a
 						href="/settings"
@@ -95,7 +96,7 @@
 						onclick={() => (open = false)}
 						class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-text transition-colors hover:bg-background-muted"
 					>
-						<IconSettings size={16} /> Settings
+						<IconSettings size={16} /> {m.common_settings()}
 					</a>
 					<!--
 						The portal is offered on the elevation, not the account:
@@ -110,7 +111,7 @@
 							onclick={() => (open = false)}
 							class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-text transition-colors hover:bg-background-muted"
 						>
-							<IconShieldCheck size={16} /> Administration
+							<IconShieldCheck size={16} /> {m.layout_user_menu_administration()}
 						</a>
 					{/if}
 					<button
@@ -119,7 +120,7 @@
 						onclick={logout}
 						class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-danger transition-colors hover:bg-danger/10"
 					>
-						<IconLogout size={16} /> Sign out
+						<IconLogout size={16} /> {m.layout_user_menu_sign_out()}
 					</button>
 				</div>
 			</div>
@@ -131,6 +132,6 @@
 		data-sveltekit-reload
 		class="inline-flex items-center rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-accent-contrast transition-colors hover:bg-accent-hover"
 	>
-		Sign in
+		{m.layout_user_menu_sign()}
 	</a>
 {/if}

@@ -15,6 +15,7 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import type { LayoutProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -25,15 +26,15 @@
 	let base = $derived(`/dashboard/${group.slug}`);
 
 	let items = $derived<SidebarItem[]>([
-		{ href: base, label: 'Overview', icon: IconHome, exact: true },
-		{ href: `${base}/dispatch`, label: 'Dispatch', icon: IconRadio, level: 1 },
-		{ href: `${base}/shifts`, label: 'Shifts', icon: IconCalendarTime, level: 1 },
-		{ href: `${base}/routes`, label: 'Routes', icon: IconRoute, level: 3 },
-		{ href: `${base}/depots`, label: 'Depots', icon: IconBuildingWarehouse, level: 3 },
-		{ href: `${base}/ranks`, label: 'Ranks', icon: IconUsers, level: 3 },
-		{ href: `${base}/applications`, label: 'Applications', icon: IconClipboardText, level: 3 },
-		{ href: `${base}/bot`, label: 'Bot', icon: IconBrandDiscord, level: 3 },
-		{ href: `${base}/settings`, label: 'Settings', icon: IconSettings, level: 3 }
+		{ href: base, label: m.dashboard_overview(), icon: IconHome, exact: true },
+		{ href: `${base}/dispatch`, label: m.common_dispatch(), icon: IconRadio, level: 1 },
+		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, level: 1 },
+		{ href: `${base}/routes`, label: m.common_routes(), icon: IconRoute, level: 3 },
+		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, level: 3 },
+		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, level: 3 },
+		{ href: `${base}/applications`, label: m.common_applications(), icon: IconClipboardText, level: 3 },
+		{ href: `${base}/bot`, label: m.dashboard_bot(), icon: IconBrandDiscord, level: 3 },
+		{ href: `${base}/settings`, label: m.common_settings(), icon: IconSettings, level: 3 }
 	]);
 </script>
 
@@ -47,10 +48,10 @@
 			<h1 class="truncate font-semibold text-text">{group.name}</h1>
 			<p class="text-xs text-text-muted">
 				{group.visibility === 'PUBLIC'
-					? 'Public page'
+					? m.common_public_page()
 					: group.visibility === 'UNLISTED'
-						? 'Unlisted page'
-						: 'Private'}
+						? m.dashboard_unlisted_page()
+						: m.dashboard_private()}
 			</p>
 		</div>
 
@@ -60,18 +61,18 @@
 				class="inline-flex items-center gap-1.5 rounded-lg border border-border-base px-3 py-1.5
 					text-sm text-text-muted transition-colors hover:text-text"
 			>
-				View public page <IconExternalLink size={14} />
+				{m.dashboard_view_public_page()} <IconExternalLink size={14} />
 			</a>
 		{/if}
 
 		{#if !group.hasOpenCloudKey && group.permissionLevel >= 3}
-			<Badge tone="warning">No Open Cloud key</Badge>
+			<Badge tone="warning">{m.dashboard_no_open_cloud_key()}</Badge>
 		{/if}
 	</div>
 </div>
 
 <div class="mx-auto flex max-w-7xl flex-col md:flex-row">
-	<Sidebar title="Manage" {items} permissionLevel={group.permissionLevel} />
+	<Sidebar title={m.common_manage()} {items} permissionLevel={group.permissionLevel} />
 
 	<div class="min-w-0 flex-1 px-4 py-8">
 		{@render children()}

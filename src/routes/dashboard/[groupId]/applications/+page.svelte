@@ -20,6 +20,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -33,7 +34,7 @@
 	let creating = $state(false);
 
 	let rankOptions = $derived([
-		{ value: '', label: 'Choose a rank…' },
+		{ value: '', label: m.dashboard_applications_choose_rank() },
 		...data.ranks.map((rank) => ({ value: rank.id, label: rank.cachedName }))
 	]);
 
@@ -57,7 +58,7 @@
 			// something anybody wants to stop at.
 			await goto(`${base}/${created.id}?section=form`);
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not create that application'));
+			toasts.error(errorMessage(error, m.dashboard_applications_could_not_create_application()));
 		} finally {
 			creating = false;
 		}
@@ -79,7 +80,7 @@
 			toasts.success(open ? 'Applications opened' : 'Applications closed');
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not change that application'));
+			toasts.error(errorMessage(error, m.dashboard_applications_could_not_change_application()));
 		} finally {
 			busyId = null;
 		}
@@ -87,23 +88,23 @@
 </script>
 
 <PageHeader
-	title="Applications"
-	description="Forms people fill in to ask for a rank. Closing one stops new applicants without touching the ones you have yet to read."
+	title={m.common_applications()}
+	description={m.dashboard_applications_forms_people_fill_ask_rank_closing()}
 >
 	{#snippet actions()}
-		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> New application</Button>
+		<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_applications_new_application()}</Button>
 	{/snippet}
 </PageHeader>
 
 {#if data.applications.length === 0}
 	<EmptyState
-		title="No applications yet"
-		description="Create a form and bind it to the rank people are applying for."
+		title={m.dashboard_applications_no_applications_yet()}
+		description={m.dashboard_applications_create_form_bind_rank_people_are()}
 	>
 		{#snippet icon()}<IconClipboardText size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
 			<Button size="sm" onclick={() => (createOpen = true)}>
-				<IconPlus size={15} /> New application
+				<IconPlus size={15} /> {m.dashboard_applications_new_application()}
 			</Button>
 		{/snippet}
 	</EmptyState>
@@ -146,7 +147,7 @@
 							</Badge>
 						</a>
 					{:else}
-						<Badge>Nothing to review</Badge>
+						<Badge>{m.dashboard_applications_nothing_review()}</Badge>
 					{/if}
 
 					<!--
@@ -156,9 +157,9 @@
 						thing somebody is about to change.
 					-->
 					{#if application.open}
-						<Badge tone="success"><IconLockOpen size={13} /> Open</Badge>
+						<Badge tone="success"><IconLockOpen size={13} /> {m.common_open()}</Badge>
 					{:else}
-						<Badge><IconLock size={13} /> Closed</Badge>
+						<Badge><IconLock size={13} /> {m.common_closed()}</Badge>
 					{/if}
 
 					<Button
@@ -166,11 +167,11 @@
 						variant="secondary"
 						disabled={busyId === application.id || (!application.rank && !application.open)}
 						title={!application.rank && !application.open
-							? 'Bind a rank before opening this form'
+							? m.dashboard_applications_bind_rank_before_opening_form()
 							: undefined}
 						onclick={() => toggleOpen(application.id, !application.open)}
 					>
-						{application.open ? 'Close form' : 'Open form'}
+						{application.open ? m.dashboard_applications_close_form() : m.dashboard_applications_open_form()}
 					</Button>
 
 					<!-- The whole card is a link; on a phone the arrow only wraps onto a line of its own. -->
@@ -183,24 +184,24 @@
 
 <Modal
 	bind:open={createOpen}
-	title="New application"
-	description="Name it after what people are applying for."
+	title={m.dashboard_applications_new_application()}
+	description={m.dashboard_applications_name_after_what_people_are_applying()}
 >
 	<div class="space-y-4">
-		<Field label="Name">
-			<Input bind:value={name} maxlength={100} placeholder="e.g. Driver applications" />
+		<Field label={m.common_name()}>
+			<Input bind:value={name} maxlength={100} placeholder={m.dashboard_applications_e_g_driver_applications()} />
 		</Field>
 
 		<Field
-			label="Rank"
-			hint="What a successful applicant is applying for. A form cannot open without one."
+			label={m.dashboard_applications_rank()}
+			hint={m.dashboard_applications_what_successful_applicant_applying_form_cannot()}
 		>
 			<Select bind:value={rankId} options={rankOptions} />
 		</Field>
 	</div>
 
 	{#snippet footer()}
-		<Button variant="ghost" onclick={() => (createOpen = false)}>Cancel</Button>
-		<Button loading={creating} disabled={!name.trim()} onclick={create}>Create</Button>
+		<Button variant="ghost" onclick={() => (createOpen = false)}>{m.common_cancel()}</Button>
+		<Button loading={creating} disabled={!name.trim()} onclick={create}>{m.dashboard_applications_create()}</Button>
 	{/snippet}
 </Modal>

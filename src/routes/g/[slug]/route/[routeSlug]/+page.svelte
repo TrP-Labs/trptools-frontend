@@ -11,6 +11,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import { formatShare } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -50,7 +51,7 @@
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
-					{#if !route.autoAssign}<Badge tone="warning">Assigned by hand</Badge>{/if}
+					{#if !route.autoAssign}<Badge tone="warning">{m.g_route_assigned_by_hand()}</Badge>{/if}
 
 					<!--
 						Labelled here, unlike the icon on a route card: there is
@@ -76,17 +77,17 @@
 <div class="mx-auto max-w-4xl space-y-10 px-4 py-10">
 	{#if route.description}
 		<section>
-			<h2 class="mb-3 text-lg font-semibold">About this route</h2>
+			<h2 class="mb-3 text-lg font-semibold">{m.g_route_about_route()}</h2>
 			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{route.description}</p>
 		</section>
 	{/if}
 
 	<section>
-		<h2 class="mb-3 text-lg font-semibold">Runs from</h2>
+		<h2 class="mb-3 text-lg font-semibold">{m.g_route_runs_from()}</h2>
 
 		{#if data.depots.length === 0}
 			<p class="text-sm text-text-muted">
-				This route can be dispatched from every depot in the group.
+				{m.g_route_route_can_dispatched_from_every_depot()}
 			</p>
 		{:else}
 			<!--
@@ -119,10 +120,10 @@
 	</section>
 
 	<section>
-		<h2 class="mb-3 text-lg font-semibold">Maps and photos</h2>
+		<h2 class="mb-3 text-lg font-semibold">{m.g_route_maps_photos()}</h2>
 
 		{#if route.images.length === 0}
-			<EmptyState title="No images yet" description="This route has no maps or photos published.">
+			<EmptyState title={m.g_route_no_images_yet()} description={m.g_route_route_has_no_maps_photos_published()}>
 				{#snippet icon()}<IconPhoto size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
 		{:else}

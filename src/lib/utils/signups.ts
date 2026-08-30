@@ -1,4 +1,5 @@
 import type { SignupSheet, SignupUser } from '$lib/api/types';
+import { m } from '$lib/paraglide/messages.js';
 
 /**
  * How full an occurrence's sheets are.
@@ -37,5 +38,9 @@ export function findMySlot(sheets: SignupSheet[], userId: string | undefined): s
 
 /** What to call someone in a signup list, whichever way they signed up. */
 export function signupName(signup: SignupUser): string {
-	return signup.displayName || signup.username || (signup.discordId ? 'Discord user' : 'Unknown');
+	return (
+		signup.displayName ||
+		signup.username ||
+		(signup.discordId ? m.signup_discord_user() : m.common_unknown())
+	);
 }

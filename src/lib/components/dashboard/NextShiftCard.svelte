@@ -6,6 +6,7 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import type { DashboardShift } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		/** Every upcoming shift across every group, soonest first. */
@@ -50,8 +51,8 @@
 
 {#if !next}
 	<EmptyState
-		title="Nothing coming up"
-		description="No shift is scheduled in the next fortnight across any of your groups."
+		title={m.dashboard_next_shift_card_nothing_coming_up()}
+		description={m.dashboard_next_shift_card_no_shift_scheduled_next_fortnight_across()}
 	>
 		{#snippet icon()}<IconCalendarPlus size={26} stroke={1.5} />{/snippet}
 	</EmptyState>
@@ -66,13 +67,13 @@
 
 		<div class="flex flex-wrap items-center gap-2">
 			<p class="text-xs font-semibold tracking-wide text-text-subtle uppercase">
-				{live ? 'Running now' : 'Next shift'}
+				{live ? m.dashboard_next_shift_card_running_now() : m.dashboard_next_shift_card_next_shift()}
 			</p>
 			{#if live && roomId}
-				<Badge tone="success"><IconRadio size={12} /> Room open</Badge>
+				<Badge tone="success"><IconRadio size={12} /> {m.dashboard_next_shift_card_room_open()}</Badge>
 			{/if}
 			{#if next.signedUp}
-				<Badge tone="accent"><IconCheck size={12} /> You are signed up</Badge>
+				<Badge tone="accent"><IconCheck size={12} /> {m.dashboard_next_shift_card_are_signed_up()}</Badge>
 			{/if}
 		</div>
 
@@ -108,7 +109,7 @@
 
 			{#if roomId}
 				<Button variant="secondary" href="/dashboard/{next.groupSlug}/dispatch">
-					<IconRadio size={16} /> Join dispatch
+					<IconRadio size={16} /> {m.dashboard_next_shift_card_join_dispatch()}
 				</Button>
 			{/if}
 

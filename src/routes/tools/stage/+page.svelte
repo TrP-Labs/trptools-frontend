@@ -30,6 +30,7 @@
 		type Program,
 		type ProgramEntry
 	} from '$lib/components/stage/program';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let program = $state<Program>([]);
 	let duration = $state(0);
@@ -91,7 +92,7 @@
 		wavesurfer.on('finish', () => (playing = false));
 
 		wavesurfer.on('error', () => {
-			toasts.error('That audio could not be decoded');
+			toasts.error(m.tools_stage_audio_could_not_decoded());
 			ready = false;
 		});
 	}
@@ -119,13 +120,13 @@
 	 */
 	function useSoundId() {
 		if (!/^\d+$/.test(soundId.trim())) {
-			toasts.error('A sound ID is numbers only');
+			toasts.error(m.tools_stage_sound_id_numbers_only());
 			return;
 		}
 
 		trackName = `Roblox sound ${soundId.trim()}`;
 		soundOpen = false;
-		toasts.info('Sound ID saved. Load the audio file itself to see a waveform.');
+		toasts.info(m.tools_stage_sound_id_saved_load_audio_file());
 	}
 
 	function togglePlay() {
@@ -178,7 +179,7 @@
 		program = result.program;
 		importOpen = false;
 		importText = '';
-		toasts.success(`Imported ${result.program.length} markers`);
+		toasts.success(m.tools_stage_imported_markers({ count: result.program.length }));
 	}
 
 	async function exportProgram() {
@@ -186,10 +187,10 @@
 
 		try {
 			await navigator.clipboard.writeText(payload);
-			toasts.success('Program copied to your clipboard');
+			toasts.success(m.tools_stage_program_copied_clipboard());
 		} catch {
 			// Clipboard access can be denied; the textarea below is the fallback.
-			toasts.info('Copy the program from the box below');
+			toasts.info(m.tools_stage_copy_program_from_box_below());
 		}
 
 		exportText = payload;
@@ -206,21 +207,21 @@
 </script>
 
 <svelte:head>
-	<title>Stage programmer — TrP Tools</title>
+	<title>{m.tools_stage_stage_programmer_trp_tools()}</title>
 	<meta name="description" content="Build stage lighting programs against a waveform." />
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-10">
 	<PageHeader
-		title="Stage programmer"
-		description="Load a track, drop light cues against the waveform, then export the program into the game."
+		title={m.common_stage_programmer()}
+		description={m.tools_stage_load_track_drop_light_cues_against()}
 	>
 		{#snippet actions()}
 			<Button variant="secondary" onclick={() => (importOpen = true)}>
-				<IconClipboardText size={16} /> Import
+				<IconClipboardText size={16} /> {m.common_import()}
 			</Button>
 			<Button onclick={exportProgram} disabled={program.length === 0}>
-				<IconDownload size={16} /> Export
+				<IconDownload size={16} /> {m.tools_stage_export()}
 			</Button>
 		{/snippet}
 	</PageHeader>
@@ -237,10 +238,10 @@
 			/>
 
 			<Button variant="secondary" onclick={() => fileInput?.click()}>
-				<IconFileMusic size={16} /> Load audio
+				<IconFileMusic size={16} /> {m.tools_stage_load_audio()}
 			</Button>
 
-			<Button variant="ghost" onclick={() => (soundOpen = true)}>Roblox sound ID</Button>
+			<Button variant="ghost" onclick={() => (soundOpen = true)}>{m.tools_stage_roblox_sound_id()}</Button>
 
 			<Button onclick={togglePlay} disabled={!ready}>
 				{#if playing}
@@ -251,7 +252,7 @@
 			</Button>
 
 			<Button variant="secondary" onclick={addMarkerHere}>
-				<IconPlus size={16} /> Marker at playhead
+				<IconPlus size={16} /> {m.tools_stage_marker_at_playhead()}
 			</Button>
 
 			<div class="ml-auto flex items-center gap-3">
@@ -272,7 +273,7 @@
 					min="0"
 					max="200"
 					value={zoom}
-					aria-label="Zoom"
+					aria-label={m.tools_stage_zoom()}
 					oninput={(event) => applyZoom(Number(event.currentTarget.value))}
 					class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-background-muted accent-accent"
 				/>
@@ -285,7 +286,7 @@
 		<div
 			bind:this={waveformEl}
 			role="application"
-			aria-label="Audio waveform. Right click to add a marker."
+			aria-label={m.tools_stage_audio_waveform_right_click_add_marker()}
 			oncontextmenu={onWaveformContext}
 			class="min-h-32 w-full overflow-x-auto"
 		></div>
@@ -293,8 +294,7 @@
 		{#if !ready}
 			<div class="px-5 py-10 text-center">
 				<p class="text-sm text-text-muted">
-					Load an audio file to see its waveform. Right click the waveform to place a marker at
-					that moment.
+					{m.tools_stage_load_audio_file_see_its_waveform()}
 				</p>
 			</div>
 		{/if}
@@ -304,26 +304,26 @@
 	<section>
 		<div class="mb-3 flex items-baseline justify-between">
 			<h2 class="text-sm font-semibold tracking-wide text-text-muted uppercase">
-				Program
+				{m.tools_stage_program()}
 				<span class="ml-1 font-normal text-text-subtle">{program.length} markers</span>
 			</h2>
 			{#if program.length > 0}
 				<button
 					type="button"
 					onclick={() => {
-						if (confirm('Clear every marker?')) program = [];
+						if (confirm(m.tools_stage_clear_every_marker_confirm())) program = [];
 					}}
 					class="text-xs text-text-subtle transition-colors hover:text-danger"
 				>
-					Clear all
+					{m.tools_stage_clear_all()}
 				</button>
 			{/if}
 		</div>
 
 		{#if program.length === 0}
 			<EmptyState
-				title="No markers yet"
-				description="Add cues at the playhead, or right click the waveform to place one precisely."
+				title={m.tools_stage_no_markers_yet()}
+				description={m.tools_stage_add_cues_at_playhead_right_click()}
 			/>
 		{:else}
 			<ul class="card divide-y divide-border-base">
@@ -349,7 +349,7 @@
 						<button
 							type="button"
 							onclick={() => removeEntry(index)}
-							aria-label="Remove marker"
+							aria-label={m.tools_stage_remove_marker()}
 							class="shrink-0 rounded p-1 text-text-subtle transition-colors hover:text-danger"
 						>
 							<IconTrash size={15} />
@@ -368,8 +368,8 @@
 	onclose={() => {}}
 />
 
-<Modal bind:open={importOpen} title="Import a program" description="Paste a previously exported program.">
-	<Field label="Program JSON">
+<Modal bind:open={importOpen} title={m.tools_stage_import_program()} description={m.tools_stage_paste_previously_exported_program()}>
+	<Field label={m.tools_stage_program_json()}>
 		<Textarea
 			bind:value={importText}
 			rows={10}
@@ -380,27 +380,27 @@
 	</Field>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (importOpen = false)}>Cancel</Button>
-		<Button onclick={doImport} disabled={!importText.trim()}>Import</Button>
+		<Button variant="secondary" onclick={() => (importOpen = false)}>{m.common_cancel()}</Button>
+		<Button onclick={doImport} disabled={!importText.trim()}>{m.common_import()}</Button>
 	{/snippet}
 </Modal>
 
-<Modal bind:open={exportOpen} title="Export" description="Copied to your clipboard, and shown here as a fallback.">
-	<Field label="Program JSON">
+<Modal bind:open={exportOpen} title={m.tools_stage_export()} description={m.tools_stage_copied_clipboard_shown_here_as_fallback()}>
+	<Field label={m.tools_stage_program_json()}>
 		<Textarea value={exportText} rows={10} readonly spellcheck="false" class="font-mono text-xs" />
 	</Field>
 </Modal>
 
-<Modal bind:open={soundOpen} title="Roblox sound ID" description="Labels the program with the sound it targets.">
+<Modal bind:open={soundOpen} title={m.tools_stage_roblox_sound_id()} description={m.tools_stage_labels_program_with_sound_targets()}>
 	<Field
-		label="Sound ID"
-		hint="Browsers cannot fetch Roblox audio directly, so load the audio file itself to see a waveform."
+		label={m.tools_stage_sound_id()}
+		hint={m.tools_stage_browsers_cannot_fetch_roblox_audio_directly()}
 	>
-		<Input bind:value={soundId} placeholder="e.g. 1837879082" spellcheck="false" />
+		<Input bind:value={soundId} placeholder={m.tools_stage_e_g_1837879082()} spellcheck="false" />
 	</Field>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (soundOpen = false)}>Cancel</Button>
-		<Button onclick={useSoundId} loading={loadingSound}>Save</Button>
+		<Button variant="secondary" onclick={() => (soundOpen = false)}>{m.common_cancel()}</Button>
+		<Button onclick={useSoundId} loading={loadingSound}>{m.common_save()}</Button>
 	{/snippet}
 </Modal>

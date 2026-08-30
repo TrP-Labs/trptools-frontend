@@ -8,6 +8,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { BotChannel } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * Picks a Discord channel for one setting.
@@ -56,7 +57,7 @@
 			channels = data ?? [];
 			loaded = true;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not read the channel list'));
+			toasts.error(errorMessage(error, m.bot_channel_picker_could_not_read_channel_list()));
 		} finally {
 			loading = false;
 		}
@@ -103,31 +104,30 @@
 				<input
 					bind:value={search}
 					type="search"
-					placeholder="Search channels"
-					aria-label="Search channels"
+					placeholder={m.bot_channel_picker_search_channels()}
+					aria-label={m.bot_channel_picker_search_channels()}
 					class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-8
 						text-sm text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
 				/>
 			</div>
 
 			<Button size="sm" variant="secondary" onclick={() => load(true)} disabled={loading}>
-				<IconRefresh size={15} class={loading ? 'animate-spin' : ''} /> Refresh
+				<IconRefresh size={15} class={loading ? 'animate-spin' : ''} /> {m.bot_channel_picker_refresh()}
 			</Button>
 		</div>
 
 		<p class="text-xs text-text-subtle">
-			Dots show what the bot can do in each channel right now. A channel it cannot send to will
-			never receive anything, however it is configured.
+			{m.bot_channel_picker_dots_show_what_bot_can_do()}
 		</p>
 
 		{#if loading && channels.length === 0}
 			<div class="flex justify-center py-10"><Spinner /></div>
 		{:else if filtered.length === 0}
 			<EmptyState
-				title={search ? 'Nothing matches' : 'No channels found'}
+				title={search ? m.bot_channel_picker_nothing_matches() : m.bot_channel_picker_no_channels_found()}
 				description={search
-					? 'No channel in this server matches that search.'
-					: 'The bot cannot see any channels it could post in. Check its permissions in Discord, then refresh.'}
+					? m.bot_channel_picker_no_channel_server_matches_search()
+					: m.bot_channel_picker_bot_cannot_see_any_channels_could()}
 			>
 				{#snippet icon()}<IconHash size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
@@ -143,7 +143,7 @@
 								? 'border-accent bg-accent/10'
 								: 'border-border-base hover:bg-background-secondary'}"
 						>
-							<span class="min-w-0 flex-1 text-sm text-text-muted">Not set</span>
+							<span class="min-w-0 flex-1 text-sm text-text-muted">{m.bot_channel_picker_not_set()}</span>
 							{#if value === null}<IconCheck size={16} class="shrink-0 text-accent" />{/if}
 						</button>
 					</li>
@@ -182,8 +182,8 @@
 										<span class="min-w-0 flex-1">
 											<span class="block truncate text-sm text-text">{channel.name}</span>
 											<span class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-												<PickerStatus ok={channel.canRead} label="Read" />
-												<PickerStatus ok={channel.canSend} label="Send" />
+												<PickerStatus ok={channel.canRead} label={m.bot_channel_picker_read()} />
+												<PickerStatus ok={channel.canSend} label={m.bot_channel_picker_send()} />
 											</span>
 										</span>
 

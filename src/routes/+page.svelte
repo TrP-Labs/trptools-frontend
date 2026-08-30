@@ -22,6 +22,7 @@
 	import { refreshData } from '$lib/utils/refresh';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -63,7 +64,7 @@
 			const { error } = await api.users.me.preferences.patch({ primaryGroupId: next });
 			if (error) throw error;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not change your primary group'));
+			toasts.error(errorMessage(error, m.home_could_not_change_primary_group()));
 			pinning = null;
 			return;
 		}
@@ -86,34 +87,34 @@
 	const features = [
 		{
 			icon: IconRadio,
-			title: 'Multi-user dispatch',
+			title: m.home_multi_user_dispatch(),
 			body: 'Run a shift with your whole team in one room. Assignments, tows and vehicle deletions stay in sync for everyone, live.'
 		},
 		{
 			icon: IconRoute,
-			title: 'Custom routes, properly',
+			title: m.home_custom_routes_properly(),
 			body: 'Give every route its own colour, shape and depots. Automatic assignment treats a route you invented exactly like a built-in one.'
 		},
 		{
 			icon: IconCalendarTime,
-			title: 'Shift scheduling',
+			title: m.home_shift_scheduling(),
 			body: 'Recurring shifts with slots people can sign up for, and a dashboard showing who is on which shift.'
 		},
 		{
 			icon: IconUsers,
-			title: 'Rank-based access',
+			title: m.home_rank_based_access(),
 			body: 'Map your Roblox roles to permissions once. Access follows your group, so promotions apply immediately.'
 		},
 		{
 			icon: IconBulb,
-			title: 'Stage programmer',
+			title: m.common_stage_programmer(),
 			body: 'Build lighting programs against a waveform and export them straight into the game.'
 		}
 	];
 </script>
 
 <svelte:head>
-	<title>TrP Tools — Roblox group management for TrP</title>
+	<title>{m.home_trp_tools_roblox_group_management_trp()}</title>
 </svelte:head>
 
 {#if data.user && groups.length > 0}
@@ -152,7 +153,7 @@
 					</Button>
 				{/if}
 				<Button variant="secondary" href="/dashboard">
-					<IconUsersGroup size={16} /> All groups
+					<IconUsersGroup size={16} /> {m.home_all_groups()}
 				</Button>
 			</div>
 		</header>
@@ -198,7 +199,7 @@
 
 		{#if reviews.length > 0}
 			<div id="review" class="mt-6 scroll-mt-20">
-				<Card title="Waiting on a decision" description="Applications nobody has answered yet.">
+				<Card title={m.home_waiting_decision()} description={m.home_applications_nobody_has_answered_yet()}>
 					{#snippet actions()}
 						<IconClipboardList size={18} class="text-text-subtle" />
 					{/snippet}
@@ -210,9 +211,9 @@
 		<div class="mt-6 grid gap-6 lg:grid-cols-3">
 			<section id="groups" class="min-w-0 scroll-mt-20 lg:col-span-2">
 				<div class="mb-3 flex items-end justify-between gap-3">
-					<h2 class="text-lg font-semibold">Your groups</h2>
+					<h2 class="text-lg font-semibold">{m.home_groups()}</h2>
 					<a href="/dashboard" class="text-sm text-text-muted transition-colors hover:text-text">
-						{groupTotal > groups.length ? `All ${groupTotal}` : 'Manage'}
+						{groupTotal > groups.length ? `All ${groupTotal}` : m.common_manage()}
 					</a>
 				</div>
 
@@ -230,9 +231,9 @@
 
 			<section class="min-w-0">
 				<div class="mb-3 flex items-end justify-between gap-3">
-					<h2 class="text-lg font-semibold">Later on</h2>
+					<h2 class="text-lg font-semibold">{m.home_later()}</h2>
 					<a href="/shifts" class="text-sm text-text-muted transition-colors hover:text-text">
-						All shifts
+						{m.home_all_shifts()}
 					</a>
 				</div>
 
@@ -240,8 +241,8 @@
 					<ShiftList {shifts} skipFirst />
 				{:else}
 					<EmptyState
-						title="Nothing else scheduled"
-						description="Shifts from every group you are in land here."
+						title={m.home_nothing_else_scheduled()}
+						description={m.home_shifts_from_every_group_are_land()}
 					>
 						{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
 					</EmptyState>
@@ -255,11 +256,10 @@
 		<div class="mx-auto max-w-7xl px-4 py-16 sm:py-24">
 			<div class="max-w-2xl">
 				<h1 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-					Run your group without the spreadsheet.
+					{m.home_run_group_without_spreadsheet()}
 				</h1>
 				<p class="mt-4 text-lg text-pretty text-text-muted">
-					Dispatch together in real time, schedule shifts people can actually sign up for, and give
-					your custom routes the colours and automatic assignment they always should have had.
+					{m.home_dispatch_together_real_time_schedule_shifts()}
 				</p>
 
 				<div class="mt-8 flex flex-wrap gap-3">
@@ -270,12 +270,12 @@
 							rather than a second copy of it here.
 						-->
 						<Button href="/dashboard" size="lg">
-							<IconPlus size={17} /> Add your group
+							<IconPlus size={17} /> {m.home_add_group()}
 						</Button>
-						<Button href="/groups" size="lg" variant="secondary">Browse groups</Button>
+						<Button href="/groups" size="lg" variant="secondary">{m.home_browse_groups()}</Button>
 					{:else}
-						<Button href={loginUrl()} size="lg" data-sveltekit-reload>Sign in with Roblox</Button>
-						<Button href="/groups" size="lg" variant="secondary">Browse groups</Button>
+						<Button href={loginUrl()} size="lg" data-sveltekit-reload>{m.common_sign_with_roblox()}</Button>
+						<Button href="/groups" size="lg" variant="secondary">{m.home_browse_groups()}</Button>
 					{/if}
 				</div>
 			</div>

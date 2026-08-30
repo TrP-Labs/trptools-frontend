@@ -4,6 +4,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import type { ShiftOccurrence } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		/** Upcoming occurrences across the group, soonest first. */
@@ -59,15 +60,15 @@
 
 {#if !next}
 	<EmptyState
-		title="No shift coming up"
+		title={m.dispatch_shift_countdown_no_shift_coming_up()}
 		description={canHost
-			? 'A dispatch room is opened for a scheduled shift. Add one to the schedule and it will appear here.'
-			: 'There is nothing scheduled, so no room can be opened yet.'}
+			? m.dispatch_shift_countdown_dispatch_room_opened_scheduled_shift_add()
+			: m.dispatch_shift_countdown_there_nothing_scheduled_so_no_room()}
 	>
 		{#snippet icon()}<IconRadio size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
 			{#if canHost}
-				<Button href={manageHref}><IconCalendarPlus size={16} /> Manage shifts</Button>
+				<Button href={manageHref}><IconCalendarPlus size={16} /> {m.dispatch_shift_countdown_manage_shifts()}</Button>
 			{/if}
 		{/snippet}
 	</EmptyState>
@@ -76,7 +77,7 @@
 		<span class="mt-1 mb-2 inline-block h-1 w-10 rounded-full" style="background: {next.color}"></span>
 
 		<p class="text-xs font-semibold tracking-wide text-text-subtle uppercase">
-			{live ? 'Running now' : 'Next shift'}
+			{live ? m.dispatch_shift_countdown_running_now() : m.dispatch_shift_countdown_next_shift()}
 		</p>
 
 		<h2 class="mt-1 text-xl font-semibold text-text">{next.name}</h2>
@@ -95,7 +96,7 @@
 		{#if canHost}
 			<div class="mt-7">
 				<Button size="lg" disabled={!unlocked} loading={opening} onclick={() => onopen(next.eventId)}>
-					<IconPlayerPlay size={18} /> Open room
+					<IconPlayerPlay size={18} /> {m.dispatch_shift_countdown_open_room()}
 				</Button>
 
 				<p class="mt-2.5 text-xs text-text-subtle">
@@ -107,7 +108,7 @@
 				</p>
 			</div>
 		{:else}
-			<p class="mt-7 text-sm text-text-muted">A host needs to open the room before you can join.</p>
+			<p class="mt-7 text-sm text-text-muted">{m.dispatch_shift_countdown_host_needs_open_room_before_can()}</p>
 		{/if}
 	</div>
 {/if}

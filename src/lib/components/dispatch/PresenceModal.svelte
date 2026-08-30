@@ -7,6 +7,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RoomPresence } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		open: boolean;
@@ -36,16 +37,16 @@
 			.then(({ data }) => {
 				if (data) people = data;
 			})
-			.catch((error) => toasts.error(errorMessage(error, 'Could not load who is here')))
+			.catch((error) => toasts.error(errorMessage(error, m.dispatch_presence_modal_could_not_load_who_here())))
 			.finally(() => (loading = false));
 	});
 </script>
 
-<Modal bind:open title="In this room" description="Everyone with the dispatch stream open right now.">
+<Modal bind:open title={m.dispatch_presence_modal_room()} description={m.dispatch_presence_modal_everyone_with_dispatch_stream_open_right()}>
 	{#if loading}
 		<div class="flex justify-center py-8"><Spinner /></div>
 	{:else if people.length === 0}
-		<p class="py-6 text-center text-sm text-text-muted">Nobody is connected right now.</p>
+		<p class="py-6 text-center text-sm text-text-muted">{m.dispatch_presence_modal_nobody_connected_right_now()}</p>
 	{:else}
 		<ul class="divide-y divide-border-base">
 			{#each people as person (person.userId)}
@@ -57,14 +58,14 @@
 					/>
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium text-text">
-							{person.displayName ?? person.username ?? 'Unknown dispatcher'}
+							{person.displayName ?? person.username ?? m.dispatch_presence_modal_unknown_dispatcher()}
 						</p>
 						{#if person.username && person.displayName && person.username !== person.displayName}
 							<p class="truncate text-xs text-text-subtle">@{person.username}</p>
 						{/if}
 					</div>
 					{#if person.host}
-						<Badge tone="accent"><IconCrown size={12} /> Host</Badge>
+						<Badge tone="accent"><IconCrown size={12} /> {m.dispatch_presence_modal_host()}</Badge>
 					{/if}
 				</li>
 			{/each}

@@ -13,6 +13,7 @@
 	import IconUploader from '$lib/components/media/IconUploader.svelte';
 	import { formatShare } from '$lib/utils/format';
 	import type { Depot, MediaItem, RouteShape } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	export interface RouteDraft {
 		name: string;
@@ -62,16 +63,16 @@
 	}: Props = $props();
 
 	const shapes = [
-		{ value: 'AUTO' as const, label: 'Automatic' },
-		{ value: 'CIRCLE' as const, label: 'Circle' },
-		{ value: 'RECTANGLE' as const, label: 'Rectangle' },
-		{ value: 'DIAMOND' as const, label: 'Diamond' },
-		{ value: 'HEXAGON' as const, label: 'Hexagon' }
+		{ value: 'AUTO' as const, label: m.routes_route_editor_automatic() },
+		{ value: 'CIRCLE' as const, label: m.routes_route_editor_circle() },
+		{ value: 'RECTANGLE' as const, label: m.routes_route_editor_rectangle() },
+		{ value: 'DIAMOND' as const, label: m.routes_route_editor_diamond() },
+		{ value: 'HEXAGON' as const, label: m.routes_route_editor_hexagon() }
 	];
 
 	const visibilities = [
-		{ value: 'PUBLIC' as const, label: 'Public' },
-		{ value: 'PRIVATE' as const, label: 'Members only' }
+		{ value: 'PUBLIC' as const, label: m.common_public() },
+		{ value: 'PRIVATE' as const, label: m.common_members_only() }
 	];
 
 	/**
@@ -103,7 +104,7 @@
 </script>
 
 <div class="space-y-6">
-	<FieldGroup title="Route" description="Its name, and how the badge is drawn." columns={1}>
+	<FieldGroup title={m.routes_route_editor_route()} description={m.routes_route_editor_its_name_how_badge_drawn()} columns={1}>
 		<div class="grid gap-5 sm:grid-cols-[auto_1fr]">
 			<div class="flex flex-col items-center gap-2 sm:w-32">
 				<RouteBadge
@@ -115,43 +116,43 @@
 					size="lg"
 				/>
 				<p class="text-center text-xs text-text-subtle">
-					{icon ? 'Uploaded badge' : 'Live preview'}
+					{icon ? m.routes_route_editor_uploaded_badge() : m.routes_route_editor_live_preview()}
 				</p>
 			</div>
 
 			<div class="grid gap-4 sm:grid-cols-2">
 				<Field
-					label="Route name"
+					label={m.routes_route_editor_route_name()}
 					hint={builtIn
-						? 'Built-in routes keep the name the game uses.'
-						: 'Must match the route name in game. Up to 10 characters shown.'}
+						? m.routes_route_editor_built_routes_keep_name_game_uses()
+						: m.routes_route_editor_must_match_route_name_game_up()}
 				>
 					<Input
 						bind:value={draft.name}
 						maxlength={24}
 						disabled={builtIn}
-						placeholder="e.g. 14 or EXPRESS"
+						placeholder={m.routes_route_editor_e_g_14_express()}
 					/>
 				</Field>
 
-				<Field label="Shape" hint="Automatic makes short names round and long names rectangular.">
+				<Field label={m.routes_route_editor_shape()} hint={m.routes_route_editor_automatic_makes_short_names_round_long()}>
 					<Select bind:value={draft.shape} options={shapes} />
 				</Field>
 
-				<Field label="Route colour">
+				<Field label={m.routes_route_editor_route_colour()}>
 					<ColorInput bind:value={draft.color} />
 				</Field>
 
-				<Field label="Label colour" hint="The ink used for the route number itself.">
+				<Field label={m.routes_route_editor_label_colour()} hint={m.routes_route_editor_ink_used_route_number_itself()}>
 					<ColorInput bind:value={draft.textColor} />
 				</Field>
 
-				<Field label="Description" class="sm:col-span-2">
+				<Field label={m.common_description()} class="sm:col-span-2">
 					<Textarea
 						bind:value={draft.description}
 						rows={2}
 						maxlength={1000}
-						placeholder="Where this route runs, and anything drivers should know."
+						placeholder={m.routes_route_editor_where_route_runs_anything_drivers_should()}
 					/>
 				</Field>
 			</div>
@@ -163,19 +164,19 @@
 				ownerType="ROUTE"
 				ownerId={routeId}
 				current={icon}
-				label="Route badge"
-				hint="Replaces the drawn roundel everywhere this route appears, including the dispatch table. Square images work best. Saved as soon as it uploads."
+				label={m.routes_route_editor_route_badge()}
+				hint={m.routes_route_editor_replaces_drawn_roundel_everywhere_route_appears()}
 			/>
 		{/if}
 	</FieldGroup>
 
-	<FieldGroup title="Dispatch" description="How automatic assignment treats it." columns={1}>
+	<FieldGroup title={m.common_dispatch()} description={m.routes_route_editor_how_automatic_assignment_treats()} columns={1}>
 		<Field
-			label="Depots served"
-			hint="Automatic assignment only puts vehicles on routes their depot serves. Select none to serve every depot."
+			label={m.routes_route_editor_depots_served()}
+			hint={m.routes_route_editor_automatic_assignment_only_puts_vehicles_routes()}
 		>
 			{#if depots.length === 0}
-				<p class="text-sm text-text-muted">No depots configured yet.</p>
+				<p class="text-sm text-text-muted">{m.routes_route_editor_no_depots_configured_yet()}</p>
 			{:else}
 				<div class="flex flex-wrap gap-2">
 					{#each depots as depot (depot.id)}
@@ -198,8 +199,8 @@
 		</Field>
 
 		<Field
-			label="Target share"
-			hint="The portion of dispatchable vehicles this route should carry. Shares are weighed against the other routes each depot serves, so they need not total 100."
+			label={m.routes_route_editor_target_share()}
+			hint={m.routes_route_editor_portion_dispatchable_vehicles_route_should_carry()}
 		>
 			<div class="flex items-center gap-3">
 				<input
@@ -208,7 +209,7 @@
 					max="100"
 					step="1"
 					bind:value={draft.targetShare}
-					aria-label="Target share"
+					aria-label={m.routes_route_editor_target_share()}
 					class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-background-muted accent-accent"
 				/>
 
@@ -224,7 +225,7 @@
 						value={formatShare(draft.targetShare)}
 						onchange={commitShare}
 						onblur={commitShare}
-						aria-label="Target share, percent"
+						aria-label={m.routes_route_editor_target_share_percent()}
 						class="w-20 bg-transparent py-2 pl-3 text-right font-mono text-sm text-text
 							tabular-nums focus:outline-none
 							[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
@@ -237,23 +238,23 @@
 
 		<Toggle
 			bind:checked={draft.autoAssign}
-			label="Include in automatic assignment"
-			description="Turn off for routes that should only ever be assigned by hand."
+			label={m.routes_route_editor_include_automatic_assignment()}
+			description={m.routes_route_editor_turn_off_routes_should_only_ever()}
 		/>
 	</FieldGroup>
 
-	<FieldGroup title="Public page" description="What visitors to the group see." columns={1}>
-		<Field label="Visibility" hint="Members only keeps this route inside the dashboard.">
+	<FieldGroup title={m.common_public_page()} description={m.routes_route_editor_what_visitors_group_see()} columns={1}>
+		<Field label={m.common_visibility()} hint={m.routes_route_editor_members_only_keeps_route_inside_dashboard()}>
 			<Select bind:value={draft.visibility} options={visibilities} class="sm:max-w-64" />
 		</Field>
 
 		<Toggle
 			bind:checked={draft.showOnGroupPage}
 			disabled={!published}
-			label="List on the group page"
+			label={m.routes_route_editor_list_group_page()}
 			description={published
-				? 'Off keeps the route at its own address without crowding the group page.'
-				: 'Members-only routes never appear on the group page.'}
+				? m.routes_route_editor_off_keeps_route_at_its_own()
+				: m.routes_route_editor_members_only_routes_never_appear_group()}
 		/>
 
 		{#if mode === 'edit' && routeId && groupId}
@@ -262,45 +263,45 @@
 				ownerType="ROUTE"
 				ownerId={routeId}
 				{images}
-				label="Route maps"
-				hint="Shown on the public page. Up to 12 images."
+				label={m.routes_route_editor_route_maps()}
+				hint={m.routes_route_editor_shown_public_page_up_12_images()}
 				onchange={onimageschanged}
 			/>
 		{/if}
 	</FieldGroup>
 
 	{#if mode === 'edit'}
-		<FieldGroup title="Availability" columns={1}>
+		<FieldGroup title={m.routes_route_editor_availability()} columns={1}>
 			<Toggle
 				bind:checked={draft.archived}
-				label="Disabled"
+				label={m.common_disabled()}
 				description={builtIn
-					? 'Hides this built-in route from dispatch and the public page. You can turn it back on at any time.'
-					: 'Hidden from dispatch and public pages, without deleting its history.'}
+					? m.routes_route_editor_hides_built_route_from_dispatch_public()
+					: m.routes_route_editor_hidden_from_dispatch_public_pages_without()}
 			/>
 		</FieldGroup>
 	{/if}
 
 	<div class="flex flex-wrap items-center gap-2 border-t border-border-base pt-4">
 		<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>
-			{mode === 'create' ? 'Create route' : 'Save changes'}
+			{mode === 'create' ? m.routes_route_editor_create_route() : m.common_save_changes()}
 		</Button>
 
 		{#if mode === 'edit'}
 			{#if builtIn}
 				<span class="inline-flex items-center gap-1.5 text-xs text-text-subtle">
-					<IconLock size={14} /> Built-in routes can be disabled but not deleted
+					<IconLock size={14} /> {m.routes_route_editor_built_routes_can_disabled_but_not()}
 				</span>
 			{:else if ondelete}
 				<Button variant="danger" onclick={ondelete} disabled={busy}>
-					<IconTrash size={16} /> Delete
+					<IconTrash size={16} /> {m.common_delete()}
 				</Button>
 			{/if}
 		{/if}
 
 		{#if published && !draft.showOnGroupPage}
 			<span class="ml-auto inline-flex items-center gap-1.5 text-xs text-text-subtle">
-				<IconEyeOff size={14} /> Not listed on the group page
+				<IconEyeOff size={14} /> {m.routes_route_editor_not_listed_group_page()}
 			</span>
 		{/if}
 	</div>

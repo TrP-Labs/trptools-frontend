@@ -24,6 +24,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { DispatchVehicle } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -73,7 +74,7 @@
 			if (error) throw error;
 		} catch (error) {
 			if (previous) room.patchLocal(id, previous);
-			toasts.error(errorMessage(error, 'Could not update that vehicle'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_update_vehicle()));
 		}
 	}
 
@@ -98,7 +99,7 @@
 			if (error) throw error;
 			room.removeLocal(id);
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not remove that vehicle'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_remove_vehicle()));
 		}
 	}
 
@@ -133,9 +134,9 @@
 			room.patchLocal(vehicle.id, { route: assignment.route });
 
 			const named = data.routes.find((route) => route.id === assignment.route);
-			toasts.success(`${vehicle.id} → ${named?.name ?? assignment.route}`);
+			toasts.success(m.common_vehicle_assigned({ vehicle: vehicle.id, route: named?.name ?? assignment.route }));
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not assign a route to that vehicle'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_assign_route_vehicle()));
 		}
 	}
 
@@ -162,7 +163,7 @@
 				);
 			}
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not solve routes'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_solve_routes()));
 		} finally {
 			solving = false;
 		}
@@ -180,10 +181,10 @@
 			const { data: created, error } = await api.rooms.post({ eventId });
 			if (!created) throw error;
 
-			toasts.success('Dispatch room opened');
+			toasts.success(m.dashboard_dispatch_dispatch_room_opened());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not open a room'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_open_room()));
 		} finally {
 			opening = false;
 		}
@@ -191,22 +192,22 @@
 
 	async function closeRoom() {
 		if (!roomId) return;
-		if (!confirm('Close this dispatch room for everyone?')) return;
+		if (!confirm(m.dashboard_dispatch_close_room_confirm())) return;
 
 		try {
 			const { error } = await api.rooms({ roomId }).delete();
 			if (error) throw error;
 
 			room.disconnect();
-			toasts.success('Room closed');
+			toasts.success(m.dashboard_dispatch_room_closed());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not close the room'));
+			toasts.error(errorMessage(error, m.dashboard_dispatch_could_not_close_room()));
 		}
 	}
 </script>
 
-<PageHeader title="Dispatch" description="Assign routes together, in real time.">
+<PageHeader title={m.common_dispatch()} description={m.dashboard_dispatch_assign_routes_together_real_time()}>
 	{#snippet meta()}
 		{#if roomId}
 			<RoomStatus
@@ -221,7 +222,7 @@
 	{#snippet actions()}
 		{#if roomId && canHost}
 			<Button variant="secondary" onclick={closeRoom}>
-				<IconPlayerStop size={16} /> Close room
+				<IconPlayerStop size={16} /> {m.dashboard_dispatch_close_room()}
 			</Button>
 		{/if}
 	{/snippet}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { isValidHex, normaliseHex } from '$lib/utils/color';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		value: string;
@@ -35,7 +36,7 @@
 		class="relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-border-base"
 		style="background: {value}"
 	>
-		<span class="sr-only">Pick a colour</span>
+		<span class="sr-only">{m.ui_color_input_pick_colour()}</span>
 		<input
 			{id}
 			type="color"

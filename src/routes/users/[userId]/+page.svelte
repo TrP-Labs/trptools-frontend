@@ -5,6 +5,7 @@
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import type { RouteShape } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 	let profile = $derived(data.profile);
@@ -44,7 +45,7 @@
 					class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5
 						text-xs text-text-muted transition-colors hover:text-text"
 				>
-					Roblox profile <IconExternalLink size={12} />
+					{m.users_roblox_profile()} <IconExternalLink size={12} />
 				</a>
 			</div>
 		</div>
@@ -56,7 +57,7 @@
 		route a group has not published never reaches the page at all — so
 		these lists say nothing the group's own pages do not.
 	-->
-	{#each [{ routes: favourites, title: 'Favourite routes', tone: 'success' }, { routes: disliked, title: 'Disliked routes', tone: 'danger' }] as section (section.title)}
+	{#each [{ routes: favourites, title: m.users_favourite_routes(), tone: 'success' }, { routes: disliked, title: m.users_disliked_routes(), tone: 'danger' }] as section (section.title)}
 		{#if section.routes.length > 0}
 			<section>
 				<h2 class="mb-3 flex items-center gap-2 text-lg font-semibold">

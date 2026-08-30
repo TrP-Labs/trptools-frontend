@@ -15,6 +15,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { IconChevronLeft } from '@tabler/icons-svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * One thing in the dashboard, given a page of its own.
@@ -108,7 +109,7 @@
 	</div>
 
 	<!-- Scrolls sideways on a phone rather than wrapping into a block of tabs. -->
-	<nav aria-label="Sections" class="-mx-4 border-b border-border-base px-4">
+	<nav aria-label={m.layout_object_page_sections()} class="-mx-4 border-b border-border-base px-4">
 		<ul class="flex gap-1 overflow-x-auto pb-px">
 			{#each sections as section (section.id)}
 				{@const current = section.id === active}
