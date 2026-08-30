@@ -30,3 +30,6 @@ src/lib/paraglide
 
 # Module cache written by the inlang SDK.
 project.inlang/cache
+
+# Local Claude Code config (dev server launch settings, per-machine).
+.claude
