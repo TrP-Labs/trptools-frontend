@@ -7,6 +7,7 @@
 	 */
 	import { IconBolt, IconClipboardText, IconKeyboard, IconSearch } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		search: string;
@@ -46,22 +47,22 @@
 			bind:this={searchInput}
 			bind:value={search}
 			type="search"
-			placeholder="Search vehicles   /"
-			aria-label="Search vehicles"
+			placeholder={m.dispatch_dispatch_toolbar_search_vehicles()}
+			aria-label={m.dispatch_dispatch_toolbar_search_vehicles_2()}
 			class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-9 text-sm
 				text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
 		/>
 	</div>
 
 	<Button variant="secondary" onclick={onimport}>
-		<IconClipboardText size={16} /> Import
+		<IconClipboardText size={16} /> {m.common_import()}
 	</Button>
 
 	<Button onclick={() => onsolve(false)} loading={solving}>
-		<IconBolt size={16} /> Solve routes
+		<IconBolt size={16} /> {m.dispatch_dispatch_toolbar_solve_routes()}
 	</Button>
 
-	<Button variant="ghost" onclick={() => onsolve(true)} disabled={solving}>Reassign all</Button>
+	<Button variant="ghost" onclick={() => onsolve(true)} disabled={solving}>{m.dispatch_dispatch_toolbar_reassign_all()}</Button>
 </div>
 
 <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-subtle">
@@ -74,13 +75,12 @@
 		<IconKeyboard size={14} />
 		{#if navEnabled}
 			<span class="text-accent">
-				Keyboard mode · <kbd>↑</kbd><kbd>↓</kbd> vehicle · <kbd>→</kbd> or <kbd>Enter</kbd> to go in
-				· <kbd>←</kbd> or <kbd>Esc</kbd> to go back · <kbd>1</kbd>–<kbd>4</kbd> or
-				<kbd>[</kbd><kbd>]</kbd> for a list
+				{m.dispatch_dispatch_toolbar_keyboard_mode()} <kbd>↑</kbd><kbd>↓</kbd> {m.dispatch_dispatch_toolbar_vehicle()} <kbd>→</kbd> {m.dispatch_dispatch_toolbar_or()} <kbd>{m.dispatch_dispatch_toolbar_enter()}</kbd> {m.dispatch_dispatch_toolbar_go()} <kbd>←</kbd> {m.dispatch_dispatch_toolbar_or()} <kbd>{m.dispatch_dispatch_toolbar_esc()}</kbd> {m.dispatch_dispatch_toolbar_go_back()} <kbd>1</kbd>–<kbd>4</kbd> {m.dispatch_dispatch_toolbar_or()}
+				<kbd>[</kbd><kbd>]</kbd> {m.dispatch_dispatch_toolbar_list()}
 			</span>
 		{:else}
 			<span>
-				Press <kbd>\</kbd> for keyboard navigation, <kbd>1</kbd>–<kbd>4</kbd> to jump to a list
+				{m.dispatch_dispatch_toolbar_press()} <kbd>\</kbd> {m.dispatch_dispatch_toolbar_keyboard_navigation()} <kbd>1</kbd>–<kbd>4</kbd> {m.dispatch_dispatch_toolbar_jump_list()}
 			</span>
 		{/if}
 	</p>

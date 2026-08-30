@@ -14,6 +14,7 @@
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import type { AdminUser } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -26,8 +27,8 @@
 	let mode = $state<'suspend' | 'ban'>('suspend');
 
 	const filters = [
-		{ value: 'ALL', label: 'All' },
-		{ value: 'BANNED', label: 'Suspended' }
+		{ value: 'ALL', label: m.admin_users_all() },
+		{ value: 'BANNED', label: m.admin_users_suspended() }
 	] as const;
 
 	function search(status = data.status) {
@@ -53,10 +54,10 @@
 			const { error } = await api.admin.users({ userId: user.userId }).unban.post({});
 			if (error) throw error;
 
-			toasts.success(`${name(user)} can sign in again`);
+			toasts.success(m.admin_users_can_sign_in_again({ name: name(user) }));
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not lift that suspension'));
+			toasts.error(errorMessage(error, m.admin_users_could_not_lift_suspension()));
 		} finally {
 			busyId = null;
 		}
@@ -71,9 +72,9 @@
 	}}
 >
 	<div class="min-w-56 flex-1">
-		<Input bind:value={term} placeholder="Username, display name or Roblox ID" maxlength={100} />
+		<Input bind:value={term} placeholder={m.admin_users_username_display_name_roblox_id()} maxlength={100} />
 	</div>
-	<Button type="submit" variant="secondary"><IconSearch size={15} /> Search</Button>
+	<Button type="submit" variant="secondary"><IconSearch size={15} /> {m.admin_users_search()}</Button>
 </form>
 
 <div class="mb-4 flex gap-1.5">
@@ -94,12 +95,12 @@
 
 {#if data.users.length === 0}
 	<EmptyState
-		title="No accounts found"
+		title={m.admin_users_no_accounts_found()}
 		description={data.status === 'BANNED'
-			? 'Nobody is suspended right now.'
+			? m.admin_users_nobody_suspended_right_now()
 			: data.q
-				? 'Nothing matched that search.'
-				: 'Accounts appear here once somebody has signed in.'}
+				? m.admin_users_nothing_matched_search()
+				: m.admin_users_accounts_appear_here_once_somebody_has()}
 	>
 		{#snippet icon()}<IconUsers size={28} stroke={1.5} />{/snippet}
 	</EmptyState>
@@ -115,14 +116,14 @@
 							{name(user)}
 						</a>
 						{#if user.siteRank === 'admin'}
-							<Badge tone="accent">Site admin</Badge>
+							<Badge tone="accent">{m.admin_users_site_admin()}</Badge>
 						{/if}
 						{#if user.ban?.active}
 							<Badge tone="danger">
-								{user.ban.expiresAt ? 'Suspended' : 'Banned'}
+								{user.ban.expiresAt ? m.admin_users_suspended() : m.admin_users_banned()}
 							</Badge>
 						{:else if user.ban}
-							<Badge>Suspension lapsed</Badge>
+							<Badge>{m.admin_users_suspension_lapsed()}</Badge>
 						{/if}
 					</div>
 
@@ -135,8 +136,8 @@
 						<div class="mt-2 rounded-lg bg-background-secondary px-3 py-2 text-sm text-text-muted">
 							<p>
 								{user.ban.expiresAt
-									? `${user.ban.active ? 'Lifts' : 'Lifted'} ${formatDateTime(user.ban.expiresAt)}`
-									: 'Permanent'}
+									? `${user.ban.active ? m.admin_users_lifts() : m.admin_users_lifted()} ${formatDateTime(user.ban.expiresAt)}`
+									: m.admin_users_permanent()}
 								· set {formatRelative(user.ban.bannedAt)}
 								{#if user.ban.by}
 									by {user.ban.by.displayName ?? user.ban.by.username}
@@ -153,14 +154,14 @@
 					<div class="flex shrink-0 flex-wrap gap-2">
 						{#if user.ban?.active}
 							<Button size="sm" loading={busyId === user.userId} onclick={() => lift(user)}>
-								<IconUserCheck size={15} /> Lift
+								<IconUserCheck size={15} /> {m.admin_users_lift()}
 							</Button>
 						{:else}
 							<Button size="sm" variant="secondary" onclick={() => open(user, 'suspend')}>
-								<IconClockPause size={15} /> Suspend
+								<IconClockPause size={15} /> {m.admin_users_suspend()}
 							</Button>
 							<Button size="sm" variant="danger" onclick={() => open(user, 'ban')}>
-								<IconBan size={15} /> Ban
+								<IconBan size={15} /> {m.admin_users_ban()}
 							</Button>
 						{/if}
 					</div>

@@ -9,6 +9,7 @@
 	import { signupName } from '$lib/utils/signups';
 	import { withAlpha } from '$lib/utils/color';
 	import type { SignupSheet } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * The sign-up sheets for one occurrence of a shift.
@@ -56,10 +57,13 @@
 
 			if (error) throw error;
 
-			toasts.success(take ? 'Signed up' : 'Withdrawn');
+			toasts.success(take ? m.shifts_signup_sheets_signed_up() : m.shifts_signup_sheets_withdrawn());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, take ? 'Could not sign you up' : 'Could not withdraw you'));
+			toasts.error(errorMessage(
+					error,
+					take ? m.shifts_signup_sheets_could_not_sign_up() : m.shifts_signup_sheets_could_not_withdraw()
+				));
 		} finally {
 			busy = null;
 		}
@@ -117,7 +121,7 @@
 										{/each}
 									</ul>
 								{:else}
-									<p class="mt-2 text-xs text-text-subtle">Nobody yet</p>
+									<p class="mt-2 text-xs text-text-subtle">{m.shifts_signup_sheets_nobody_yet()}</p>
 								{/if}
 							</div>
 
@@ -130,7 +134,7 @@
 											loading={busy === slot.id}
 											onclick={() => act(slot.id, false)}
 										>
-											<IconMinus size={14} /> Withdraw
+											<IconMinus size={14} /> {m.shifts_signup_sheets_withdraw()}
 										</Button>
 									{:else}
 										<Button
@@ -141,7 +145,7 @@
 											onclick={() => act(slot.id, true)}
 										>
 											<IconPlus size={14} />
-											{full ? 'Full' : 'Sign up'}
+											{full ? m.shifts_signup_sheets_full() : m.shifts_signup_sheets_sign_up()}
 										</Button>
 									{/if}
 								</div>
@@ -154,7 +158,7 @@
 
 		{#if mySlot}
 			<p class="text-xs text-text-subtle">
-				You can only hold one slot per shift. Withdraw from it to take a different one.
+				{m.shifts_signup_sheets_can_only_hold_one_slot_per()}
 			</p>
 		{/if}
 	</div>

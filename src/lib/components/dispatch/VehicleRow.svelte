@@ -8,13 +8,14 @@
 	import {
 		NOTE_ROUTE,
 		SERVICE_STATUS_COLORS,
-		SERVICE_STATUS_LABELS,
+		serviceStatusLabel,
 		SERVICE_STATUS_ORDER,
 		type BoardRoute,
 		type DispatchVehicle,
 		type ServiceStatus,
 		type VehicleBucket
 	} from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface OwnerProfile {
 		displayName: string | null;
@@ -148,8 +149,8 @@
 	} as const;
 
 	let routeOptions = $derived([
-		{ value: '', label: 'Unassigned' },
-		{ value: NOTE_ROUTE, label: 'Custom note', dot: 'note' as const },
+		{ value: '', label: m.dispatch_vehicle_row_unassigned() },
+		{ value: NOTE_ROUTE, label: m.dispatch_vehicle_row_custom_note(), dot: 'note' as const },
 		...(selectValue === '__literal__'
 			? [{ value: '__literal__', label: vehicle.route ?? '', disabled: true }]
 			: []),
@@ -180,7 +181,7 @@
 	let statusOptions = $derived(
 		SERVICE_STATUS_ORDER.map((status) => ({
 			value: status,
-			label: SERVICE_STATUS_LABELS[status],
+			label: serviceStatusLabel(status),
 			color: SERVICE_STATUS_COLORS[status]
 		}))
 	);
@@ -281,7 +282,7 @@
 	<div class="min-w-40 flex-1">
 		<div class="flex items-center gap-1.5">
 			{#if bucket === 'DECORATIVE'}
-				<span class="truncate text-sm font-medium text-text-muted">Scenery</span>
+				<span class="truncate text-sm font-medium text-text-muted">{m.dispatch_vehicle_row_scenery()}</span>
 			{:else}
 				<Avatar src={owner?.avatar} name={owner?.displayName ?? owner?.username} size={16} />
 				<span class="truncate text-sm font-medium text-text">
@@ -312,7 +313,7 @@
 				aria-hidden={towed}
 			>
 				{#if noted}
-					<span class="note-dot shrink-0" title="Custom note"></span>
+					<span class="note-dot shrink-0" title={m.dispatch_vehicle_row_custom_note()}></span>
 				{:else if vehicle.route}
 					<RouteBadge
 						label={matched?.name ?? vehicle.route}
@@ -347,7 +348,7 @@
 						bind:element={refs.note}
 						value={vehicle.note}
 						disabled={towed}
-						placeholder="What have you told them?"
+						placeholder={m.dispatch_vehicle_row_what_have_told_them()}
 						ariaLabel="Note for vehicle {vehicle.id}"
 						maxlength={200}
 						class="w-full sm:w-40"
@@ -376,7 +377,7 @@
 						bind:this={refs.solve}
 						type="button"
 						disabled={towed}
-						title="Assign a route automatically"
+						title={m.dispatch_vehicle_row_assign_route_automatically()}
 						aria-label="Assign a route automatically to vehicle {vehicle.id}"
 						onclick={onsolve}
 						class="shrink-0 rounded-md border border-border-base p-1.5 text-text-subtle
@@ -392,7 +393,7 @@
 					type="button"
 					disabled={towed}
 					aria-pressed={vehicle.assigned}
-					title="Assigned"
+					title={m.dispatch_vehicle_row_assigned()}
 					onclick={() => onassigned(!vehicle.assigned)}
 					class="shrink-0 rounded-md border px-2 py-1 text-xs font-medium transition-colors
 						disabled:opacity-50
@@ -400,7 +401,7 @@
 						? 'border-success/40 bg-success/15 text-success'
 						: 'border-border-base text-text-subtle hover:text-text'} {ring('assigned')}"
 				>
-					Assigned
+					{m.dispatch_vehicle_row_assigned()}
 				</button>
 			</div>
 
@@ -412,8 +413,7 @@
 					<span class="flex min-w-0 items-center gap-1.5 text-xs text-text-muted">
 						<IconTruck size={14} class="shrink-0 text-tow" />
 						<span class="truncate">
-							<span class="font-mono font-semibold text-text">{towedBy.id}</span> is towing this
-							vehicle
+							<span class="font-mono font-semibold text-text">{towedBy.id}</span> {m.dispatch_vehicle_row_towing_vehicle()}
 						</span>
 					</span>
 
@@ -425,7 +425,7 @@
 							font-medium whitespace-nowrap text-text-muted transition-colors
 							hover:border-danger hover:text-danger disabled:opacity-50 {ring('endtow')}"
 					>
-						End tow
+						{m.dispatch_vehicle_row_end_tow()}
 					</button>
 				</div>
 			{/if}
@@ -448,7 +448,7 @@
 			<LiveTextInput
 				bind:element={refs.location}
 				value={vehicle.location}
-				placeholder="Location"
+				placeholder={m.dispatch_vehicle_row_location()}
 				ariaLabel="Location of vehicle {vehicle.id}"
 				class="min-w-28 flex-1"
 				onsave={onlocation}
@@ -461,8 +461,8 @@
 				title={towing
 					? `Towing ${towing.id} — press to end the tow`
 					: selecting
-						? 'Pick a vehicle to tow, or press again to cancel'
-						: 'Tow a vehicle'}
+						? m.dispatch_vehicle_row_pick_vehicle_tow_press_again_cancel()
+						: m.dispatch_vehicle_row_tow_vehicle()}
 				onclick={() => (vehicle.towing ? ontowend() : ontowpick())}
 				onmouseenter={() => ontowhover(true)}
 				onmouseleave={() => ontowhover(false)}

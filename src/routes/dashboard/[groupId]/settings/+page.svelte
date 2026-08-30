@@ -18,6 +18,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatRelative } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -49,9 +50,9 @@
 	let keySaving = $state(false);
 
 	const visibilities = [
-		{ value: 'PUBLIC' as const, label: 'Public — listed in the directory' },
-		{ value: 'UNLISTED' as const, label: 'Unlisted — reachable by direct link only' },
-		{ value: 'PRIVATE' as const, label: 'Private — members only' }
+		{ value: 'PUBLIC' as const, label: m.dashboard_settings_public_listed_directory() },
+		{ value: 'UNLISTED' as const, label: m.dashboard_settings_unlisted_reachable_by_direct_link_only() },
+		{ value: 'PRIVATE' as const, label: m.dashboard_settings_private_members_only() }
 	];
 
 	async function save() {
@@ -64,11 +65,11 @@
 			});
 			if (error) throw error;
 
-			toasts.success('Settings saved');
+			toasts.success(m.dashboard_settings_settings_saved());
 			await refreshData();
 			form = seed();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save those settings'));
+			toasts.error(errorMessage(error, m.dashboard_settings_could_not_save_those_settings()));
 		} finally {
 			saving = false;
 		}
@@ -86,43 +87,43 @@
 			apiKey = '';
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'That key could not read this group'));
+			toasts.error(errorMessage(error, m.dashboard_settings_key_could_not_read_group()));
 		} finally {
 			keySaving = false;
 		}
 	}
 </script>
 
-<PageHeader title="Settings" description="How this group appears and how TrP Tools talks to Roblox." />
+<PageHeader title={m.common_settings()} description={m.dashboard_settings_how_group_appears_how_trp_tools()} />
 
 <div class="space-y-6">
-	<Card title="Public page" description="What people see at your group's TrP Tools address.">
+	<Card title={m.common_public_page()} description={m.dashboard_settings_what_people_see_at_group_s()}>
 		<div class="grid gap-4 sm:grid-cols-2">
-			<Field label="Visibility" class="sm:col-span-2">
+			<Field label={m.common_visibility()} class="sm:col-span-2">
 				<Select bind:value={form.visibility} options={visibilities} />
 			</Field>
 
-			<Field label="Page address" hint="Letters, numbers and dashes.">
+			<Field label={m.dashboard_settings_page_address()} hint={m.dashboard_settings_letters_numbers_dashes()}>
 				<div class="flex items-center gap-1.5">
 					<span class="shrink-0 text-sm text-text-subtle">/g/</span>
 					<Input bind:value={form.slug} maxlength={48} spellcheck="false" />
 				</div>
 			</Field>
 
-			<Field label="Accent colour">
+			<Field label={m.dashboard_settings_accent_colour()}>
 				<ColorInput bind:value={form.accentColor} />
 			</Field>
 
-			<Field label="Tagline" hint="One line, shown under the group name." class="sm:col-span-2">
-				<Input bind:value={form.tagline} maxlength={160} placeholder="A short description" />
+			<Field label={m.dashboard_settings_tagline()} hint={m.dashboard_settings_one_line_shown_under_group_name()} class="sm:col-span-2">
+				<Input bind:value={form.tagline} maxlength={160} placeholder={m.dashboard_settings_short_description()} />
 			</Field>
 
-			<Field label="About" class="sm:col-span-2">
+			<Field label={m.common_about()} class="sm:col-span-2">
 				<Textarea
 					bind:value={form.about}
 					rows={4}
 					maxlength={4000}
-					placeholder="Tell people what your group does."
+					placeholder={m.dashboard_settings_tell_people_what_group_does()}
 				/>
 			</Field>
 
@@ -131,32 +132,32 @@
 					groupId={group.id}
 					ownerType="GROUP"
 					current={group.bannerImage}
-					label="Banner image"
-					hint="Sits behind the group name on your public page. Wide images work best. Saved as soon as it uploads."
+					label={m.dashboard_settings_banner_image()}
+					hint={m.dashboard_settings_sits_behind_group_name_public_page()}
 					aspect="wide"
 				/>
 			</div>
 
 			<div class="space-y-3 sm:col-span-2">
-				<Toggle bind:checked={form.showRoutes} label="Show routes" description="List public routes on the page." />
-				<Toggle bind:checked={form.showShifts} label="Show shifts" description="List upcoming public shifts." />
+				<Toggle bind:checked={form.showRoutes} label={m.dashboard_settings_show_routes()} description={m.dashboard_settings_list_public_routes_page()} />
+				<Toggle bind:checked={form.showShifts} label={m.dashboard_settings_show_shifts()} description={m.dashboard_settings_list_upcoming_public_shifts()} />
 				<Toggle
 					bind:checked={form.showRoster}
-					label="Show staff list"
-					description="List ranks marked visible."
+					label={m.dashboard_settings_show_staff_list()}
+					description={m.dashboard_settings_list_ranks_marked_visible()}
 				/>
 			</div>
 		</div>
 
 		{#snippet actions()}
-			<Button onclick={save} loading={saving}>Save</Button>
+			<Button onclick={save} loading={saving}>{m.common_save()}</Button>
 		{/snippet}
 	</Card>
 
-	<Card title="Shifts" description="How dispatch rooms and staff sign-ups behave for this group.">
+	<Card title={m.common_shifts()} description={m.dashboard_settings_how_dispatch_rooms_staff_sign_ups()}>
 		<Field
-			label="Open rooms this many minutes early"
-			hint="The dispatch page counts down to the next shift and unlocks its Open room button once the countdown falls inside this window. Set 0 to allow opening only once the shift has started."
+			label={m.dashboard_settings_open_rooms_many_minutes_early()}
+			hint={m.dashboard_settings_dispatch_page_counts_down_next_shift()}
 		>
 			<div class="flex items-center gap-3">
 				<Input
@@ -166,13 +167,13 @@
 					bind:value={form.roomOpenLeadMinutes}
 					class="max-w-32"
 				/>
-				<span class="text-sm text-text-muted">minutes</span>
+				<span class="text-sm text-text-muted">{m.dashboard_settings_minutes()}</span>
 			</div>
 		</Field>
 
 		<Field
-			label="Open sign-ups this many minutes early"
-			hint="Staff sign-up sheets appear on a shift's page this far ahead and close when the shift ends. Without a limit every occurrence for months out carries an empty form, and people commit to shifts nobody has planned yet. 1440 is a day, 10080 a week."
+			label={m.dashboard_settings_open_sign_ups_many_minutes_early()}
+			hint={m.dashboard_settings_staff_sign_up_sheets_appear_shift()}
 		>
 			<div class="flex items-center gap-3">
 				<Input
@@ -183,66 +184,60 @@
 					bind:value={form.signupLeadMinutes}
 					class="max-w-32"
 				/>
-				<span class="text-sm text-text-muted">minutes</span>
+				<span class="text-sm text-text-muted">{m.dashboard_settings_minutes()}</span>
 			</div>
 		</Field>
 
 		{#snippet actions()}
-			<Button onclick={save} loading={saving}>Save</Button>
+			<Button onclick={save} loading={saving}>{m.common_save()}</Button>
 		{/snippet}
 	</Card>
 
 	<VehicleTypesCard groupId={group.id} types={data.vehicleTypes} />
 
-	<Card title="Roblox Open Cloud" description="How TrP Tools reads ranks for this group.">
+	<Card title={m.dashboard_settings_roblox_open_cloud()} description={m.dashboard_settings_how_trp_tools_reads_ranks_group()}>
 		{#snippet actions()}
 			{#if group.hasOpenCloudKey}
-				<Badge tone="success"><IconCheck size={13} /> Connected</Badge>
+				<Badge tone="success"><IconCheck size={13} /> {m.dashboard_settings_connected()}</Badge>
 			{:else}
-				<Badge tone="warning">Not connected</Badge>
+				<Badge tone="warning">{m.dashboard_settings_not_connected()}</Badge>
 			{/if}
 		{/snippet}
 
 		<div class="space-y-4">
 			<p class="text-sm leading-relaxed text-text-muted">
-				Roblox Open Cloud will not answer group reads without credentials, and a signed-in user's
-				own token is capped at well under a hundred requests a minute. A key raises that ceiling
-				considerably and keeps rank checks working even when nobody is signed in.
+				{m.dashboard_settings_roblox_open_cloud_will_not_answer()}
 			</p>
 
 			<ol class="list-decimal space-y-1.5 pl-5 text-sm text-text-muted">
 				<li>
-					Open
+					{m.common_open()}
 					<a
 						href="https://create.roblox.com/dashboard/credentials"
 						target="_blank"
 						rel="noopener noreferrer"
 						class="inline-flex items-center gap-1 text-accent hover:underline"
 					>
-						Creator Dashboard credentials <IconExternalLink size={12} />
+						{m.dashboard_settings_creator_dashboard_credentials()} <IconExternalLink size={12} />
 					</a>
 				</li>
 				<li>
-					Create an API key owned by <strong class="font-medium text-text">your own account</strong>.
-					Open Cloud will not accept a key owned by the group.
+					{m.dashboard_settings_create_api_key_owned_by()} <strong class="font-medium text-text">{m.dashboard_settings_own_account()}</strong>{m.dashboard_settings_open_cloud_will_not_accept_key()}
 				</li>
 				<li>
-					Under access permissions add the <span class="font-mono text-xs text-text">Group</span> API
-					system, choose this group, and give it
-					<span class="font-mono text-xs text-text">group:read</span>.
+					{m.dashboard_settings_under_access_permissions_add()} <span class="font-mono text-xs text-text">{m.dashboard_settings_group()}</span> {m.dashboard_settings_api_system_choose_group_give()}
+					<span class="font-mono text-xs text-text">{m.dashboard_settings_group_read()}</span>.
 				</li>
-				<li>Paste the key below. It is verified against your group, then encrypted at rest.</li>
+				<li>{m.dashboard_settings_paste_key_below_verified_against_group()}</li>
 			</ol>
 
 			<p class="rounded-lg border border-border-base bg-background-secondary px-3 py-2 text-xs text-text-subtle">
-				The key stays with the group, so it keeps working after you hand the group over — but it is
-				billed against the rate limit of the account that made it, and it stops working if that
-				account deletes it.
+				{m.dashboard_settings_key_stays_with_group_so_keeps()}
 			</p>
 
 			<Field
-				label={group.hasOpenCloudKey ? 'Replace key' : 'API key'}
-				hint="Leave blank and save to remove an existing key."
+				label={group.hasOpenCloudKey ? m.dashboard_settings_replace_key() : m.dashboard_settings_api_key()}
+				hint={m.dashboard_settings_leave_blank_save_remove_existing_key()}
 			>
 				<div class="flex flex-wrap gap-2">
 					<Input
@@ -250,21 +245,21 @@
 						type="password"
 						autocomplete="off"
 						spellcheck="false"
-						placeholder="Paste your Open Cloud API key"
+						placeholder={m.dashboard_settings_paste_open_cloud_api_key()}
 						class="min-w-56 flex-1"
 					/>
 					<Button onclick={saveKey} loading={keySaving}>
 						<IconKey size={16} />
-						{apiKey.trim() ? 'Verify and save' : 'Remove key'}
+						{apiKey.trim() ? m.dashboard_settings_verify_save() : m.dashboard_settings_remove_key()}
 					</Button>
 				</div>
 			</Field>
 		</div>
 	</Card>
 
-	<Card title="Recent activity" description="Administrative changes in this group.">
+	<Card title={m.dashboard_settings_recent_activity()} description={m.dashboard_settings_administrative_changes_group()}>
 		{#if data.audit.length === 0}
-			<p class="text-sm text-text-muted">Nothing recorded yet.</p>
+			<p class="text-sm text-text-muted">{m.dashboard_settings_nothing_recorded_yet()}</p>
 		{:else}
 			<ul class="divide-y divide-border-base">
 				{#each data.audit.slice(0, 25) as entry (entry.id)}
@@ -275,7 +270,7 @@
 							size={22}
 						/>
 						<span class="text-sm font-medium text-text">
-							{entry.actor?.displayName ?? entry.actor?.username ?? 'A removed account'}
+							{entry.actor?.displayName ?? entry.actor?.username ?? m.dashboard_settings_removed_account()}
 						</span>
 						<span class="min-w-0 flex-1 text-sm text-text-muted">{entry.summary}</span>
 						<span class="shrink-0 text-xs text-text-subtle">{formatRelative(entry.date)}</span>

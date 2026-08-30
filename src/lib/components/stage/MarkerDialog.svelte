@@ -11,6 +11,7 @@
 		type MarkerKind,
 		type ProgramEntry
 	} from './program';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		open: boolean;
@@ -29,10 +30,10 @@
 	let targets = $state<string[]>([]);
 
 	const kinds: Array<{ value: MarkerKind; label: string; hint: string }> = [
-		{ value: 'lights', label: 'Lights', hint: 'Turn fixtures on or off' },
-		{ value: 'colors', label: 'Colour', hint: 'Recolour fixtures' },
-		{ value: 'action', label: 'Action', hint: 'Flashes and throws' },
-		{ value: 'other', label: 'Other', hint: 'Tracking and background' }
+		{ value: 'lights', label: m.stage_marker_dialog_lights(), hint: m.stage_marker_dialog_turn_fixtures_off() },
+		{ value: 'colors', label: m.common_colour(), hint: m.stage_marker_dialog_recolour_fixtures() },
+		{ value: 'action', label: m.stage_marker_dialog_action(), hint: m.stage_marker_dialog_flashes_throws() },
+		{ value: 'other', label: m.stage_marker_dialog_other(), hint: m.stage_marker_dialog_tracking_background() }
 	];
 
 	let needsTargets = $derived(kind === 'lights' || kind === 'colors');
@@ -84,10 +85,10 @@
 		onclose();
 	}}
 	title="Add marker at {formatTimecode(time)}"
-	description="Markers fire in order as the track plays."
+	description={m.stage_marker_dialog_markers_fire_order_as_track_plays()}
 >
 	<div class="space-y-4">
-		<Field label="Marker type">
+		<Field label={m.stage_marker_dialog_marker_type()}>
 			<div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
 				{#each kinds as option (option.value)}
 					<button
@@ -110,7 +111,7 @@
 		</Field>
 
 		{#if kind === 'lights'}
-			<Field label="Action">
+			<Field label={m.stage_marker_dialog_action()}>
 				<div class="flex gap-2">
 					{#each ['Enable', 'Disable'] as const as value (value)}
 						<button
@@ -128,7 +129,7 @@
 				</div>
 			</Field>
 		{:else if kind === 'colors'}
-			<Field label="Colour">
+			<Field label={m.common_colour()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each COLORS as option (option)}
 						<button
@@ -146,7 +147,7 @@
 				</div>
 			</Field>
 		{:else if kind === 'action'}
-			<Field label="Action">
+			<Field label={m.stage_marker_dialog_action()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each ACTIONS as option (option)}
 						<button
@@ -164,7 +165,7 @@
 				</div>
 			</Field>
 		{:else}
-			<Field label="Action">
+			<Field label={m.stage_marker_dialog_action()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each OTHER_ACTIONS as option (option)}
 						<button
@@ -184,7 +185,7 @@
 		{/if}
 
 		{#if needsTargets}
-			<Field label="Fixtures" hint="Pick at least one.">
+			<Field label={m.stage_marker_dialog_fixtures()} hint={m.stage_marker_dialog_pick_at_least_one()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each LIGHTS as light (light)}
 						{@const active = targets.includes(light)}
@@ -214,8 +215,8 @@
 				onclose();
 			}}
 		>
-			Cancel
+			{m.common_cancel()}
 		</Button>
-		<Button onclick={submit} disabled={!canSubmit}>Add marker</Button>
+		<Button onclick={submit} disabled={!canSubmit}>{m.stage_marker_dialog_add_marker()}</Button>
 	{/snippet}
 </Modal>

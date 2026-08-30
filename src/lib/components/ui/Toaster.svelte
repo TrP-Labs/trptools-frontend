@@ -2,6 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { IconAlertTriangle, IconCheck, IconInfoCircle, IconX } from '@tabler/icons-svelte';
 	import { toasts } from '$lib/stores/toast.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	const tones = {
 		success: 'border-success/40 text-success',
@@ -35,7 +36,7 @@
 
 			<button
 				type="button"
-				aria-label="Dismiss"
+				aria-label={m.ui_toaster_dismiss()}
 				onclick={() => toasts.dismiss(toast.id)}
 				class="-m-1 shrink-0 rounded p-1 text-text-subtle transition-colors hover:text-text"
 			>

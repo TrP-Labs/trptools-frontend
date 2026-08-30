@@ -5,6 +5,7 @@
 	import { API_URL, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { MediaItem } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		groupId: string;
@@ -47,10 +48,10 @@
 
 				if (!response.ok) {
 					const message = await response.text().catch(() => '');
-					throw message || `Upload failed (${response.status})`;
+					throw message || m.media_upload_failed({ status: response.status });
 				}
 			} catch (error) {
-				toasts.error(errorMessage(error, `Could not upload ${file.name}`));
+				toasts.error(errorMessage(error, m.media_image_manager_could_not_upload({ name: file.name })));
 			}
 		}
 
@@ -60,7 +61,7 @@
 	}
 
 	async function remove(image: MediaItem) {
-		if (!confirm('Delete this image?')) return;
+		if (!confirm(m.media_image_manager_delete_image_confirm())) return;
 
 		try {
 			const response = await fetch(`${API_URL}/media/${image.id}`, {
@@ -69,11 +70,11 @@
 			});
 			if (!response.ok) throw await response.text();
 
-			toasts.success('Image deleted');
+			toasts.success(m.media_image_manager_image_deleted());
 			onchange?.();
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete that image'));
+			toasts.error(errorMessage(error, m.media_image_manager_could_not_delete_image()));
 		}
 	}
 </script>
@@ -82,7 +83,7 @@
 	<div class="flex items-center justify-between">
 		<span class="text-xs font-semibold tracking-wide text-text-muted uppercase">{label}</span>
 		<Button size="sm" variant="ghost" loading={uploading} onclick={() => fileInput?.click()}>
-			<IconPhotoPlus size={15} /> Add images
+			<IconPhotoPlus size={15} /> {m.media_image_manager_add_images()}
 		</Button>
 	</div>
 
@@ -103,7 +104,7 @@
 		<p
 			class="rounded-lg border border-dashed border-border-base px-3 py-6 text-center text-sm text-text-muted"
 		>
-			No images yet.
+			{m.media_image_manager_no_images_yet()}
 		</p>
 	{:else}
 		<ul class="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -120,7 +121,7 @@
 					<button
 						type="button"
 						onclick={() => remove(image)}
-						aria-label="Delete image"
+						aria-label={m.media_image_manager_delete_image()}
 						class="absolute top-1.5 right-1.5 rounded-md bg-black/60 p-1.5 text-white opacity-0
 							transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-danger"
 					>
@@ -131,7 +132,7 @@
 						<p
 							class="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-danger/90 px-2 py-1 text-[0.65rem] text-white"
 						>
-							<IconAlertTriangle size={11} /> Hidden pending review
+							<IconAlertTriangle size={11} /> {m.media_image_manager_hidden_pending_review()}
 						</p>
 					{/if}
 				</li>

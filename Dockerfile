@@ -23,6 +23,16 @@ COPY . .
 ARG PUBLIC_API_URL=http://localhost:3001
 ENV PUBLIC_API_URL=$PUBLIC_API_URL
 
+# The site's strings come from ./messages, which is committed rather than
+# fetched: `vite build` compiles them into typed functions and tree-shakes the
+# locales nobody selected, so what a language costs the browser is only what a
+# reader actually loads. Nothing here reaches out to the Locales repository —
+# `scripts/pull-locales.sh` does that on a developer's machine, and the result
+# is reviewed and committed like any other change.
+#
+# This is the one thing that differs from the policies directory below: a
+# policy is content an operator swaps at runtime, whereas a missing string is a
+# blank button, so strings are pinned to the build that expects them.
 RUN bun run build
 
 FROM oven/bun:1-alpine AS runtime

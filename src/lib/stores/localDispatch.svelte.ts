@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { api, errorMessage } from '$lib/api/client';
 import { toasts } from '$lib/stores/toast.svelte';
 import { NOTE_ROUTE, type BoardRoute, type DispatchVehicle } from '$lib/api/types';
+import { m } from '$lib/paraglide/messages.js';
 
 const STORAGE_KEY = 'trptools:tools:dispatch';
 
@@ -190,7 +191,7 @@ export class LocalDispatchBoard {
 		} catch (error) {
 			// A full or blocked store loses the board on refresh, which is
 			// worth saying once rather than silently.
-			toasts.error(errorMessage(error, 'Could not save this board in your browser'));
+			toasts.error(errorMessage(error, m.stores_dispatch_could_not_save_board_browser()));
 		}
 	}
 }

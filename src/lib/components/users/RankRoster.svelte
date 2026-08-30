@@ -2,6 +2,7 @@
 	import Avatar from './Avatar.svelte';
 	import { withAlpha } from '$lib/utils/color';
 	import type { RosterEntry } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		roster: RosterEntry[];
@@ -34,7 +35,7 @@
 			</header>
 
 			{#if rank.members.length === 0}
-				<p class="px-4 pb-4 text-sm text-text-subtle">Nobody holds this rank right now.</p>
+				<p class="px-4 pb-4 text-sm text-text-subtle">{m.users_rank_roster_nobody_holds_rank_right_now()}</p>
 			{:else}
 				<ul
 					class="flex snap-x gap-2 overflow-x-auto px-4 pt-1 pb-4"

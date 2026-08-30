@@ -2,23 +2,24 @@
 	import { page } from '$app/state';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import type { LayoutProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { children }: LayoutProps = $props();
 
 	const tabs = [
-		{ href: '/admin', label: 'Reports' },
-		{ href: '/admin/users', label: 'Accounts' }
+		{ href: '/admin', label: m.admin_reports() },
+		{ href: '/admin/users', label: m.admin_accounts() }
 	];
 
 	let current = $derived(page.url.pathname.replace(/\/$/, '') || '/admin');
 </script>
 
-<svelte:head><title>Administration — TrP Tools</title></svelte:head>
+<svelte:head><title>{m.admin_administration_trp_tools()}</title></svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-10">
 	<PageHeader
-		title="Administration"
-		description="Site-wide moderation. Reported content is hidden until it is cleared here."
+		title={m.admin_administration()}
+		description={m.admin_site_wide_moderation_reported_content_hidden()}
 	/>
 
 	<nav class="mb-6 flex gap-1.5">

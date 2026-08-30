@@ -3,6 +3,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ChannelPicker from './ChannelPicker.svelte';
 	import RolePicker from './RolePicker.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * One channel-or-role setting: what it is currently set to, and a button
@@ -56,11 +57,11 @@
 
 	<div class="flex shrink-0 items-center gap-2">
 		<span class="text-sm {missing ? 'text-danger' : display ? 'text-text' : 'text-text-subtle'}">
-			{display ?? 'Not set'}
+			{display ?? m.bot_discord_setting_not_set()}
 		</span>
 
 		<Button size="sm" variant="secondary" {disabled} onclick={() => (open = true)}>
-			<IconPencil size={14} /> Change
+			<IconPencil size={14} /> {m.bot_discord_setting_change()}
 		</Button>
 	</div>
 </div>

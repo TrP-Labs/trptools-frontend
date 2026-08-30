@@ -2,8 +2,14 @@ node_modules
 build
 .svelte-kit
 .git
+
+# Compiled from ./messages by the Paraglide plugin during `vite build`. A copy
+# from the host would be overwritten anyway, and might be for a different set
+# of locales than the image is being built with.
+src/lib/paraglide
 .env
 .env.*
 !.env.example
 *.log
 .DS_Store
+project.inlang/cache

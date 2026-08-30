@@ -21,6 +21,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { BotConfig } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -53,7 +54,7 @@
 		if (announced || (!installed && !failure)) return;
 		announced = true;
 
-		if (installed) toasts.success('Discord server connected');
+		if (installed) toasts.success(m.dashboard_bot_discord_server_connected());
 		else if (failure) toasts.error(INSTALL_ERRORS[failure] ?? 'Could not connect that Discord server');
 
 		replaceState(page.url.pathname, {});
@@ -75,7 +76,7 @@
 			if (error) throw error;
 			if (result) window.location.href = result.url;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not start the Discord install'));
+			toasts.error(errorMessage(error, m.dashboard_bot_could_not_start_discord_install()));
 			installing = false;
 		}
 	}
@@ -87,7 +88,7 @@
 			if (error) throw error;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save that setting'));
+			toasts.error(errorMessage(error, m.dashboard_bot_could_not_save_setting()));
 		} finally {
 			busy = false;
 		}
@@ -96,7 +97,7 @@
 	async function disconnect() {
 		if (
 			!confirm(
-				'Disconnect this Discord server? The bot will leave it and every channel and role setting will be cleared.'
+				m.dashboard_bot_disconnect_server_confirm()
 			)
 		)
 			return;
@@ -106,10 +107,10 @@
 			const { error } = await api.bot({ groupId }).delete();
 			if (error) throw error;
 
-			toasts.success('Discord server disconnected');
+			toasts.success(m.dashboard_bot_discord_server_disconnected());
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not disconnect that server'));
+			toasts.error(errorMessage(error, m.dashboard_bot_could_not_disconnect_server()));
 		} finally {
 			busy = false;
 		}
@@ -117,13 +118,13 @@
 </script>
 
 <PageHeader
-	title="Discord bot"
-	description="Announce shifts, collect staff sign-ups and run post-shift polls from your Discord server. Everything the bot does is configured here."
+	title={m.dashboard_bot_discord_bot()}
+	description={m.dashboard_bot_announce_shifts_collect_staff_sign_ups()}
 >
 	{#snippet actions()}
 		{#if config}
 			<Button variant="ghost" onclick={disconnect} disabled={busy}>
-				<IconTrash size={16} /> Disconnect
+				<IconTrash size={16} /> {m.dashboard_bot_disconnect()}
 			</Button>
 		{/if}
 	{/snippet}
@@ -131,20 +132,20 @@
 
 {#if !overview.available}
 	<EmptyState
-		title="Discord is not configured"
-		description="This TrP Tools instance has no Discord application set up, so the bot cannot be added to a server. An operator needs to set DISCORD_APP_ID, DISCORD_CLIENT_SECRET and DISCORD_BOT_TOKEN."
+		title={m.dashboard_bot_discord_not_configured()}
+		description={m.dashboard_bot_trp_tools_instance_has_no_discord()}
 	>
 		{#snippet icon()}<IconBrandDiscord size={28} stroke={1.5} />{/snippet}
 	</EmptyState>
 {:else if !config || !guild}
 	<EmptyState
-		title="No Discord server connected"
-		description="Add the bot to your server to announce shifts, run sign-up sheets and post the live dispatch manifest. You will need Manage Server permission in Discord."
+		title={m.dashboard_bot_no_discord_server_connected()}
+		description={m.dashboard_bot_add_bot_server_announce_shifts_run()}
 	>
 		{#snippet icon()}<IconBrandDiscord size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
 			<Button onclick={beginInstall} loading={installing}>
-				<IconBrandDiscord size={16} /> Add to Discord
+				<IconBrandDiscord size={16} /> {m.dashboard_bot_add_discord()}
 			</Button>
 		{/snippet}
 	</EmptyState>
@@ -164,22 +165,22 @@
 				{/if}
 
 				<div class="min-w-0 flex-1">
-					<p class="truncate font-medium text-text">{guild.name ?? 'Unknown server'}</p>
+					<p class="truncate font-medium text-text">{guild.name ?? m.dashboard_bot_unknown_server()}</p>
 					<p class="text-xs text-text-subtle">{guild.guildId}</p>
 				</div>
 
 				{#if !guild.present}
-					<Badge tone="danger"><IconAlertTriangle size={13} /> Bot removed</Badge>
+					<Badge tone="danger"><IconAlertTriangle size={13} /> {m.dashboard_bot_bot_removed()}</Badge>
 				{:else if guild.healthy}
-					<Badge tone="success"><IconPlugConnected size={13} /> Connected</Badge>
+					<Badge tone="success"><IconPlugConnected size={13} /> {m.dashboard_bot_connected()}</Badge>
 				{:else}
-					<Badge tone="warning"><IconAlertTriangle size={13} /> Missing permissions</Badge>
+					<Badge tone="warning"><IconAlertTriangle size={13} /> {m.dashboard_bot_missing_permissions()}</Badge>
 				{/if}
 			</div>
 
 			<div class="mt-4 border-t border-border-base pt-4">
 				<p class="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
-					Permissions
+					{m.dashboard_bot_permissions()}
 				</p>
 
 				<ul class="flex flex-wrap gap-x-4 gap-y-1.5">
@@ -198,22 +199,20 @@
 
 				{#if !guild.present}
 					<p class="mt-3 text-sm text-text-muted">
-						Discord no longer reports the bot as a member of this server. Add it again to carry
-						on — your settings are kept.
+						{m.dashboard_bot_discord_no_longer_reports_bot_as()}
 					</p>
 					<div class="mt-3">
 						<Button size="sm" onclick={beginInstall} loading={installing}>
-							<IconBrandDiscord size={15} /> Add to Discord again
+							<IconBrandDiscord size={15} /> {m.dashboard_bot_add_discord_again()}
 						</Button>
 					</div>
 				{:else if !guild.healthy}
 					<p class="mt-3 text-sm text-text-muted">
-						The bot is missing permissions it needs. Re-adding it grants the full set, or you can
-						fix its role in Discord directly.
+						{m.dashboard_bot_bot_missing_permissions_needs_re_adding()}
 					</p>
 					<div class="mt-3">
 						<Button size="sm" variant="secondary" onclick={beginInstall} loading={installing}>
-							<IconBrandDiscord size={15} /> Re-add with full permissions
+							<IconBrandDiscord size={15} /> {m.dashboard_bot_re_add_with_full_permissions()}
 						</Button>
 					</div>
 				{/if}
@@ -222,20 +221,19 @@
 
 		<!-- Where things go -->
 		<section class="card p-4">
-			<h2 class="text-sm font-semibold text-text">Channels and roles</h2>
+			<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_channels_roles()}</h2>
 			<p class="mt-1 text-xs text-text-muted">
-				Where the bot posts, and who it pings. Sign-up sheets have their own channel and ping role,
-				set per rank on the
-				<a href="/dashboard/{data.group.slug}/ranks" class="text-accent hover:underline">Ranks</a>
-				page.
+				{m.dashboard_bot_where_bot_posts_who_pings_sign()}
+				<a href="/dashboard/{data.group.slug}/ranks" class="text-accent hover:underline">{m.common_ranks()}</a>
+				{m.dashboard_bot_page()}
 			</p>
 
 			<div class="mt-4 space-y-2">
 				<DiscordSetting
 					{groupId}
 					kind="channel"
-					label="Shift announcements"
-					description="Where upcoming and starting shifts are announced."
+					label={m.dashboard_bot_shift_announcements()}
+					description={m.dashboard_bot_where_upcoming_starting_shifts_are_announced()}
 					value={config.announcementChannel}
 					names={data.channelNames}
 					disabled={busy}
@@ -245,8 +243,8 @@
 				<DiscordSetting
 					{groupId}
 					kind="channel"
-					label="Polls"
-					description="Where the satisfaction poll goes after a shift ends."
+					label={m.dashboard_bot_polls()}
+					description={m.dashboard_bot_where_satisfaction_poll_goes_after_shift()}
 					value={config.pollChannel}
 					names={data.channelNames}
 					disabled={busy}
@@ -256,8 +254,8 @@
 				<DiscordSetting
 					{groupId}
 					kind="channel"
-					label="Host channel"
-					description="Where hosts are reminded that a shift is theirs to open."
+					label={m.dashboard_bot_host_channel()}
+					description={m.dashboard_bot_where_hosts_are_reminded_shift_theirs()}
 					value={config.hostChannel}
 					names={data.channelNames}
 					disabled={busy}
@@ -267,8 +265,8 @@
 				<DiscordSetting
 					{groupId}
 					kind="role"
-					label="Shift ping role"
-					description="Pinged when a shift starts."
+					label={m.dashboard_bot_shift_ping_role()}
+					description={m.dashboard_bot_pinged_when_shift_starts()}
 					value={config.shiftPingRole}
 					names={data.roleNames}
 					disabled={busy}
@@ -286,7 +284,7 @@
 					<div class="ml-7 rounded-lg border border-border-base px-3 py-2.5">
 						<Toggle
 							checked={config.pingUpcoming}
-							label="Ping on the upcoming notice too"
+							label={m.dashboard_bot_ping_upcoming_notice_too()}
 							disabled={busy}
 							onchange={(value) => patch({ pingUpcoming: value })}
 						/>
@@ -296,8 +294,8 @@
 				<DiscordSetting
 					{groupId}
 					kind="role"
-					label="Host ping role"
-					description="Pinged by the host reminder before a shift."
+					label={m.dashboard_bot_host_ping_role()}
+					description={m.dashboard_bot_pinged_by_host_reminder_before_shift()}
 					value={config.hostPingRole}
 					names={data.roleNames}
 					disabled={busy}
@@ -308,44 +306,44 @@
 
 		<!-- What the bot is allowed to do at all -->
 		<section class="card p-4">
-			<h2 class="text-sm font-semibold text-text">Features</h2>
+			<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_features()}</h2>
 			<p class="mt-1 text-xs text-text-muted">
-				Turning one off stops it entirely, including its slash command.
+				{m.dashboard_bot_turning_one_off_stops_entirely_including()}
 			</p>
 
 			<div class="mt-4 space-y-4">
 				<Toggle
 					checked={config.announcementsEnabled}
-					label="Shift announcements"
-					description="Announce upcoming and starting shifts."
+					label={m.dashboard_bot_shift_announcements()}
+					description={m.dashboard_bot_announce_upcoming_starting_shifts()}
 					disabled={busy}
 					onchange={(value) => patch({ announcementsEnabled: value })}
 				/>
 				<Toggle
 					checked={config.signupsEnabled}
-					label="Sign-up sheets"
-					description="Post per-rank staff sign-up sheets, and let whoever signs up into the server early."
+					label={m.dashboard_bot_sign_up_sheets()}
+					description={m.dashboard_bot_post_per_rank_staff_sign_up()}
 					disabled={busy}
 					onchange={(value) => patch({ signupsEnabled: value })}
 				/>
 				<Toggle
 					checked={config.pollsEnabled}
-					label="Post-shift polls"
-					description="Ask how the shift went once it ends."
+					label={m.dashboard_bot_post_shift_polls()}
+					description={m.dashboard_bot_ask_how_shift_went_once_ends()}
 					disabled={busy}
 					onchange={(value) => patch({ pollsEnabled: value })}
 				/>
 				<Toggle
 					checked={config.remindersEnabled}
-					label="Reminders"
-					description="Remind hosts and signed-up staff before a shift."
+					label={m.dashboard_bot_reminders()}
+					description={m.dashboard_bot_remind_hosts_signed_up_staff_before()}
 					disabled={busy}
 					onchange={(value) => patch({ remindersEnabled: value })}
 				/>
 				<Toggle
 					checked={config.manifestEnabled}
-					label="Live dispatch manifest"
-					description="Post a live picture of the dispatch board under a shift start announcement."
+					label={m.dashboard_bot_live_dispatch_manifest()}
+					description={m.dashboard_bot_post_live_picture_dispatch_board_under()}
 					disabled={busy}
 					onchange={(value) => patch({ manifestEnabled: value })}
 				/>
@@ -354,16 +352,15 @@
 
 		<!-- Automation -->
 		<section class="card p-4">
-			<h2 class="text-sm font-semibold text-text">Automation</h2>
+			<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_automation()}</h2>
 			<p class="mt-1 text-xs text-text-muted">
-				Let the bot run these itself. The slash commands stay available whether or not they are
-				automated, so a host can always do it by hand.
+				{m.dashboard_bot_let_bot_run_these_itself_slash()}
 			</p>
 
 			<div class="mt-4 space-y-2">
 				<AutomationRow
-					label="Announce upcoming shifts"
-					description="Post that a shift is coming up."
+					label={m.dashboard_bot_announce_upcoming_shifts()}
+					description={m.dashboard_bot_post_shift_coming_up()}
 					enabled={config.autoAnnounce}
 					lead={config.autoAnnounceLead}
 					disabled={busy}
@@ -375,8 +372,8 @@
 				/>
 
 				<AutomationRow
-					label="Post sign-up sheets"
-					description="Open staff sign-ups for the next shift."
+					label={m.dashboard_bot_post_sign_up_sheets()}
+					description={m.dashboard_bot_open_staff_sign_ups_next_shift()}
 					enabled={config.autoSignups}
 					lead={config.autoSignupsLead}
 					disabled={busy}
@@ -388,8 +385,8 @@
 				/>
 
 				<AutomationRow
-					label="Remind the host"
-					description="Ping the host role that a shift needs opening."
+					label={m.dashboard_bot_remind_host()}
+					description={m.dashboard_bot_ping_host_role_shift_needs_opening()}
 					enabled={config.autoHostReminder}
 					lead={config.autoHostReminderLead}
 					disabled={busy}
@@ -401,8 +398,8 @@
 				/>
 
 				<AutomationRow
-					label="Let staff in"
-					description="Give the staff who signed up the join link, ahead of the public announcement."
+					label={m.dashboard_bot_let_staff()}
+					description={m.dashboard_bot_give_staff_who_signed_up_join()}
 					enabled={config.autoStaffStart}
 					lead={config.autoStaffStartLead}
 					disabled={busy}
@@ -414,8 +411,8 @@
 				/>
 
 				<AutomationRow
-					label="Announce the start"
-					description="Post the join link publicly when the shift begins."
+					label={m.dashboard_bot_announce_start()}
+					description={m.dashboard_bot_post_join_link_publicly_when_shift()}
 					enabled={config.autoBegin}
 					lead={config.autoBeginLead}
 					disabled={busy}
@@ -427,8 +424,8 @@
 				/>
 
 				<AutomationRow
-					label="Close the shift out"
-					description="Clear the sign-up messages and post the satisfaction poll."
+					label={m.dashboard_bot_close_shift_out()}
+					description={m.dashboard_bot_clear_sign_up_messages_post_satisfaction()}
 					enabled={config.autoComplete}
 					lead={config.autoCompleteDelay}
 					leadLabel="minutes after the shift ends"
@@ -446,19 +443,17 @@
 		<section class="card p-4">
 			<div class="flex flex-wrap items-start justify-between gap-3">
 				<div class="min-w-0">
-					<h2 class="text-sm font-semibold text-text">End-of-shift cleanup</h2>
+					<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_end_shift_cleanup()}</h2>
 					<p class="mt-1 text-xs text-text-muted">
-						Closing a shift out deletes the messages the bot posted for it, and nothing else —
-						anything people said in those channels is left alone. Choose which of its own posts
-						it takes down.
+						{m.dashboard_bot_closing_shift_out_deletes_messages_bot()}
 					</p>
 				</div>
 
 				{#if cleanup && cleanup.targets.length > 0}
 					{#if cleanup.ready}
-						<Badge tone="success"><IconCheck size={13} /> Ready</Badge>
+						<Badge tone="success"><IconCheck size={13} /> {m.dashboard_bot_ready()}</Badge>
 					{:else}
-						<Badge tone="warning"><IconAlertTriangle size={13} /> Cannot delete</Badge>
+						<Badge tone="warning"><IconAlertTriangle size={13} /> {m.dashboard_bot_cannot_delete()}</Badge>
 					{/if}
 				{/if}
 			</div>
@@ -466,22 +461,22 @@
 			<div class="mt-4 space-y-4">
 				<Toggle
 					checked={config.clearSignups}
-					label="Sign-up channels"
-					description="The sheets themselves and the “come on in” pings, in each rank’s own channel."
+					label={m.dashboard_bot_sign_up_channels()}
+					description={m.dashboard_bot_sheets_themselves_come_pings_each_rank()}
 					disabled={busy}
 					onchange={(value) => patch({ clearSignups: value })}
 				/>
 				<Toggle
 					checked={config.clearAnnouncements}
-					label="Shift announcement channel"
-					description="The upcoming notice, the start announcement and the live dispatch board under it."
+					label={m.dashboard_bot_shift_announcement_channel()}
+					description={m.dashboard_bot_upcoming_notice_start_announcement_live_dispatch()}
 					disabled={busy}
 					onchange={(value) => patch({ clearAnnouncements: value })}
 				/>
 				<Toggle
 					checked={config.clearHostReminders}
-					label="Host channel"
-					description="The “a shift needs a host” reminder."
+					label={m.dashboard_bot_host_channel()}
+					description={m.dashboard_bot_shift_needs_host_reminder()}
 					disabled={busy}
 					onchange={(value) => patch({ clearHostReminders: value })}
 				/>
@@ -495,12 +490,12 @@
 			-->
 			<div class="mt-4 border-t border-border-base pt-4">
 				<p class="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
-					Channels it will clear
+					{m.dashboard_bot_channels_will_clear()}
 				</p>
 
 				{#if !cleanup || cleanup.targets.length === 0}
 					<p class="text-sm text-text-muted">
-						No channels are set yet, so there is nothing for the cleanup to do.
+						{m.dashboard_bot_no_channels_are_set_yet_so()}
 					</p>
 				{:else}
 					<ul class="space-y-1.5">
@@ -518,7 +513,7 @@
 									<IconAlertTriangle size={14} class="shrink-0 text-danger" />
 									<span class="text-danger">#{target.name}</span>
 									<span class="text-xs text-danger">
-										cannot delete here — needs Manage Messages and Read Message History
+										{m.dashboard_bot_cannot_delete_here_needs_manage_messages()}
 									</span>
 								{/if}
 							</li>
@@ -527,12 +522,11 @@
 
 					{#if !cleanup.ready}
 						<p class="mt-3 text-sm text-text-muted">
-							Give the bot’s role those two permissions in the channels above, or re-add it to
-							grant the full set. Until then a shift closes out leaving its messages behind.
+							{m.dashboard_bot_give_bot_s_role_those_two()}
 						</p>
 						<div class="mt-3">
 							<Button size="sm" variant="secondary" onclick={beginInstall} loading={installing}>
-								<IconBrandDiscord size={15} /> Re-add with full permissions
+								<IconBrandDiscord size={15} /> {m.dashboard_bot_re_add_with_full_permissions()}
 							</Button>
 						</div>
 					{/if}
@@ -542,7 +536,7 @@
 
 		<!-- The Roblox join link the announcements build -->
 		<section class="card p-4">
-			<h2 class="text-sm font-semibold text-text">Join link</h2>
+			<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_join_link()}</h2>
 			<!--
 				The place and the server owner used to be text boxes here. Neither
 				was a decision worth offering: there is one place, and the server is
@@ -551,16 +545,15 @@
 				shift instead of quietly outliving whoever changed it.
 			-->
 			<p class="mt-1 text-xs text-text-muted">
-				Announcements link to the group owner’s private server. Use
-				<code class="rounded bg-background-muted px-1 py-0.5">/edit-shift</code> in Discord to point
-				one shift somewhere else.
+				{m.dashboard_bot_announcements_link_group_owner_s_private()}
+				<code class="rounded bg-background-muted px-1 py-0.5">/edit-shift</code> {m.dashboard_bot_discord_point_one_shift_somewhere_else()}
 			</p>
 
 			<div class="mt-4">
 				<Toggle
 					checked={config.announceJoinCode}
-					label="Show the join code publicly"
-					description="The join button carries it either way. Staff who signed up are always given it."
+					label={m.dashboard_bot_show_join_code_publicly()}
+					description={m.dashboard_bot_join_button_carries_either_way_staff()}
 					disabled={busy}
 					onchange={(value) => patch({ announceJoinCode: value })}
 				/>

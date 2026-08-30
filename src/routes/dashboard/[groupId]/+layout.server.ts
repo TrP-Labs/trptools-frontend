@@ -19,7 +19,10 @@ export const load: LayoutServerLoad = async (event) => {
 		error(502, 'Could not reach the API');
 	}
 
-	if (data.permissionLevel < 1 && event.locals.user.siteRank !== 'admin') {
+	// `adminMode`, not `siteRank`: the API already reports MANAGE to an
+	// elevated admin, so this only has to agree with it. An admin who has
+	// turned the mode off is refused here exactly as the API refuses them.
+	if (data.permissionLevel < 1 && !event.locals.user.adminMode) {
 		error(403, 'You do not have access to this group');
 	}
 

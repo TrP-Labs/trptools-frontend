@@ -19,6 +19,7 @@
 	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import { errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		open: boolean;
@@ -51,12 +52,12 @@
 		try {
 			parsed = JSON.parse(text);
 		} catch {
-			toasts.error('That is not valid JSON');
+			toasts.error(m.dispatch_import_vehicles_modal_not_valid_json());
 			return;
 		}
 
 		if (!Array.isArray(parsed)) {
-			toasts.error('The JSON must be an array of vehicles');
+			toasts.error(m.dispatch_import_vehicles_modal_json_must_array_vehicles());
 			return;
 		}
 
@@ -64,11 +65,17 @@
 		try {
 			const result = await onsubmit(parsed);
 
-			toasts.success(`Added ${result.added}, removed ${result.removed}, now tracking ${result.total}`);
+			toasts.success(
+				m.dispatch_import_vehicles_modal_result({
+					added: result.added,
+					removed: result.removed,
+					total: result.total
+				})
+			);
 			open = false;
 			text = '';
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not import those vehicles'));
+			toasts.error(errorMessage(error, m.dispatch_import_vehicles_modal_could_not_import_those_vehicles()));
 		} finally {
 			importing = false;
 		}
@@ -77,23 +84,23 @@
 
 <Modal
 	bind:open
-	title="Import vehicles"
-	description="Paste the vehicle JSON from the game. Vehicles missing from the list are removed; existing ones keep their assignments."
+	title={m.dispatch_import_vehicles_modal_import_vehicles()}
+	description={m.dispatch_import_vehicles_modal_paste_vehicle_json_from_game_vehicles()}
 	size="lg"
 >
-	<Field label="Vehicle JSON">
+	<Field label={m.dispatch_import_vehicles_modal_vehicle_json()}>
 		<Textarea
 			bind:element={field}
 			bind:value={text}
 			rows={10}
 			spellcheck="false"
 			class="font-mono text-xs"
-			placeholder={'[{"Id":101,"OwnerId":1,"Name":"ZiU-9 Trolleybus","Depot":"Main Island Depot"}]'}
+			placeholder={'[{"Id":101,"OwnerId":1,"Name":m.dispatch_import_vehicles_modal_ziu_9_trolleybus(),"Depot":m.dispatch_import_vehicles_modal_main_island_depot()}]'}
 		/>
 	</Field>
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={() => (open = false)}>Cancel</Button>
-		<Button onclick={submit} loading={importing} disabled={!text.trim()}>Import</Button>
+		<Button variant="secondary" onclick={() => (open = false)}>{m.common_cancel()}</Button>
+		<Button onclick={submit} loading={importing} disabled={!text.trim()}>{m.common_import()}</Button>
 	{/snippet}
 </Modal>

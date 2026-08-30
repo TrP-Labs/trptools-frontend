@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { IconArrowRight, IconBulb, IconRadio } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	const tools = [
 		{
 			href: '/tools/stage',
 			icon: IconBulb,
-			title: 'Stage programmer',
+			title: m.common_stage_programmer(),
 			body: 'Build lighting programs against a waveform, then export them into the game.',
 			available: true
 		},
@@ -16,7 +17,7 @@
 			// so and links to.
 			href: '/tools/dispatch',
 			icon: IconRadio,
-			title: 'Dispatch',
+			title: m.common_dispatch(),
 			body: "Assign the game's routes to a vehicle list on your own, with no group to set up.",
 			available: true
 		}
@@ -24,12 +25,12 @@
 </script>
 
 <svelte:head>
-	<title>Tools — TrP Tools</title>
+	<title>{m.tools_tools_trp_tools()}</title>
 	<meta name="description" content="Utilities for running a TrP transit group." />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-10">
-	<PageHeader title="Tools" description="Utilities for running a group." />
+	<PageHeader title={m.tools_tools()} description={m.tools_utilities_running_group()} />
 
 	<ul class="grid gap-4 sm:grid-cols-2">
 		{#each tools as tool (tool.href)}

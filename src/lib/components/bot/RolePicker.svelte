@@ -9,6 +9,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { BotRole } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * Picks a Discord role to ping.
@@ -55,7 +56,7 @@
 			roles = data ?? [];
 			loaded = true;
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not read the role list'));
+			toasts.error(errorMessage(error, m.bot_role_picker_could_not_read_role_list()));
 		} finally {
 			loading = false;
 		}
@@ -86,31 +87,30 @@
 				<input
 					bind:value={search}
 					type="search"
-					placeholder="Search roles"
-					aria-label="Search roles"
+					placeholder={m.bot_role_picker_search_roles()}
+					aria-label={m.bot_role_picker_search_roles()}
 					class="w-full rounded-lg border border-border-base bg-background-secondary py-2 pr-3 pl-8
 						text-sm text-text placeholder:text-text-subtle focus:border-accent focus:outline-none"
 				/>
 			</div>
 
 			<Button size="sm" variant="secondary" onclick={() => load(true)} disabled={loading}>
-				<IconRefresh size={15} class={loading ? 'animate-spin' : ''} /> Refresh
+				<IconRefresh size={15} class={loading ? 'animate-spin' : ''} /> {m.bot_role_picker_refresh()}
 			</Button>
 		</div>
 
 		<p class="text-xs text-text-subtle">
-			Roles are listed highest first. One the bot cannot mention will still be named in the
-			message, but nobody will be notified.
+			{m.bot_role_picker_roles_are_listed_highest_first_one()}
 		</p>
 
 		{#if loading && roles.length === 0}
 			<div class="flex justify-center py-10"><Spinner /></div>
 		{:else if filtered.length === 0}
 			<EmptyState
-				title={search ? 'Nothing matches' : 'No roles found'}
+				title={search ? m.bot_role_picker_nothing_matches() : m.bot_role_picker_no_roles_found()}
 				description={search
-					? 'No role in this server matches that search.'
-					: 'This server has no roles the bot can see. Create one in Discord, then refresh.'}
+					? m.bot_role_picker_no_role_server_matches_search()
+					: m.bot_role_picker_server_has_no_roles_bot_can()}
 			>
 				{#snippet icon()}<IconAt size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
@@ -126,7 +126,7 @@
 								? 'border-accent bg-accent/10'
 								: 'border-border-base hover:bg-background-secondary'}"
 						>
-							<span class="min-w-0 flex-1 text-sm text-text-muted">No ping</span>
+							<span class="min-w-0 flex-1 text-sm text-text-muted">{m.bot_role_picker_no_ping()}</span>
 							{#if value === null}<IconCheck size={16} class="shrink-0 text-accent" />{/if}
 						</button>
 					</li>
@@ -152,12 +152,12 @@
 							<span class="min-w-0 flex-1">
 								<span class="flex items-center gap-2">
 									<span class="truncate text-sm text-text">{role.name}</span>
-									{#if role.managed}<Badge>Integration</Badge>{/if}
+									{#if role.managed}<Badge>{m.bot_role_picker_integration()}</Badge>{/if}
 								</span>
 								<span class="mt-0.5 flex">
 									<PickerStatus
 										ok={role.canMention}
-										label="Mention"
+										label={m.bot_role_picker_mention()}
 										okText="the bot can ping this role"
 										failText="the bot cannot ping this role"
 									/>

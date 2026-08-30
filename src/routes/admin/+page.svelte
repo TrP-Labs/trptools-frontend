@@ -16,6 +16,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatRelative } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -23,16 +24,16 @@
 	let lightbox = $state<string | null>(null);
 
 	let stats = $derived([
-		{ label: 'Open reports', value: data.overview.openReports, icon: IconAlertTriangle },
-		{ label: 'Hidden items', value: data.overview.hiddenContent, icon: IconEyeOff },
-		{ label: 'Groups', value: data.overview.groups, icon: IconUsersGroup },
-		{ label: 'Users', value: data.overview.users, icon: IconUser }
+		{ label: m.admin_open_reports(), value: data.overview.openReports, icon: IconAlertTriangle },
+		{ label: m.admin_hidden_items(), value: data.overview.hiddenContent, icon: IconEyeOff },
+		{ label: m.common_groups(), value: data.overview.groups, icon: IconUsersGroup },
+		{ label: m.admin_users(), value: data.overview.users, icon: IconUser }
 	]);
 
 	const filters = [
-		{ value: 'OPEN', label: 'Open' },
-		{ value: 'UPHELD', label: 'Upheld' },
-		{ value: 'DISMISSED', label: 'Cleared' }
+		{ value: 'OPEN', label: m.common_open() },
+		{ value: 'UPHELD', label: m.admin_upheld() },
+		{ value: 'DISMISSED', label: m.admin_cleared() }
 	] as const;
 
 	async function resolve(reportId: string, action: 'approve' | 'uphold') {
@@ -46,7 +47,7 @@
 			toasts.success(action === 'approve' ? 'Content restored' : 'Content stays hidden');
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not resolve that report'));
+			toasts.error(errorMessage(error, m.admin_could_not_resolve_report()));
 		} finally {
 			busyId = null;
 		}
@@ -85,10 +86,10 @@
 
 {#if data.reports.length === 0}
 	<EmptyState
-		title="Nothing to review"
+		title={m.admin_nothing_review()}
 		description={data.status === 'OPEN'
-			? 'No open reports. Content stays visible unless somebody reports it.'
-			: 'No reports with that status.'}
+			? m.admin_no_open_reports_content_stays_visible()
+			: m.admin_no_reports_with_status()}
 	>
 		{#snippet icon()}<IconShieldCheck size={28} stroke={1.5} />{/snippet}
 	</EmptyState>
@@ -110,10 +111,10 @@
 											: 'neutral'}
 								>
 									{report.target.moderation === 'HIDDEN'
-										? 'Hidden'
+										? m.common_hidden()
 										: report.target.moderation === 'APPROVED'
-											? 'Cleared'
-											: 'Visible'}
+											? m.admin_cleared()
+											: m.admin_visible()}
 								</Badge>
 							{/if}
 							<span class="text-xs text-text-subtle">{formatRelative(report.createdAt)}</span>
@@ -136,7 +137,7 @@
 							{/if}
 						{:else}
 							<p class="mt-2 text-sm text-text-muted">
-								The reported item no longer exists.
+								{m.admin_reported_item_no_longer_exists()}
 							</p>
 						{/if}
 
@@ -160,7 +161,7 @@
 								loading={busyId === report.id}
 								onclick={() => resolve(report.id, 'approve')}
 							>
-								<IconCheck size={15} /> Clear
+								<IconCheck size={15} /> {m.admin_clear()}
 							</Button>
 							<Button
 								size="sm"
@@ -168,7 +169,7 @@
 								disabled={busyId === report.id}
 								onclick={() => resolve(report.id, 'uphold')}
 							>
-								<IconEyeOff size={15} /> Keep hidden
+								<IconEyeOff size={15} /> {m.admin_keep_hidden()}
 							</Button>
 						</div>
 					{/if}
@@ -185,7 +186,7 @@
 								>
 									<img
 										src={image}
-										alt="Reported content"
+										alt={m.admin_reported_content()}
 										loading="lazy"
 										class="h-24 w-36 bg-background-muted object-cover"
 									/>
@@ -205,6 +206,6 @@
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
 		onclick={() => (lightbox = null)}
 	>
-		<img src={lightbox} alt="Reported content" class="max-h-[85vh] w-auto rounded-lg" />
+		<img src={lightbox} alt={m.admin_reported_content()} class="max-h-[85vh] w-auto rounded-lg" />
 	</div>
 {/if}

@@ -5,6 +5,7 @@
 	import { reportDialog } from '$lib/stores/report.svelte';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { MediaItem } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		images: MediaItem[];
@@ -19,9 +20,9 @@
 	async function copyLink(image: MediaItem) {
 		try {
 			await navigator.clipboard.writeText(image.url);
-			toasts.success('Image link copied');
+			toasts.success(m.media_image_gallery_image_link_copied());
 		} catch {
-			toasts.error('Could not copy that link');
+			toasts.error(m.media_image_gallery_could_not_copy_link());
 		}
 	}
 </script>
@@ -52,7 +53,7 @@
 				class="absolute top-1 right-1 rounded-md bg-black/50 opacity-0 transition-opacity
 					group-hover:opacity-100 focus-within:opacity-100"
 			>
-				<OverflowMenu label="Image actions">
+				<OverflowMenu label={m.media_image_gallery_image_actions()}>
 					{#snippet children(close)}
 						<MenuItem
 							onclick={() => {
@@ -60,7 +61,7 @@
 								copyLink(image);
 							}}
 						>
-							<IconLink size={15} /> Copy image link
+							<IconLink size={15} /> {m.media_image_gallery_copy_image_link()}
 						</MenuItem>
 						<MenuItem
 							tone="danger"
@@ -73,7 +74,7 @@
 								});
 							}}
 						>
-							<IconFlag size={15} /> Report image
+							<IconFlag size={15} /> {m.media_image_gallery_report_image()}
 						</MenuItem>
 					{/snippet}
 				</OverflowMenu>
@@ -110,7 +111,7 @@
 			class="absolute top-4 right-4 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white hover:bg-white/20"
 			onclick={() => (lightbox = null)}
 		>
-			Close
+			{m.media_image_gallery_close()}
 		</button>
 	</div>
 {/if}

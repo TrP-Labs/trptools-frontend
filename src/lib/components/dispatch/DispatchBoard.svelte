@@ -28,7 +28,7 @@
 	import type { DriverPreference } from '$lib/stores/driverPreferences.svelte';
 	import {
 		NOTE_ROUTE,
-		VEHICLE_BUCKET_LABELS,
+		vehicleBucketLabel,
 		VEHICLE_BUCKET_ORDER,
 		vehicleBucket,
 		type BoardRoute,
@@ -36,6 +36,7 @@
 		type ServiceStatus,
 		type VehicleBucket
 	} from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		vehicles: DispatchVehicle[];
@@ -424,7 +425,7 @@
 			text-sm text-text"
 	>
 		<span>
-			Pick the vehicle <span class="font-mono font-semibold">{towPick}</span> is towing.
+			{m.dispatch_dispatch_board_pick_vehicle()} <span class="font-mono font-semibold">{towPick}</span> {m.dispatch_dispatch_board_towing()}
 		</span>
 		<button
 			type="button"
@@ -433,19 +434,19 @@
 				px-2.5 py-1 text-xs text-text-muted transition-colors hover:border-danger
 				hover:text-danger"
 		>
-			Cancel <kbd>Esc</kbd>
+			{m.common_cancel()} <kbd>{m.dispatch_dispatch_board_esc()}</kbd>
 		</button>
 	</div>
 {/if}
 
 {#if vehicles.length === 0}
 	<EmptyState
-		title="No vehicles yet"
-		description="Paste the vehicle list from the game to start dispatching."
+		title={m.dispatch_dispatch_board_no_vehicles_yet()}
+		description={m.dispatch_dispatch_board_paste_vehicle_list_from_game_start()}
 	>
 		{#snippet action()}
 			<Button onclick={onimport}>
-				<IconClipboardText size={16} /> Import vehicles
+				<IconClipboardText size={16} /> {m.dispatch_dispatch_board_import_vehicles()}
 			</Button>
 		{/snippet}
 	</EmptyState>
@@ -454,7 +455,7 @@
 		{#each shownBuckets as bucket, index (bucket)}
 			{@const list = grouped[bucket]}
 			<VehicleSection
-				label={VEHICLE_BUCKET_LABELS[bucket]}
+				label={vehicleBucketLabel(bucket)}
 				count={list.length}
 				open={!lists.closed[bucket]}
 				shortcut={index + 1}

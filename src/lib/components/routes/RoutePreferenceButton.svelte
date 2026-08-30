@@ -14,6 +14,7 @@
 	 */
 	import { IconThumbDown, IconThumbUp } from '@tabler/icons-svelte';
 	import { routePreferences, type RoutePreference } from '$lib/stores/routePreferences.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		routeId: string;
@@ -157,7 +158,7 @@
 				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text
 					transition-colors hover:bg-background-muted"
 			>
-				<IconThumbUp size={15} class="text-success" /> Favourite
+				<IconThumbUp size={15} class="text-success" /> {m.routes_route_preference_button_favourite()}
 			</button>
 
 			<button
@@ -171,7 +172,7 @@
 				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text
 					transition-colors hover:bg-background-muted"
 			>
-				<IconThumbDown size={15} class="text-danger" /> Dislike
+				<IconThumbDown size={15} class="text-danger" /> {m.routes_route_preference_button_dislike()}
 			</button>
 
 			{#if builtIn}

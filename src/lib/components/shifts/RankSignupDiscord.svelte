@@ -7,6 +7,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RankSignup } from '$lib/api/types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * Where this rank's sign-up sheet is posted in Discord.
@@ -43,7 +44,7 @@
 			if (error) throw error;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not save that setting'));
+			toasts.error(errorMessage(error, m.shifts_rank_signup_discord_could_not_save_setting()));
 		} finally {
 			busy = false;
 		}
@@ -52,8 +53,8 @@
 
 {#if !signup}
 	<EmptyState
-		title="No sign-up sheet yet"
-		description="Add a sheet in Sign-ups first — there is nothing to post until there is."
+		title={m.shifts_rank_signup_discord_no_sign_up_sheet_yet()}
+		description={m.shifts_rank_signup_discord_add_sheet_sign_ups_first_there()}
 	>
 		{#snippet icon()}<IconBrandDiscord size={28} stroke={1.5} />{/snippet}
 	</EmptyState>
@@ -61,14 +62,14 @@
 	<div class="relative overflow-hidden rounded-lg border border-border-base">
 		<div class="space-y-3 p-4" class:pointer-events-none={!botConnected}>
 			<p class="text-sm text-text-muted">
-				Post this rank's sheet in Discord as well. Sign-ups stay in step both ways.
+				{m.shifts_rank_signup_discord_post_rank_s_sheet_discord_as()}
 			</p>
 
 			<DiscordSetting
 				{groupId}
 				kind="channel"
-				label="Sheet channel"
-				description="Where this rank's sheet is posted."
+				label={m.shifts_rank_signup_discord_sheet_channel()}
+				description={m.shifts_rank_signup_discord_where_rank_s_sheet_posted()}
 				value={signup.discordChannel}
 				names={channelNames}
 				disabled={busy || !botConnected}
@@ -78,8 +79,8 @@
 			<DiscordSetting
 				{groupId}
 				kind="role"
-				label="Ping role"
-				description="Pinged when the sheet goes up."
+				label={m.shifts_rank_signup_discord_ping_role()}
+				description={m.shifts_rank_signup_discord_pinged_when_sheet_goes_up()}
 				value={signup.discordPingRole}
 				names={roleNames}
 				disabled={busy || !botConnected}
@@ -92,9 +93,9 @@
 				class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface/80 px-4 text-center backdrop-blur-[2px]"
 			>
 				<IconLock size={20} class="text-text-subtle" />
-				<p class="text-sm text-text-muted">Connect a Discord server to post this sheet there too.</p>
+				<p class="text-sm text-text-muted">{m.shifts_rank_signup_discord_connect_discord_server_post_sheet_there()}</p>
 				<Button size="sm" variant="secondary" href="/dashboard/{groupSlug}/bot">
-					<IconBrandDiscord size={15} /> Set up the bot
+					<IconBrandDiscord size={15} /> {m.shifts_rank_signup_discord_set_up_bot()}
 				</Button>
 			</div>
 		{/if}

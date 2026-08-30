@@ -82,6 +82,55 @@ the process** — no rebuild needed. In Docker, `POLICIES_DIR` is a volume mount
 (see the root README and the setup repo), which is what lets an operator ship
 their own policy text without building a custom image.
 
+## Strings and languages
+
+Every word the site says lives in `messages/<locale>.json` and is reached
+through typed functions — `m.dashboard_shifts_delete_confirm({ shift })` rather
+than a string literal. The Paraglide compiler generates them into
+`src/lib/paraglide` (git-ignored, rebuilt by `bun run messages` and by every
+`vite build`), so a renamed key is a compile error and only the locales a
+reader actually loads reach the browser.
+
+`messages/` is **vendored** from [TrP-Labs/Locales][locales], not fetched at
+runtime:
+
+```bash
+./scripts/pull-locales.sh                  # TrP-Labs/Locales @ prod
+./scripts/pull-locales.sh your-org/Locales # or a fork
+bun run messages                           # recompile, then commit messages/
+```
+
+The source there is JSONC so translators can leave each other notes; the
+comments are stripped on the way in. This is deliberately unlike the policies
+directory above — a policy is content an operator swaps at runtime and a
+missing one costs a footer link, whereas a missing string is a blank button, so
+strings are pinned to the build that expects them.
+
+Shipping a language is a separate, deliberate step: add its tag to `locales` in
+`project.inlang/settings.json`. Pulling a half-finished translation does
+nothing until then, and anything untranslated falls back to English.
+
+The locale is resolved in `hooks.server.ts` — the `locale` cookie first, then
+the account's `users.locale`, then `Accept-Language`, then English — and
+stamped into `<html lang>` during server rendering, the same way the theme is,
+so there is no flash of the wrong language. `lib/utils/format.ts` passes the
+resolved locale to every `Intl` call, so dates and numbers follow it too.
+
+### API errors
+
+The backend answers failures with static string literals declared as
+`t.Literal` in its Elysia models, which makes each one a stable error code the
+frontend already has the type of. `lib/api/errors.ts` translates them keyed by
+that literal, so **no backend change is needed to localize an API error**. A
+message with no entry is shown as the server wrote it.
+
+`scripts/check-api-errors.mjs` (part of `bun run check`) reads the backend's
+source and fails if it can return a message the catalogue has no translation
+for, so rewording one upstream cannot quietly drop every language back to
+English.
+
+[locales]: https://github.com/TrP-Labs/Locales
+
 ## Theming
 
 Three themes — dim, midnight and light — are defined as CSS custom properties in
@@ -106,7 +155,8 @@ table responsive under load.
 ```bash
 bun run build     # production build
 bun run preview   # serve the build
-bun run check     # svelte-check
+bun run check     # compile messages, check API error coverage, svelte-check
+bun run messages  # recompile messages/ into src/lib/paraglide
 ```
 
 The build uses `adapter-node`, which runs anywhere a JS runtime does — Docker, a

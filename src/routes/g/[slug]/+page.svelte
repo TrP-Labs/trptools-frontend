@@ -27,6 +27,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import type { ReportTarget } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 	let group = $derived(data.group);
@@ -62,9 +63,9 @@
 	async function copyLink(path: string) {
 		try {
 			await navigator.clipboard.writeText(new URL(path, location.origin).toString());
-			toasts.success('Link copied');
+			toasts.success(m.g_link_copied());
 		} catch {
-			toasts.error('Could not copy that link');
+			toasts.error(m.g_could_not_copy_link());
 		}
 	}
 
@@ -139,10 +140,10 @@
 							? 'border-white/30 text-white/80 hover:text-white'
 							: 'text-text-muted hover:text-text'}"
 					>
-						Roblox group <IconExternalLink size={12} />
+						{m.g_roblox_group()} <IconExternalLink size={12} />
 					</a>
 
-					<ReportButton targetType="GROUP" targetId={group.id} label="this group" />
+					<ReportButton targetType="GROUP" targetId={group.id} label={m.g_group()} />
 				</div>
 			</div>
 		</div>
@@ -160,17 +161,17 @@
 	<div class="min-w-0 space-y-10 lg:col-span-2">
 		{#if group.about}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">About</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.common_about()}</h2>
 				<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{group.about}</p>
 			</section>
 		{/if}
 
 		{#if group.showRoutes}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Routes</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.common_routes()}</h2>
 
 				{#if group.routes.length === 0}
-					<EmptyState title="No public routes" description="This group has not published any routes yet." />
+					<EmptyState title={m.g_no_public_routes()} description={m.g_group_has_not_published_any_routes()} />
 				{:else}
 					<!--
 						Each card opens the route's own page. Images used to be
@@ -193,7 +194,7 @@
 								/>
 
 								<div class="pointer-events-none min-w-0 flex-1">
-									<p class="font-medium text-text">{route.name}</p>
+									<p class="font-medium text-text wrap-anywhere">{route.name}</p>
 									{#if route.description}
 										<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{route.description}</p>
 									{:else if route.images.length > 0}
@@ -225,7 +226,7 @@
 										/>
 									{/if}
 
-									<OverflowMenu label="Route actions">
+									<OverflowMenu label={m.g_route_actions()}>
 										{#snippet children(close)}
 											<MenuItem
 												onclick={() => {
@@ -233,7 +234,7 @@
 													copyLink(href);
 												}}
 											>
-												<IconLink size={15} /> Copy link
+												<IconLink size={15} /> {m.g_copy_link()}
 											</MenuItem>
 											<MenuItem
 												tone="danger"
@@ -242,7 +243,7 @@
 													report('ROUTE', route.id, `route ${route.name}`);
 												}}
 											>
-												<IconFlag size={15} /> Report route
+												<IconFlag size={15} /> {m.g_report_route()}
 											</MenuItem>
 										{/snippet}
 									</OverflowMenu>
@@ -274,7 +275,7 @@
 
 		{#if group.depots.length > 0}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Depots</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.common_depots()}</h2>
 
 				<ul class="space-y-3">
 					{#each visibleDepots as depot (depot.id)}
@@ -291,7 +292,7 @@
 							/>
 
 							<div class="pointer-events-none min-w-0 flex-1">
-								<p class="font-medium text-text">{depot.name}</p>
+								<p class="font-medium text-text wrap-anywhere">{depot.name}</p>
 								{#if depot.description}
 									<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{depot.description}</p>
 								{:else if depot.images.length > 0}
@@ -303,7 +304,7 @@
 							</div>
 
 							<div class="relative z-10 flex items-center gap-1 has-[[role=menu]]:z-30">
-								<OverflowMenu label="Depot actions">
+								<OverflowMenu label={m.g_depot_actions()}>
 									{#snippet children(close)}
 										<MenuItem
 											onclick={() => {
@@ -311,7 +312,7 @@
 												copyLink(href);
 											}}
 										>
-											<IconLink size={15} /> Copy link
+											<IconLink size={15} /> {m.g_copy_link()}
 										</MenuItem>
 										<MenuItem
 											tone="danger"
@@ -320,7 +321,7 @@
 												report('DEPOT', depot.id, `depot ${depot.number}`);
 											}}
 										>
-											<IconFlag size={15} /> Report depot
+											<IconFlag size={15} /> {m.g_report_depot()}
 										</MenuItem>
 									{/snippet}
 								</OverflowMenu>
@@ -351,7 +352,7 @@
 
 		{#if group.showRoster && group.roster.length > 0}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Staff</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.g_staff()}</h2>
 				<RankRoster roster={group.roster} />
 			</section>
 		{/if}
@@ -371,7 +372,7 @@
 		-->
 		{#if group.openApplications.length > 0}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Applications</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.common_applications()}</h2>
 
 				<ul class="space-y-3">
 					{#each group.openApplications as application (application.id)}
@@ -407,10 +408,10 @@
 
 		{#if group.showShifts}
 			<section>
-				<h2 class="mb-3 text-lg font-semibold">Upcoming shifts</h2>
+				<h2 class="mb-3 text-lg font-semibold">{m.g_upcoming_shifts()}</h2>
 
 				{#if group.upcomingShifts.length === 0}
-					<EmptyState title="Nothing scheduled" description="This group has no shifts coming up.">
+					<EmptyState title={m.common_nothing_scheduled()} description={m.g_group_has_no_shifts_coming_up()}>
 						{#snippet icon()}<IconCalendarTime size={24} stroke={1.5} />{/snippet}
 					</EmptyState>
 				{:else}

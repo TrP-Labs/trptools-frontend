@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { api, errorMessage } from '$lib/api/client';
 import { toasts } from '$lib/stores/toast.svelte';
+import { m } from '$lib/paraglide/messages.js';
 
 export type RoutePreference = 'FAVORITE' | 'DISLIKE';
 
@@ -100,7 +101,7 @@ class RoutePreferenceStore {
 			if (error) throw error;
 		} catch (error) {
 			this.#write(route, previous);
-			toasts.error(errorMessage(error, 'Could not save that route preference'));
+			toasts.error(errorMessage(error, m.stores_routes_could_not_save_preference()));
 		}
 	}
 

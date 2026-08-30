@@ -1,4 +1,6 @@
 import { treaty } from '@elysiajs/eden';
+import { m } from '$lib/paraglide/messages.js';
+import { apiErrorMessage } from '$lib/api/errors';
 import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import type { App } from 'trptools-backend';
@@ -48,6 +50,10 @@ export function loginUrl() {
  * undefined" in front of a user who could do nothing with it. It goes to the
  * console instead, where it is actually useful.
  *
+ * Whatever the API said is looked up in the error catalogue first, so the
+ * reader sees it in their own language; a message with no translation is shown
+ * as the server wrote it rather than replaced by a vaguer fallback.
+ *
  * `value` is the exception to that, and has to be read *before* the `Error`
  * check rather than after it: Eden hands a failed request back as an `Error`
  * carrying the response, so testing `instanceof Error` first swallowed every
@@ -56,13 +62,15 @@ export function loginUrl() {
  * which vehicle was already being towed. `value` is a response body, never an
  * exception's own words, so showing it breaks nothing the rule was there for.
  */
-export function errorMessage(error: unknown, fallback = 'Something went wrong'): string {
+export function errorMessage(error: unknown, fallback = m.common_something_went_wrong()): string {
 	if (!error) return fallback;
-	if (typeof error === 'string') return error;
+	if (typeof error === 'string') return apiErrorMessage(error) ?? error;
 
 	if (typeof error === 'object') {
 		const shape = error as { value?: unknown; status?: number };
-		if (typeof shape.value === 'string' && shape.value.length > 0) return shape.value;
+		if (typeof shape.value === 'string' && shape.value.length > 0) {
+			return apiErrorMessage(shape.value) ?? shape.value;
+		}
 	}
 
 	if (error instanceof Error) {
@@ -72,10 +80,10 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong'):
 
 	if (typeof error === 'object') {
 		const shape = error as { message?: unknown; status?: number };
-		if (typeof shape.message === 'string') return shape.message;
-		if (shape.status === 401) return 'You need to sign in to do that';
-		if (shape.status === 403) return 'You do not have permission to do that';
-		if (shape.status === 404) return 'Not found';
+		if (typeof shape.message === 'string') return apiErrorMessage(shape.message) ?? shape.message;
+		if (shape.status === 401) return m.api_error_unauthorized();
+		if (shape.status === 403) return m.api_error_forbidden();
+		if (shape.status === 404) return m.api_error_not_found();
 	}
 
 	return fallback;

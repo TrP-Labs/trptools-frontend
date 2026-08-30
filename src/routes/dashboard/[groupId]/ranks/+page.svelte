@@ -13,8 +13,9 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
-	import { PERMISSION_DESCRIPTIONS, PERMISSION_LABELS } from '$lib/api/types';
+	import { permissionDescription, permissionLabel } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -30,11 +31,11 @@
 			const { error } = await api.ranks.group({ groupId }).post({ robloxId });
 			if (error) throw error;
 
-			toasts.success(`Bound ${name}`);
+			toasts.success(m.dashboard_ranks_bound({ name }));
 			bindOpen = false;
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not bind that rank'));
+			toasts.error(errorMessage(error, m.dashboard_ranks_could_not_bind_rank()));
 		} finally {
 			busyId = null;
 		}
@@ -42,16 +43,16 @@
 </script>
 
 <PageHeader
-	title="Ranks"
-	description="Map your Roblox roles to what they can do here. Access follows Roblox, so promotions apply on their own. Open a rank to set its permissions, public listing and sign-up sheet."
+	title={m.common_ranks()}
+	description={m.dashboard_ranks_map_roblox_roles_what_they_can()}
 >
 	{#snippet actions()}
-		<Button onclick={() => (bindOpen = true)}><IconPlus size={16} /> Bind a role</Button>
+		<Button onclick={() => (bindOpen = true)}><IconPlus size={16} /> {m.dashboard_ranks_bind_role()}</Button>
 	{/snippet}
 </PageHeader>
 
 {#if data.ranks.length === 0}
-	<EmptyState title="No ranks bound" description="Bind a Roblox role to grant access.">
+	<EmptyState title={m.dashboard_ranks_no_ranks_bound()} description={m.dashboard_ranks_bind_roblox_role_grant_access()}>
 		{#snippet icon()}<IconUsers size={28} stroke={1.5} />{/snippet}
 	</EmptyState>
 {:else}
@@ -77,19 +78,19 @@
 					<div class="min-w-0 flex-1">
 						<p class="truncate font-medium text-text">{rank.cachedName}</p>
 						<p class="truncate text-sm text-text-muted">
-							{PERMISSION_DESCRIPTIONS[rank.permissionLevel]}
+							{permissionDescription(rank.permissionLevel)}
 						</p>
 					</div>
 
 					<div class="hidden shrink-0 items-center gap-2 sm:flex">
-						{#if rank.cachedRank === 255}<Badge tone="accent">Owner</Badge>{/if}
+						{#if rank.cachedRank === 255}<Badge tone="accent">{m.dashboard_ranks_owner()}</Badge>{/if}
 						<Badge>Rank {rank.cachedRank}</Badge>
 						<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
-							{PERMISSION_LABELS[rank.permissionLevel]}
+							{permissionLabel(rank.permissionLevel)}
 						</Badge>
-						{#if rank.visible}<Badge>On staff list</Badge>{/if}
+						{#if rank.visible}<Badge>{m.dashboard_ranks_staff_list()}</Badge>{/if}
 						{#if sheet}
-							<Badge><IconClipboardList size={13} /> Sheet</Badge>
+							<Badge><IconClipboardList size={13} /> {m.dashboard_ranks_sheet()}</Badge>
 						{/if}
 					</div>
 
@@ -102,11 +103,11 @@
 
 <Modal
 	bind:open={bindOpen}
-	title="Bind a Roblox role"
-	description="Roles in your Roblox group that are not bound yet."
+	title={m.dashboard_ranks_bind_roblox_role()}
+	description={m.dashboard_ranks_roles_roblox_group_are_not_bound()}
 >
 	{#if data.creatable.length === 0}
-		<p class="text-sm text-text-muted">Every role in this group is already bound.</p>
+		<p class="text-sm text-text-muted">{m.dashboard_ranks_every_role_group_already_bound()}</p>
 	{:else}
 		<ul class="space-y-2">
 			{#each data.creatable as role (role.robloxId)}
@@ -122,7 +123,7 @@
 						loading={busyId === role.robloxId}
 						onclick={() => bindRank(role.robloxId, role.name)}
 					>
-						Bind
+						{m.dashboard_ranks_bind()}
 					</Button>
 				</li>
 			{/each}

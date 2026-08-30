@@ -26,6 +26,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -36,19 +37,19 @@
 	let busy = $state(false);
 
 	let sections = $derived<ObjectSection[]>([
-		{ id: 'form', label: 'Form', icon: IconClipboardText },
+		{ id: 'form', label: m.dashboard_applications_form(), icon: IconClipboardText },
 		{
 			id: 'applicants',
-			label: 'Applicants',
+			label: m.dashboard_applications_applicants(),
 			icon: IconUsers,
 			badge: data.pending.length
 		},
-		{ id: 'archive', label: 'Archive', icon: IconArchive },
-		{ id: 'settings', label: 'Settings', icon: IconSettings }
+		{ id: 'archive', label: m.dashboard_applications_archive(), icon: IconArchive },
+		{ id: 'settings', label: m.common_settings(), icon: IconSettings }
 	]);
 
 	let rankOptions = $derived([
-		{ value: '', label: 'No rank bound' },
+		{ value: '', label: m.dashboard_applications_no_rank_bound() },
 		...data.ranks.map((rank) => ({ value: rank.id, label: rank.cachedName }))
 	]);
 
@@ -83,7 +84,7 @@
 			if (success) toasts.success(success);
 			await refreshData();
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not update this application'));
+			toasts.error(errorMessage(error, m.dashboard_applications_could_not_update_application()));
 		} finally {
 			busy = false;
 		}
@@ -92,7 +93,7 @@
 	async function remove() {
 		if (
 			!confirm(
-				`Delete “${application.name}”? Every application sent to it goes too — close it instead to keep them.`
+				m.dashboard_applications_delete_confirm({ name: application.name })
 			)
 		)
 			return;
@@ -102,10 +103,10 @@
 			const { error } = await api.applications({ applicationId: application.id }).delete();
 			if (error) throw error;
 
-			toasts.success('Application deleted');
+			toasts.success(m.dashboard_applications_application_deleted());
 			await goto(base);
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not delete this application'));
+			toasts.error(errorMessage(error, m.dashboard_applications_could_not_delete_application()));
 		} finally {
 			busy = false;
 		}
@@ -122,22 +123,22 @@
 >
 	{#snippet meta()}
 		{#if application.open}
-			<Badge tone="success"><IconLockOpen size={13} /> Open</Badge>
+			<Badge tone="success"><IconLockOpen size={13} /> {m.common_open()}</Badge>
 		{:else}
-			<Badge><IconLock size={13} /> Closed</Badge>
+			<Badge><IconLock size={13} /> {m.common_closed()}</Badge>
 		{/if}
 
 		{#if application.rank}
 			<Badge tone="accent">For {application.rank.name}</Badge>
 		{:else}
-			<Badge tone="warning">No rank bound</Badge>
+			<Badge tone="warning">{m.dashboard_applications_no_rank_bound()}</Badge>
 		{/if}
 	{/snippet}
 
 	{#snippet actions()}
 		{#if application.open && group.visibility !== 'PRIVATE'}
 			<Button size="sm" variant="secondary" href="/g/{group.slug}/apply/{application.slug}">
-				View form <IconExternalLink size={14} />
+				{m.dashboard_applications_view_form()} <IconExternalLink size={14} />
 			</Button>
 		{/if}
 
@@ -148,7 +149,7 @@
 			onclick={() =>
 				patch(
 					{ open: !application.open },
-					application.open ? 'Applications closed' : 'Applications opened'
+					application.open ? m.dashboard_applications_applications_closed() : m.dashboard_applications_applications_opened()
 				)}
 		>
 			{#if application.open}
@@ -168,8 +169,7 @@
 		<div class:hidden={section !== 'form'}>
 			{#if !application.rank}
 				<div class="mb-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text">
-					Bind a rank in Settings before opening this form. Without one there is nothing an approval
-					would be approving somebody for.
+					{m.dashboard_applications_bind_rank_settings_before_opening_form()}
 				</div>
 			{/if}
 
@@ -186,8 +186,8 @@
 				reviewable
 				emptyTitle="Nobody waiting"
 				emptyDescription={application.open
-					? 'Applications people send appear here for you to read.'
-					: 'This form is closed, so nothing new is arriving.'}
+					? m.dashboard_applications_applications_people_send_appear_here_read()
+					: m.dashboard_applications_form_closed_so_nothing_new_arriving()}
 			/>
 		{:else if section === 'archive'}
 			<div class="mb-4 flex flex-wrap items-center gap-2">
@@ -219,7 +219,7 @@
 						onclick={() => (archiveFilter = 'ALL')}
 						class="text-xs text-text-muted underline-offset-2 transition-colors hover:text-text hover:underline"
 					>
-						Show both
+						{m.dashboard_applications_show_both()}
 					</button>
 				{/if}
 			</div>
@@ -228,16 +228,16 @@
 				submissions={archive}
 				manageRecords
 				emptyTitle={archiveFilter === 'ALL'
-					? 'Nothing decided yet'
+					? m.dashboard_applications_nothing_decided_yet()
 					: `Nothing ${archiveFilter === 'APPROVED' ? 'approved' : 'denied'}`}
 				emptyDescription="Applications you approve or deny are kept here, with what was written and who decided."
 			/>
 		{:else if section === 'settings'}
 			<div class="space-y-6">
-				<Card title="Details" description="What applicants see at the top of the form.">
+				<Card title={m.dashboard_applications_details()} description={m.dashboard_applications_what_applicants_see_at_top_form()}>
 					<div class="space-y-4">
 						<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
-							<Field label="Name">
+							<Field label={m.common_name()}>
 								<Input
 									value={application.name}
 									maxlength={100}
@@ -249,7 +249,7 @@
 								/>
 							</Field>
 
-							<Field label="Colour">
+							<Field label={m.common_colour()}>
 								<ColorInput
 									value={application.color}
 									disabled={busy}
@@ -258,7 +258,7 @@
 							</Field>
 						</div>
 
-						<Field label="Description" hint="A line about who should apply, and what happens next.">
+						<Field label={m.common_description()} hint={m.dashboard_applications_line_about_who_should_apply_what()}>
 							<Textarea
 								value={application.description}
 								rows={3}
@@ -272,17 +272,17 @@
 						</Field>
 
 						<p class="text-xs text-text-subtle">
-							Public address: <code class="rounded bg-background-muted px-1 py-0.5 font-mono"
+							{m.dashboard_applications_public_address()} <code class="rounded bg-background-muted px-1 py-0.5 font-mono"
 								>/g/{group.slug}/apply/{application.slug}</code
 							>
 						</p>
 					</div>
 				</Card>
 
-				<Card title="Rank" description="What this form is an application for.">
+				<Card title={m.dashboard_applications_rank()} description={m.dashboard_applications_what_form_application()}>
 					<Field
-						label="Rank"
-						hint="Approving somebody is a decision about this rank. The form cannot open without one."
+						label={m.dashboard_applications_rank()}
+						hint={m.dashboard_applications_approving_somebody_decision_about_rank_form()}
 					>
 						<Select
 							value={application.rank?.id ?? ''}
@@ -294,35 +294,33 @@
 				</Card>
 
 				<Card
-					title="Refusals"
-					description="How long turning somebody down keeps them from applying again."
+					title={m.dashboard_applications_refusals()}
+					description={m.dashboard_applications_how_long_turning_somebody_down_keeps()}
 				>
 					<div class="space-y-4">
 						<p class="text-sm text-text-muted">
-							By default a refusal lasts the current round: closing this form and opening it again
-							lets everybody who was turned down apply afresh. An approval always lapses that way —
-							somebody who has since lost the rank should be able to ask for it back.
+							{m.dashboard_applications_by_default_refusal_lasts_current_round()}
 						</p>
 
 						<Toggle
 							checked={application.permaDeny}
-							label="Refusals are permanent"
-							description="A denied applicant stays denied through every reopening, until you clear their record in the archive."
+							label={m.dashboard_applications_refusals_are_permanent()}
+							description={m.dashboard_applications_denied_applicant_stays_denied_through_every()}
 							disabled={busy}
 							onchange={(permaDeny) => patch({ permaDeny })}
 						/>
 
 						{#if !application.permaDeny}
 							<Field
-								label="Cooldown"
-								hint="Days before a refusal lapses on its own. Leave empty to keep it until this form closes and reopens."
+								label={m.dashboard_applications_cooldown()}
+								hint={m.dashboard_applications_days_before_refusal_lapses_its_own()}
 							>
 								<Input
 									type="number"
 									min="1"
 									max="365"
 									value={application.denyCooldownDays ?? ''}
-									placeholder="Until applications reopen"
+									placeholder={m.dashboard_applications_until_applications_reopen()}
 									disabled={busy}
 									onblur={(event) => {
 										const raw = (event.currentTarget as HTMLInputElement).value.trim();
@@ -337,14 +335,13 @@
 					</div>
 				</Card>
 
-				<Card title="Delete" description="This one cannot be undone.">
+				<Card title={m.common_delete()} description={m.dashboard_applications_one_cannot_undone()}>
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<p class="max-w-lg text-sm text-text-muted">
-							Deleting takes every application sent to this form with it, approved and denied alike.
-							Closing the form keeps them and simply stops new ones.
+							{m.dashboard_applications_deleting_takes_every_application_sent_form()}
 						</p>
 						<Button variant="danger" size="sm" disabled={busy} onclick={remove}>
-							<IconTrash size={15} /> Delete application
+							<IconTrash size={15} /> {m.dashboard_applications_delete_application()}
 						</Button>
 					</div>
 				</Card>

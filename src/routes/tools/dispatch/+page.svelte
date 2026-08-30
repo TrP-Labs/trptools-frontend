@@ -25,6 +25,7 @@
 	import type { DriverPreference } from '$lib/stores/driverPreferences.svelte';
 	import type { DispatchVehicle } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
@@ -124,7 +125,7 @@
 				);
 			}
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not solve routes'));
+			toasts.error(errorMessage(error, m.tools_dispatch_could_not_solve_routes()));
 		} finally {
 			board.solving = false;
 		}
@@ -149,20 +150,20 @@
 			}
 
 			const named = data.routes.find((route) => route.id === assignment.route);
-			toasts.success(`${vehicle.id} → ${named?.name ?? assignment.route}`);
+			toasts.success(m.common_vehicle_assigned({ vehicle: vehicle.id, route: named?.name ?? assignment.route }));
 		} catch (error) {
-			toasts.error(errorMessage(error, 'Could not assign a route to that vehicle'));
+			toasts.error(errorMessage(error, m.tools_dispatch_could_not_assign_route_vehicle()));
 		}
 	}
 
 	function clearBoard() {
-		if (!confirm('Remove every vehicle from this board?')) return;
+		if (!confirm(m.tools_dispatch_remove_every_vehicle_confirm())) return;
 		board.clear();
 	}
 </script>
 
 <svelte:head>
-	<title>Dispatch — TrP Tools</title>
+	<title>{m.tools_dispatch_dispatch_trp_tools()}</title>
 	<meta
 		name="description"
 		content="Assign the game's routes to a vehicle list on your own, with no group to set up."
@@ -178,17 +179,16 @@
 			<IconInfoCircle size={18} class="mt-0.5 shrink-0 text-accent" />
 
 			<p class="min-w-0 flex-1 text-pretty text-text-muted">
-				This board runs the game's built-in routes and depots and lives in this browser.
-				<a href="/dashboard" class="font-medium text-accent hover:underline">Create a group</a>
-				for the full version: your own routes and depots, several dispatchers in one room, shifts,
-				and a board everyone on shift can see.
+				{m.tools_dispatch_board_runs_game_s_built_routes()}
+				<a href="/dashboard" class="font-medium text-accent hover:underline">{m.tools_dispatch_create_group()}</a>
+				{m.tools_dispatch_full_version_own_routes_depots_several()}
 			</p>
 
 			<button
 				type="button"
 				onclick={dismissBanner}
-				aria-label="Dismiss this notice"
-				title="Dismiss this notice"
+				aria-label={m.tools_dispatch_dismiss_notice()}
+				title={m.tools_dispatch_dismiss_notice()}
 				class="shrink-0 rounded-md p-1 text-text-subtle transition-colors hover:bg-background-muted
 					hover:text-text"
 			>
@@ -198,13 +198,13 @@
 	{/if}
 
 	<PageHeader
-		title="Dispatch"
-		description="Paste your vehicle list and assign the game's routes, on your own."
+		title={m.common_dispatch()}
+		description={m.tools_dispatch_paste_vehicle_list_assign_game_s()}
 	>
 		{#snippet actions()}
 			{#if board.vehicles.length > 0}
 				<Button variant="secondary" onclick={clearBoard}>
-					<IconTrash size={16} /> Clear board
+					<IconTrash size={16} /> {m.tools_dispatch_clear_board()}
 				</Button>
 			{/if}
 		{/snippet}
