@@ -45,7 +45,9 @@
 			/>
 
 			<div class="min-w-0 flex-1">
-				<h1 class="text-3xl font-semibold tracking-tight text-balance">Route {route.name}</h1>
+				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">
+					Route {route.name}
+				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
 					{#if !route.autoAssign}<Badge tone="warning">Assigned by hand</Badge>{/if}
@@ -87,9 +89,16 @@
 				This route can be dispatched from every depot in the group.
 			</p>
 		{:else}
+			<!--
+				`min-w-0` on the grid item, not only inside the card. A grid item's
+				minimum contribution is its own content unless a minimum is set, so
+				one unbroken depot name sized the whole track to that word and took
+				the page off the side of a phone with it. Zeroed, the track sizes to
+				the column and the name truncates inside it.
+			-->
 			<ul class="grid gap-3 sm:grid-cols-2">
 				{#each data.depots as depot (depot.id)}
-					<li>
+					<li class="min-w-0">
 						<a
 							href="/g/{group.slug}/depot/{depot.slug}"
 							class="card flex items-center gap-3 p-3 transition-colors hover:border-accent/50"

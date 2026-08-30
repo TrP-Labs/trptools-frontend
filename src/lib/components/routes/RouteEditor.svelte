@@ -184,7 +184,7 @@
 							type="button"
 							onclick={() => toggleDepot(depot.id)}
 							aria-pressed={active}
-							class="rounded-lg border px-3 py-1.5 text-sm transition-colors
+							class="min-w-0 max-w-full rounded-lg border px-3 py-1.5 text-left text-sm wrap-anywhere transition-colors
 								{active
 								? 'border-accent bg-accent/15 text-accent'
 								: 'border-border-base bg-background-secondary text-text-muted hover:text-text'}"

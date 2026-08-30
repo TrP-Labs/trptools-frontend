@@ -59,9 +59,10 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
+		<!-- A grid item sizes its track to its own content unless given a minimum. -->
 		<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{#each data.groups as group (group.id)}
-				<li>
+				<li class="min-w-0">
 					<a
 						href="/dashboard/{group.slug}"
 						class="card flex h-full flex-col p-5 transition-colors hover:border-border-strong"

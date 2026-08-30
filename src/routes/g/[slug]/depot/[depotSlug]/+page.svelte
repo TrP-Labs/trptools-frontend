@@ -42,7 +42,15 @@
 			/>
 
 			<div class="min-w-0 flex-1">
-				<h1 class="text-3xl font-semibold tracking-tight text-balance">{depot.name}</h1>
+				<!--
+					A depot is named by whoever runs it, and nothing stops that being
+					one long word. `wrap-anywhere` is what breaks it: `break-words`
+					leaves the min-content size intact, so the word goes on widening
+					every box it is measured in.
+				-->
+				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">
+					{depot.name}
+				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge>Depot {depot.number}</Badge>
 					<Badge><IconRoute size={13} /> {data.routes.length} routes</Badge>
@@ -69,9 +77,10 @@
 				{#snippet icon()}<IconRoute size={24} stroke={1.5} />{/snippet}
 			</EmptyState>
 		{:else}
+			<!-- See the route page: the minimum belongs on the grid item. -->
 			<ul class="grid gap-3 sm:grid-cols-2">
 				{#each data.routes as route (route.id)}
-					<li>
+					<li class="min-w-0">
 						<a
 							href="/g/{group.slug}/route/{route.slug}"
 							class="card flex items-center gap-3 p-3 transition-colors hover:border-accent/50"

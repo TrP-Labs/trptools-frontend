@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconExternalLink, IconMenu2, IconX } from '@tabler/icons-svelte';
+	import { IconExternalLink, IconMenu2, IconShieldCheck, IconX } from '@tabler/icons-svelte';
 	import UserMenu from './UserMenu.svelte';
 	import type { SessionUser } from '$lib/api/types';
 
@@ -60,6 +60,25 @@
 		</nav>
 
 		<div class="ml-auto flex items-center gap-1">
+			<!--
+				A standing marker, not a decoration. While admin mode is on
+				every group permission is bypassed, so the whole site looks
+				different from how it looks to everyone else — and without
+				something on screen saying so, that difference gets mistaken
+				for how the site behaves. It links to the switch.
+			-->
+			{#if user?.adminMode}
+				<a
+					href="/settings"
+					title="Admin mode is on for this session"
+					class="mr-1 inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10
+						px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
+				>
+					<IconShieldCheck size={13} />
+					<span class="hidden sm:inline">Admin mode</span>
+				</a>
+			{/if}
+
 			<UserMenu {user} />
 
 			<button

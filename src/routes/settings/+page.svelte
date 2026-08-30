@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { refreshData } from '$lib/utils/refresh';
+	import { IconShieldCheck } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -25,6 +26,11 @@
 	let saving = $state(false);
 	let savingVisibility = $state(false);
 	let loaded = $state(false);
+
+	// Mirrors the session rather than being seeded once, so the switch follows
+	// the answer the server actually gave.
+	let adminMode = $derived(user.adminMode);
+	let switching = $state(false);
 
 	// The visibility flags are not part of the session payload, so they are
 	// fetched once on mount.
@@ -67,6 +73,28 @@
 		} finally {
 			busy(false);
 		}
+	}
+
+	/**
+	 * Site-admin powers, for this session only.
+	 *
+	 * The whole page is reloaded rather than refreshed: turning it on or off
+	 * changes what every already-loaded page is allowed to show — the group
+	 * list most of all — and a partial refresh would leave a dashboard on
+	 * screen listing groups this session can no longer open.
+	 */
+	async function setAdminMode(enabled: boolean) {
+		switching = true;
+		try {
+			const { error } = await api.auth['admin-mode'].post({ enabled });
+			if (error) throw error;
+		} catch (error) {
+			toasts.error(errorMessage(error, 'Could not change admin mode'));
+			switching = false;
+			return;
+		}
+
+		window.location.reload();
 	}
 
 	async function signOutEverywhere() {
@@ -167,6 +195,35 @@
 			</div>
 		</div>
 	</Card>
+
+	{#if user.siteRank === 'admin'}
+		<!--
+			Offered on the account's standing, never on the elevation: an admin
+			who has turned it off has to be able to find the switch again.
+		-->
+		<Card
+			title="Admin mode"
+			description="Site-admin powers, for this browser session only."
+		>
+			{#snippet actions()}
+				<IconShieldCheck size={18} class={adminMode ? 'text-warning' : 'text-text-subtle'} />
+			{/snippet}
+
+			<Toggle
+				checked={adminMode}
+				disabled={switching}
+				label="Act as a site administrator"
+				description="On, you bypass every group's permissions and the administration portal opens. Off,
+					TrP Tools treats you as an ordinary account — only groups you actually hold a rank in appear
+					in your dashboard, on the home page and in your shifts."
+				onchange={setAdminMode}
+			/>
+
+			<p class="mt-4 text-xs text-text-subtle">
+				It ends with this session, and it is off on every new sign-in. API keys are never elevated.
+			</p>
+		</Card>
+	{/if}
 
 	<Card title="Sessions" description="Signed in on a device you no longer have?">
 		<Button variant="danger" onclick={signOutEverywhere}>Sign out everywhere</Button>

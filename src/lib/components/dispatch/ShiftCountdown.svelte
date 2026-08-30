@@ -2,7 +2,7 @@
 	import { IconCalendarPlus, IconPlayerPlay, IconRadio } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import { formatDateTime } from '$lib/utils/format';
+	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import type { ShiftOccurrence } from '$lib/api/types';
 
 	interface Props {
@@ -50,20 +50,6 @@
 	let live = $derived(Boolean(next) && startsIn <= 0);
 	let unlocked = $derived(Boolean(next) && startsIn <= leadMinutes * 60_000);
 
-	/** A ticking clock, so the wait reads as a wait rather than a rounded guess. */
-	function countdown(ms: number): string {
-		const total = Math.max(0, Math.floor(ms / 1000));
-		const days = Math.floor(total / 86_400);
-		const hours = Math.floor((total % 86_400) / 3600);
-		const minutes = Math.floor((total % 3600) / 60);
-		const seconds = total % 60;
-
-		if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-
-		const pad = (value: number) => value.toString().padStart(2, '0');
-		return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
-	}
-
 	let lead = $derived(
 		leadMinutes === 0
 			? 'once it starts'
@@ -100,7 +86,7 @@
 			class="mt-6 font-mono text-4xl font-semibold text-text tabular-nums sm:text-5xl"
 			aria-live="polite"
 		>
-			{live ? countdown(new Date(next.end).getTime() - now) : countdown(startsIn)}
+			{live ? formatCountdown(new Date(next.end).getTime() - now) : formatCountdown(startsIn)}
 		</p>
 		<p class="mt-1.5 text-xs text-text-subtle">
 			{live ? 'remaining' : 'until it starts'}

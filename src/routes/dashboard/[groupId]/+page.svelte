@@ -133,7 +133,7 @@
 			{:else}
 				<ul class="flex flex-wrap gap-3">
 					{#each data.depots as depot (depot.id)}
-						<li class="flex items-center gap-2">
+						<li class="flex min-w-0 max-w-full items-center gap-2">
 							<DepotBadge
 								number={depot.number}
 								color={depot.color}
@@ -141,7 +141,7 @@
 								name={depot.name}
 								size="sm"
 							/>
-							<span class="text-sm text-text-muted">{depot.name}</span>
+							<span class="min-w-0 text-sm text-text-muted wrap-anywhere">{depot.name}</span>
 						</li>
 					{/each}
 				</ul>

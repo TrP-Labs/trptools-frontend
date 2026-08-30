@@ -193,7 +193,7 @@
 								/>
 
 								<div class="pointer-events-none min-w-0 flex-1">
-									<p class="font-medium text-text">{route.name}</p>
+									<p class="font-medium text-text wrap-anywhere">{route.name}</p>
 									{#if route.description}
 										<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{route.description}</p>
 									{:else if route.images.length > 0}
@@ -291,7 +291,7 @@
 							/>
 
 							<div class="pointer-events-none min-w-0 flex-1">
-								<p class="font-medium text-text">{depot.name}</p>
+								<p class="font-medium text-text wrap-anywhere">{depot.name}</p>
 								{#if depot.description}
 									<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{depot.description}</p>
 								{:else if depot.images.length > 0}

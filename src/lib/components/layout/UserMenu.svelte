@@ -97,7 +97,13 @@
 					>
 						<IconSettings size={16} /> Settings
 					</a>
-					{#if user.siteRank === 'admin'}
+					<!--
+						The portal is offered on the elevation, not the account:
+						while admin mode is off this session is refused there,
+						and a link straight to a 403 reads as the site being
+						broken. The switch itself lives in settings.
+					-->
+					{#if user.adminMode}
 						<a
 							href="/admin"
 							role="menuitem"

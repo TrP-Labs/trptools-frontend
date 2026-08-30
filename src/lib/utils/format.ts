@@ -64,6 +64,26 @@ export function formatRelative(value: Date | string): string {
 	return formatter.format(Math.round(duration), 'year');
 }
 
+/**
+ * A ticking wait, as a clock rather than a rounded phrase.
+ *
+ * "in 2 hours" is right for a list; a countdown someone is watching has to
+ * move every second, and to stop showing seconds once the wait is measured in
+ * days, where a ticking last digit is only noise.
+ */
+export function formatCountdown(ms: number): string {
+	const total = Math.max(0, Math.floor(ms / 1000));
+	const days = Math.floor(total / 86_400);
+	const hours = Math.floor((total % 86_400) / 3600);
+	const minutes = Math.floor((total % 3600) / 60);
+	const seconds = total % 60;
+
+	if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+
+	const pad = (value: number) => value.toString().padStart(2, '0');
+	return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
+}
+
 export function formatDuration(minutes: number): string {
 	if (minutes < 60) return `${minutes} min`;
 	const hours = Math.floor(minutes / 60);

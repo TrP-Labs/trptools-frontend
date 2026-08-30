@@ -17,6 +17,12 @@ export type SessionResponse = Data<ReturnType<Api['auth']['session']['get']>>;
 export type SessionUser = NonNullable<SessionResponse['user']>;
 
 export type GroupSummary = Data<ReturnType<Api['groups']['get']>>[number];
+
+/** The signed-in home page, gathered across every group in one request. */
+export type DashboardData = Data<ReturnType<Api['dashboard']['get']>>;
+export type DashboardGroup = DashboardData['groups'][number];
+export type DashboardShift = DashboardData['shifts'][number];
+export type DashboardReview = DashboardData['reviews'][number];
 export type CreatableGroup = Data<ReturnType<Api['groups']['creatable']['get']>>[number];
 
 export type RouteRecord = Data<ReturnType<Api['routes']['get']>>[number];
