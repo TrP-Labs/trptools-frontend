@@ -31,6 +31,27 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
+ * Credentials come from a `.env` file rather than from the shell.
+ *
+ * Every other part of this project is configured by a `.env`, so needing to
+ * `export` two variables by hand was a trap — and one that fails silently,
+ * because a missing token looks exactly like "not uploading" rather than like
+ * an error. Both locations are checked: this repository's own `.env`, and the
+ * one beside it in `Project/` where the compose stack keeps its settings.
+ *
+ * Anything already in the environment wins, so a one-off `CROWDIN_… = … node …`
+ * still works.
+ */
+for (const envFile of ['../.env', '.env']) {
+	try {
+		process.loadEnvFile(envFile);
+	} catch {
+		// No file there, which is fine — the next one may exist, or the values
+		// may already be exported.
+	}
+}
+
+/**
  * Imported on demand rather than declared as a dependency.
  *
  * This script runs a handful of times a year; `playwright-core` is 13MB, and
@@ -232,7 +253,14 @@ async function upload(taken) {
 if (!SESSION) {
 	console.error('No session token. Signed-in pages are most of the site, so without one');
 	console.error('this photographs only what a signed-out visitor sees.\n');
-	console.error('Get one from `bun run db:seed` in the backend, then pass --session <token>.\n');
+	console.error('Mint one without reseeding:\n');
+	console.error('  cd ../trptools-backend && bun run scripts/dev-session.ts\n');
+	console.error('then put it in .env as TRPTOOLS_SESSION, or pass --session.\n');
+}
+
+if (UPLOAD && (!PROJECT_ID || !TOKEN)) {
+	console.error('CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set, so this will');
+	console.error('capture but not upload. Put them in .env here or in Project/.env.\n');
 }
 
 console.log(`Capturing ${PAGES.length} pages from ${BASE} into ${OUTDIR}/`);
