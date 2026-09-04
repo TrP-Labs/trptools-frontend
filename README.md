@@ -149,6 +149,27 @@ its own lifecycle and its own `crowdin context reset`.
 Re-run it after renaming keys: a rename is a delete and a create to Crowdin, so
 the new strings arrive with no context.
 
+### Screenshots
+
+`scripts/crowdin-screenshots.mjs` photographs 23 pages against a locally running
+site and uploads them, asking Crowdin to tag the strings it recognises on each.
+A translator then sees the real screen with their string highlighted, which
+answers what written context cannot — how much room there is, and what sits next
+to it.
+
+```bash
+node scripts/crowdin-screenshots.mjs --session <token> --no-upload   # look first
+```
+
+The session token comes from `bun run db:seed` in the backend; without one this
+only photographs what a signed-out visitor sees, which is a small part of the
+site. It drives the Chrome already on the machine through `playwright-core`,
+imported on demand rather than declared as a dependency — `bun add -d
+playwright-core` when you need it.
+
+See [TRANSLATING.md](../TRANSLATING.md) for the whole workflow, including how to
+add a language and how translations reach production.
+
 ### API errors
 
 The backend answers failures with static string literals declared as

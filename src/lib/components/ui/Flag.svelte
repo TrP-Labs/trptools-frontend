@@ -33,6 +33,7 @@
 		en: 'us',
 		cs: 'cz',
 		de: 'de',
+		fr: 'fr',
 		pl: 'pl',
 		ru: 'ru',
 		uk: 'ua'
@@ -74,6 +75,10 @@
 			<rect width="640" height="160" fill="#000" />
 			<rect y="160" width="640" height="160" fill="#d00" />
 			<rect y="320" width="640" height="160" fill="#ffce00" />
+		{:else if flag === 'fr'}
+			<rect width="213.34" height="480" fill="#002395" />
+			<rect x="213.34" width="213.33" height="480" fill="#fff" />
+			<rect x="426.67" width="213.33" height="480" fill="#ed2939" />
 		{:else if flag === 'pl'}
 			<rect width="640" height="240" fill="#fff" />
 			<rect y="240" width="640" height="240" fill="#dc143c" />
