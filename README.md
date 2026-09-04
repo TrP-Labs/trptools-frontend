@@ -119,6 +119,36 @@ stamped into `<html lang>` during server rendering, the same way the theme is,
 so there is no flash of the wrong language. `lib/utils/format.ts` passes the
 resolved locale to every `Intl` call, so dates and numbers follow it too.
 
+### Translator context
+
+`scripts/crowdin-context.mjs` works out where every string appears and what
+kind of control it labels, by walking the import graph from each route entry
+point and reading the construct around each `m.*` reference. It writes that
+into Crowdin's `ai_context`, so a translator sees "Confirmation dialog, asked
+before something irreversible. Appears on /dashboard/[groupId]/depots." beside
+the string.
+
+```bash
+node scripts/crowdin-context.mjs          # print what it would write
+```
+
+To apply it, from a checkout of [TrP-Labs/Locales][locales] with
+`CROWDIN_PROJECT_ID` and `CROWDIN_PERSONAL_TOKEN` exported:
+
+```bash
+crowdin context download --to=crowdin-context.jsonl
+node ../trptools-frontend/scripts/crowdin-context.mjs crowdin-context.jsonl
+crowdin context upload --dryrun    # read it, then run without --dryrun
+```
+
+Not `context`, which for a file-based project is what Crowdin derives from the
+source file and rewrites on every upload — and an upload happens on every push
+to Locales, so anything written there would quietly disappear. `ai_context` has
+its own lifecycle and its own `crowdin context reset`.
+
+Re-run it after renaming keys: a rename is a delete and a create to Crowdin, so
+the new strings arrive with no context.
+
 ### API errors
 
 The backend answers failures with static string literals declared as
