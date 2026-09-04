@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
+import { paraglide } from './paraglide.config.js';
 import { defineConfig } from 'vite';
 import { version } from './package.json' with { type: 'json' };
 
@@ -20,18 +21,10 @@ export default defineConfig({
 		// survive tree-shaking, so adding a language costs the browser nothing
 		// until someone selects it.
 		//
-		// `cookie` is read first so a choice made on this device wins, then the
-		// account preference stamped into the request by hooks.server.ts, then
-		// the browser's own header. No URL strategy: the app is almost entirely
-		// behind a login, and `/de/dashboard/…` would buy nothing for a routing
-		// layer's worth of complexity.
-		paraglideVitePlugin({
-			project: './project.inlang',
-			outdir: './src/lib/paraglide',
-			strategy: ['cookie', 'preferredLanguage', 'baseLocale'],
-			cookieName: 'locale',
-			emitTsDeclarations: true
-		}),
+		// The options are shared with `scripts/messages.mjs` rather than written
+		// here, because both compile the same messages into the same directory and
+		// a difference between them is invisible until something stops resolving.
+		paraglideVitePlugin(paraglide),
 
 		sveltekit({
 			compilerOptions: {
