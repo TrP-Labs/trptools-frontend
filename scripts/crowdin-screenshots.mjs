@@ -190,15 +190,34 @@ async function capture() {
 
 // ----------------------------------------------------------------- the upload
 
+class CrowdinError extends Error {}
+
 const api = async (path, init = {}) => {
 	const response = await fetch(`https://api.crowdin.com/api/v2${path}`, {
 		...init,
 		headers: { Authorization: `Bearer ${TOKEN}`, ...(init.headers ?? {}) }
 	});
-	if (!response.ok) {
-		throw new Error(`${init.method ?? 'GET'} ${path} → ${response.status} ${await response.text()}`);
+
+	if (response.ok) return response.status === 204 ? null : response.json();
+
+	const body = await response.text();
+
+	// A token scoped for the sync workflow gets all the way here and then fails
+	// on the one endpoint it was never given: uploading to storage is allowed,
+	// creating the screenshot from it is not. Worth saying plainly, because the
+	// raw message names neither the scope nor the token.
+	if (response.status === 403 && body.includes('token scopes')) {
+		throw new CrowdinError(
+			'Your Crowdin token is not allowed to manage screenshots.\n\n' +
+				'  Add the Screenshots scope (read and write) to it at\n' +
+				'  https://crowdin.com/settings#api-key — or make a second token for this.\n\n' +
+				'  A token scoped only for the sync workflow gets this far and no further:\n' +
+				'  the images uploaded fine, attaching them to the project is what was refused.\n\n' +
+				'  Nothing was changed in Crowdin. Re-run once the scope is added.'
+		);
 	}
-	return response.status === 204 ? null : response.json();
+
+	throw new CrowdinError(`${init.method ?? 'GET'} ${path} → ${response.status} ${body}`);
 };
 
 async function upload(taken) {
@@ -276,6 +295,14 @@ if (!UPLOAD) {
 	console.log('The images are on disk either way, so nothing is lost by looking first.');
 } else {
 	console.log(`\nUploading to Crowdin project ${PROJECT_ID}…`);
-	await upload(taken);
+	try {
+		await upload(taken);
+	} catch (error) {
+		// The screenshots are on disk, so a failed upload costs nothing but the
+		// upload. Say what happened rather than a stack trace through fetch.
+		console.error(`\n${error instanceof CrowdinError ? error.message : error}`);
+		console.error(`\nThe ${taken.length} screenshots are still in ${OUTDIR}/.`);
+		process.exit(1);
+	}
 	console.log('\nDone. Crowdin tags the strings it recognises; check a few in the editor.');
 }
