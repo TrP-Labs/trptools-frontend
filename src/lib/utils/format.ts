@@ -119,7 +119,14 @@ export function formatShare(value: number): string {
 	return String(Math.round(value * 100) / 100);
 }
 
-/** The viewer's IANA timezone, for defaulting the preference. */
+/**
+ * The viewer's IANA timezone, for defaulting the preference.
+ *
+ * Called during SSR as well, where it answers with the *server's* zone — but
+ * a component's state initialiser runs again on hydration, so the browser's
+ * answer replaces it before anybody can act on the page. It is worth knowing
+ * that the first painted frame can say something else.
+ */
 export function detectTimezone(): string {
 	try {
 		return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';

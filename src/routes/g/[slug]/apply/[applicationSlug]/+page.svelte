@@ -84,11 +84,21 @@
 	 * evening service, so it is worth being able to correct without a trip to
 	 * settings first.
 	 */
-	let accountTimezone = $derived(standing?.timezone ?? 'UTC');
+	/**
+	 * Where the applicant is, defaulted from the account and falling back to
+	 * this device.
+	 *
+	 * The account's zone is null until somebody sets one, and the answer to
+	 * that is what the browser resolves — not UTC. Defaulting to UTC is what
+	 * sent every application out stamped UTC unless the applicant noticed the
+	 * line above the send button and pressed Detect, which put a reviewer in
+	 * the position of reading a zone nobody had actually claimed.
+	 */
+	let accountTimezone = $derived(standing?.timezone ?? detectTimezone());
 	let accountLocale = $derived(standing?.locale ?? 'en');
 
 	// svelte-ignore state_referenced_locally
-	let timezone = $state(data.standing?.timezone ?? 'UTC');
+	let timezone = $state(data.standing?.timezone ?? detectTimezone());
 	// svelte-ignore state_referenced_locally
 	let locale = $state(data.standing?.locale ?? 'en');
 	let localeOpen = $state(false);
@@ -461,7 +471,15 @@
 		</Field>
 
 		<p class="text-xs text-text-subtle">
-			Your account still says {accountTimezone} · {accountLocale}. Change that in
+			<!--
+				Honest about which of the two this is. An account with no zone
+				of its own is following this device, and saying "your account
+				says America/Phoenix" when nothing on the account says any such
+				thing is how somebody ends up not setting one.
+			-->
+			{standing?.timezone
+				? m.g_apply_account_says({ timezone: accountTimezone, locale: accountLocale })
+				: m.g_apply_account_has_no_zone({ timezone: accountTimezone, locale: accountLocale })}
 			<a href="/settings" class="underline underline-offset-2">{m.g_apply_account_settings()}</a>.
 		</p>
 	</div>
