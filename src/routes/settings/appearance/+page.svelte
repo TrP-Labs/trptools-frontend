@@ -28,6 +28,7 @@
 		en: 'English',
 		cs: 'Čeština',
 		de: 'Deutsch',
+		fr: 'Français',
 		pl: 'Polski',
 		ru: 'Русский',
 		uk: 'Українська'
