@@ -11,6 +11,10 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
+	import LanguageMenu from '$lib/components/i18n/LanguageMenu.svelte';
+	import Flag from '$lib/components/ui/Flag.svelte';
+	import { languageName } from '$lib/utils/languages';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import IconUploader from '$lib/components/media/IconUploader.svelte';
 	import VehicleTypesCard from '$lib/components/dispatch/VehicleTypesCard.svelte';
@@ -33,8 +37,13 @@
 		return {
 			slug: group.slug,
 			visibility: group.visibility,
+			// Blank means "follow the Roblox name", which is where every group
+			// starts and what clearing the box goes back to.
+			name: group.nameIsCustom ? group.name : '',
 			tagline: group.tagline,
 			about: group.about,
+			sourceLocale: group.sourceLocale,
+			translations: structuredClone(group.translations),
 			accentColor: group.accentColor,
 			showRoutes: group.showRoutes,
 			showShifts: group.showShifts,
@@ -103,6 +112,23 @@
 				<Select bind:value={form.visibility} options={visibilities} />
 			</Field>
 
+			<Field
+				label={m.translate_group_name()}
+				hint={form.name.trim()
+					? m.translate_group_name_hint()
+					: m.translate_following_roblox({ name: group.robloxName ?? group.name })}
+				class="sm:col-span-2"
+			>
+				<TranslatableField
+					bind:value={form.name}
+					bind:translations={form.translations}
+					field="name"
+					sourceLocale={form.sourceLocale}
+					maxlength={100}
+					placeholder={group.robloxName ?? group.name}
+				/>
+			</Field>
+
 			<Field label={m.dashboard_settings_page_address()} hint={m.dashboard_settings_letters_numbers_dashes()}>
 				<div class="flex items-center gap-1.5">
 					<span class="shrink-0 text-sm text-text-subtle">/g/</span>
@@ -115,16 +141,66 @@
 			</Field>
 
 			<Field label={m.dashboard_settings_tagline()} hint={m.dashboard_settings_one_line_shown_under_group_name()} class="sm:col-span-2">
-				<Input bind:value={form.tagline} maxlength={160} placeholder={m.dashboard_settings_short_description()} />
+				<TranslatableField
+					bind:value={form.tagline}
+					bind:translations={form.translations}
+					field="tagline"
+					sourceLocale={form.sourceLocale}
+					maxlength={160}
+					placeholder={m.dashboard_settings_short_description()}
+				/>
 			</Field>
 
 			<Field label={m.common_about()} class="sm:col-span-2">
-				<Textarea
+				<TranslatableField
 					bind:value={form.about}
+					bind:translations={form.translations}
+					field="about"
+					sourceLocale={form.sourceLocale}
+					multiline
 					rows={4}
 					maxlength={4000}
 					placeholder={m.dashboard_settings_tell_people_what_group_does()}
 				/>
+			</Field>
+
+			<!--
+				The language everything above is written in, and what a reader
+				falls back to when there is no version in theirs. Set from
+				whoever registered the group rather than assumed to be English:
+				a group that runs in Ukrainian would otherwise have its own
+				words filed as the English original.
+			-->
+			<Field
+				label={m.translate_source_language()}
+				hint={m.translate_source_language_description()}
+				class="sm:col-span-2"
+			>
+				<LanguageMenu
+					current={form.sourceLocale}
+					align="left"
+					label={m.translate_source_language()}
+					onpick={(locale) => (form.sourceLocale = locale)}
+				>
+					{#snippet trigger({ open, toggle })}
+						<button
+							type="button"
+							aria-haspopup="menu"
+							aria-expanded={open}
+							onclick={toggle}
+							lang={form.sourceLocale}
+							class="flex items-center gap-2 rounded-lg border border-border-base
+								bg-background-secondary px-3 py-2 text-sm text-text transition-colors
+								hover:border-border-strong"
+						>
+							<Flag
+								locale={form.sourceLocale}
+								class="h-3.5 w-5 shrink-0 rounded-xs ring-1 ring-black/20"
+							/>
+							{languageName(form.sourceLocale)}
+						</button>
+					{/snippet}
+				</LanguageMenu>
 			</Field>
 
 			<div class="sm:col-span-2">

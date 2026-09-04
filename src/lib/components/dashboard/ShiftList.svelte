@@ -5,6 +5,8 @@
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import type { DashboardShift } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
+	import { localizedGroup } from '$lib/utils/translations';
 
 	interface Props {
 		shifts: DashboardShift[];
@@ -28,11 +30,11 @@
 				<span class="h-9 w-1 shrink-0 rounded-full" style="background: {shift.color}"></span>
 
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-medium text-text">{shift.name}</p>
+					<p class="truncate text-sm font-medium text-text">{localized(shift, 'name')}</p>
 					<span class="mt-0.5 flex min-w-0 items-center gap-1.5">
-						<Avatar src={shift.groupIcon} name={shift.groupName} size={14} />
+						<Avatar src={shift.groupIcon} name={localizedGroup(shift)} size={14} />
 						<span class="truncate text-xs text-text-muted">
-							{shift.groupName} · {formatDateTime(shift.start)}
+							{localizedGroup(shift)} · {formatDateTime(shift.start)}
 						</span>
 					</span>
 				</div>

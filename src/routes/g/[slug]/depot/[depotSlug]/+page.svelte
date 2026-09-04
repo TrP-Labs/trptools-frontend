@@ -10,6 +10,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -18,10 +19,10 @@
 </script>
 
 <svelte:head>
-	<title>{depot.name} — {group.name} — TrP Tools</title>
-	<meta name="description" content={depot.description || `Depot ${depot.number} on ${group.name}.`} />
-	<meta property="og:title" content="{depot.name} — {group.name}" />
-	<meta property="og:description" content={depot.description || `Depot ${depot.number} on ${group.name}.`} />
+	<title>{localized(depot, 'name')} — {localized(group, 'name')} — TrP Tools</title>
+	<meta name="description" content={localized(depot, 'description') || `Depot ${depot.number} on ${localized(group, 'name')}.`} />
+	<meta property="og:title" content="{localized(depot, 'name')} — {localized(group, 'name')}" />
+	<meta property="og:description" content={localized(depot, 'description') || `Depot ${depot.number} on ${localized(group, 'name')}.`} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={depot.icon ?? depot.images[0]?.url ?? group.icon ?? ''} />
 </svelte:head>
@@ -31,14 +32,14 @@
 	style="background: linear-gradient(180deg, {withAlpha(depot.color, 0.18)}, transparent);"
 >
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<GroupCrumb {group} current={depot.name} />
+		<GroupCrumb {group} current={localized(depot, 'name')} />
 
 		<div class="mt-5 flex flex-wrap items-center gap-5">
 			<DepotBadge
 				number={depot.number}
 				color={depot.color}
 				icon={depot.icon}
-				name={depot.name}
+				name={localized(depot, 'name')}
 				size="lg"
 			/>
 
@@ -50,7 +51,7 @@
 					every box it is measured in.
 				-->
 				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">
-					{depot.name}
+					{localized(depot, 'name')}
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge>Depot {depot.number}</Badge>
@@ -63,10 +64,10 @@
 </section>
 
 <div class="mx-auto max-w-4xl space-y-10 px-4 py-10">
-	{#if depot.description}
+	{#if localized(depot, 'description')}
 		<section>
 			<h2 class="mb-3 text-lg font-semibold">{m.g_depot_about_depot()}</h2>
-			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{depot.description}</p>
+			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{localized(depot, 'description')}</p>
 		</section>
 	{/if}
 
@@ -87,7 +88,7 @@
 							class="card flex items-center gap-3 p-3 transition-colors hover:border-accent/50"
 						>
 							<RouteBadge
-								label={route.name}
+								label={localized(route, 'name')}
 								color={route.color}
 								textColor={route.textColor}
 								shape={route.shape}
@@ -95,9 +96,9 @@
 								size="sm"
 							/>
 							<div class="min-w-0 flex-1">
-								<p class="truncate font-medium text-text">{route.name}</p>
-								{#if route.description}
-									<p class="truncate text-sm text-text-muted">{route.description}</p>
+								<p class="truncate font-medium text-text">{localized(route, 'name')}</p>
+								{#if localized(route, 'description')}
+									<p class="truncate text-sm text-text-muted">{localized(route, 'description')}</p>
 								{/if}
 							</div>
 						</a>

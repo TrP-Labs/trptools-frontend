@@ -7,6 +7,7 @@
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import type { DashboardShift } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized, localizedGroup } from '$lib/utils/translations';
 
 	interface Props {
 		/** Every upcoming shift across every group, soonest first. */
@@ -78,7 +79,7 @@
 		</div>
 
 		<h2 class="mt-2 text-2xl font-semibold tracking-tight text-text wrap-anywhere">
-			{next.name}
+			{localized(next, 'name')}
 		</h2>
 
 		<a
@@ -86,8 +87,8 @@
 			class="mt-2 inline-flex min-w-0 max-w-full items-center gap-2 text-sm text-text-muted
 				transition-colors hover:text-text"
 		>
-			<Avatar src={next.groupIcon} name={next.groupName} size={18} />
-			<span class="min-w-0 truncate">{next.groupName}</span>
+			<Avatar src={next.groupIcon} name={localizedGroup(next)} size={18} />
+			<span class="min-w-0 truncate">{localizedGroup(next)}</span>
 		</a>
 
 		<p

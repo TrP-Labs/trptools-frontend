@@ -1,4 +1,5 @@
 import { serverApi } from '$lib/api/server';
+import { localized } from '$lib/utils/translations';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -27,7 +28,7 @@ export const load: PageServerLoad = async (event) => {
 
 			return (data ?? []).map((occurrence) => ({
 				...occurrence,
-				groupName: group.name,
+				groupName: localized(group, 'name'),
 				groupSlug: group.slug,
 				groupIcon: group.icon
 			}));

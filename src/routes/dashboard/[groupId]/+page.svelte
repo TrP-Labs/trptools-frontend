@@ -15,6 +15,7 @@
 	import { signupTotals } from '$lib/utils/signups';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -77,7 +78,7 @@
 								style="background: {occurrence.color}"
 							></span>
 							<div class="min-w-0 flex-1">
-								<p class="truncate text-sm font-medium text-text">{occurrence.name}</p>
+								<p class="truncate text-sm font-medium text-text">{localized(occurrence, 'name')}</p>
 								<p class="text-xs text-text-muted">
 									{formatDateTime(occurrence.start)} · {formatRelative(occurrence.start)}
 								</p>
@@ -108,7 +109,7 @@
 				<div class="flex flex-wrap gap-2">
 					{#each data.routes as route (route.id)}
 						<RouteBadge
-							label={route.name}
+							label={localized(route, 'name')}
 							color={route.color}
 							textColor={route.textColor}
 							shape={route.shape}
@@ -139,10 +140,10 @@
 								number={depot.number}
 								color={depot.color}
 								icon={depot.icon}
-								name={depot.name}
+								name={localized(depot, 'name')}
 								size="sm"
 							/>
-							<span class="min-w-0 text-sm text-text-muted wrap-anywhere">{depot.name}</span>
+							<span class="min-w-0 text-sm text-text-muted wrap-anywhere">{localized(depot, 'name')}</span>
 						</li>
 					{/each}
 				</ul>

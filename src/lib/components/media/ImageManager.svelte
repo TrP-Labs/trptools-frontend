@@ -6,6 +6,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { MediaItem } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	interface Props {
 		groupId: string;
@@ -112,7 +113,7 @@
 				<li class="group relative overflow-hidden rounded-lg border border-border-base">
 					<img
 						src={image.url}
-						alt={image.caption || 'Uploaded image'}
+						alt={localized(image, 'caption') || 'Uploaded image'}
 						loading="lazy"
 						decoding="async"
 						class="aspect-video w-full bg-background-muted object-cover"

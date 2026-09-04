@@ -16,6 +16,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import type { LayoutProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -38,14 +39,14 @@
 	]);
 </script>
 
-<svelte:head><title>{group.name} — TrP Tools</title></svelte:head>
+<svelte:head><title>{localized(group, 'name')} — TrP Tools</title></svelte:head>
 
 <div class="border-b border-border-base bg-surface">
 	<div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4">
-		<Avatar src={group.icon} name={group.name} size={40} class="rounded-xl" />
+		<Avatar src={group.icon} name={localized(group, 'name')} size={40} class="rounded-xl" />
 
 		<div class="min-w-0 flex-1">
-			<h1 class="truncate font-semibold text-text">{group.name}</h1>
+			<h1 class="truncate font-semibold text-text">{localized(group, 'name')}</h1>
 			<p class="text-xs text-text-muted">
 				{group.visibility === 'PUBLIC'
 					? m.common_public_page()

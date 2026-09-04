@@ -28,6 +28,7 @@
 	import type { ReportTarget } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 	let group = $derived(data.group);
@@ -75,10 +76,10 @@
 </script>
 
 <svelte:head>
-	<title>{group.name} — TrP Tools</title>
-	<meta name="description" content={group.tagline || group.description.slice(0, 160)} />
-	<meta property="og:title" content={group.name} />
-	<meta property="og:description" content={group.tagline || group.description.slice(0, 160)} />
+	<title>{localized(group, 'name')} — TrP Tools</title>
+	<meta name="description" content={localized(group, 'tagline') || group.description.slice(0, 160)} />
+	<meta property="og:title" content={localized(group, 'name')} />
+	<meta property="og:description" content={localized(group, 'tagline') || group.description.slice(0, 160)} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={group.bannerImage ?? group.icon ?? ''} />
 </svelte:head>
@@ -106,7 +107,7 @@
 
 	<div class="relative mx-auto max-w-5xl px-4 py-10">
 		<div class="flex flex-wrap items-start gap-5">
-			<Avatar src={group.icon} name={group.name} size={88} class="rounded-2xl" />
+			<Avatar src={group.icon} name={localized(group, 'name')} size={88} class="rounded-2xl" />
 
 			<div class="min-w-0 flex-1">
 				<h1
@@ -114,12 +115,12 @@
 						? 'text-white'
 						: ''}"
 				>
-					{group.name}
+					{localized(group, 'name')}
 				</h1>
 
-				{#if group.tagline}
+				{#if localized(group, 'tagline')}
 					<p class="mt-1.5 text-pretty {group.bannerImage ? 'text-white/80' : 'text-text-muted'}">
-						{group.tagline}
+						{localized(group, 'tagline')}
 					</p>
 				{/if}
 
@@ -159,10 +160,10 @@
 		instead of widening the page.
 	-->
 	<div class="min-w-0 space-y-10 lg:col-span-2">
-		{#if group.about}
+		{#if localized(group, 'about')}
 			<section>
 				<h2 class="mb-3 text-lg font-semibold">{m.common_about()}</h2>
-				<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{group.about}</p>
+				<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{localized(group, 'about')}</p>
 			</section>
 		{/if}
 
@@ -182,10 +183,10 @@
 						{#each visibleRoutes as route (route.id)}
 							{@const href = `/g/${group.slug}/route/${route.slug}`}
 							<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
-								<a {href} class="absolute inset-0" aria-label="Open route {route.name}"></a>
+								<a {href} class="absolute inset-0" aria-label="Open route {localized(route, 'name')}"></a>
 
 								<RouteBadge
-									label={route.name}
+									label={localized(route, 'name')}
 									color={route.color}
 									textColor={route.textColor}
 									shape={route.shape}
@@ -194,9 +195,9 @@
 								/>
 
 								<div class="pointer-events-none min-w-0 flex-1">
-									<p class="font-medium text-text wrap-anywhere">{route.name}</p>
-									{#if route.description}
-										<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{route.description}</p>
+									<p class="font-medium text-text wrap-anywhere">{localized(route, 'name')}</p>
+									{#if localized(route, 'description')}
+										<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{localized(route, 'description')}</p>
 									{:else if route.images.length > 0}
 										<p class="mt-0.5 text-sm text-text-subtle">
 											{route.images.length}
@@ -221,7 +222,7 @@
 									{#if data.user}
 										<RoutePreferenceButton
 											routeId={route.id}
-											routeName={route.name}
+											routeName={localized(route, 'name')}
 											builtIn={route.builtIn}
 										/>
 									{/if}
@@ -240,7 +241,7 @@
 												tone="danger"
 												onclick={() => {
 													close();
-													report('ROUTE', route.id, `route ${route.name}`);
+													report('ROUTE', route.id, `route ${localized(route, 'name')}`);
 												}}
 											>
 												<IconFlag size={15} /> {m.g_report_route()}
@@ -281,20 +282,20 @@
 					{#each visibleDepots as depot (depot.id)}
 						{@const href = `/g/${group.slug}/depot/${depot.slug}`}
 						<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
-							<a {href} class="absolute inset-0" aria-label="Open depot {depot.name}"></a>
+							<a {href} class="absolute inset-0" aria-label="Open depot {localized(depot, 'name')}"></a>
 
 							<DepotBadge
 								number={depot.number}
 								color={depot.color}
 								icon={depot.icon}
-								name={depot.name}
+								name={localized(depot, 'name')}
 								size="sm"
 							/>
 
 							<div class="pointer-events-none min-w-0 flex-1">
-								<p class="font-medium text-text wrap-anywhere">{depot.name}</p>
-								{#if depot.description}
-									<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{depot.description}</p>
+								<p class="font-medium text-text wrap-anywhere">{localized(depot, 'name')}</p>
+								{#if localized(depot, 'description')}
+									<p class="mt-0.5 line-clamp-2 text-sm text-text-muted">{localized(depot, 'description')}</p>
 								{:else if depot.images.length > 0}
 									<p class="mt-0.5 text-sm text-text-subtle">
 										{depot.images.length}
@@ -386,15 +387,15 @@
 									style="background: {application.color}"
 								></span>
 								<div class="min-w-0 flex-1">
-									<p class="font-medium text-text">{application.name}</p>
+									<p class="font-medium text-text">{localized(application, 'name')}</p>
 									{#if application.rankName}
 										<p class="mt-0.5 text-sm text-text-muted">
 											Applying for {application.rankName}
 										</p>
 									{/if}
-									{#if application.description}
+									{#if localized(application, 'description')}
 										<p class="mt-0.5 line-clamp-2 text-xs text-text-subtle">
-											{application.description}
+											{localized(application, 'description')}
 										</p>
 									{/if}
 								</div>
@@ -425,7 +426,7 @@
 									<span class="mt-1 h-10 w-1 shrink-0 rounded-full" style="background: {shift.color}"
 									></span>
 									<div class="min-w-0 flex-1">
-										<p class="font-medium text-text">{shift.name}</p>
+										<p class="font-medium text-text">{localized(shift, 'name')}</p>
 										<p class="mt-0.5 text-sm text-text-muted">{formatDateTime(shift.start)}</p>
 										<p class="text-xs text-text-subtle">{formatRelative(shift.start)}</p>
 									</div>

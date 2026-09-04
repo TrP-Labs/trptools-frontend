@@ -21,6 +21,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -115,7 +116,7 @@
 			<li
 				class="card relative flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-accent/50"
 			>
-				<a {href} class="absolute inset-0" aria-label="Open {application.name}"></a>
+				<a {href} class="absolute inset-0" aria-label="Open {localized(application, 'name')}"></a>
 
 				<span
 					class="h-9 w-1.5 shrink-0 rounded-full"
@@ -123,7 +124,7 @@
 				></span>
 
 				<div class="pointer-events-none min-w-0 flex-1">
-					<p class="truncate font-medium text-text">{application.name}</p>
+					<p class="truncate font-medium text-text">{localized(application, 'name')}</p>
 					<p class="mt-0.5 truncate text-sm text-text-muted">
 						{#if application.rank}
 							For {application.rank.name} · {application.questionCount}

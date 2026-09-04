@@ -2,7 +2,8 @@
 	import { IconTrash } from '@tabler/icons-svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import Textarea from '$lib/components/ui/Textarea.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
+	import type { Translations } from '$lib/utils/translations';
 	import Select from '$lib/components/ui/Select.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -27,19 +28,31 @@
 		days: number[];
 		visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
 		hostLevel: number;
+		/** Every other language's version of the name and description. */
+		translations: Translations;
 	}
 
 	interface Props {
 		draft: ShiftDraft;
 		busy?: boolean;
 		mode: 'create' | 'edit';
+		/** The language the group writes in, which the boxes default to. */
+		sourceLocale: string;
 		/** Where to send someone to edit the sign-up sheets themselves. */
 		ranksHref: string;
 		onsave: () => void;
 		ondelete?: () => void;
 	}
 
-	let { draft = $bindable(), busy = false, mode, ranksHref, onsave, ondelete }: Props = $props();
+	let {
+		draft = $bindable(),
+		busy = false,
+		mode,
+		sourceLocale,
+		ranksHref,
+		onsave,
+		ondelete
+	}: Props = $props();
 
 	const repeats = [
 		{ value: 'WEEKLY' as const, label: m.shifts_shift_editor_weekly_chosen_days() },
@@ -76,12 +89,23 @@
 
 <div class="grid gap-4 sm:grid-cols-2">
 	<Field label={m.shifts_shift_editor_shift_name()} class="sm:col-span-2">
-		<Input bind:value={draft.name} maxlength={100} placeholder={m.shifts_shift_editor_e_g_evening_service()} />
+		<TranslatableField
+			bind:value={draft.name}
+			bind:translations={draft.translations}
+			field="name"
+			{sourceLocale}
+			maxlength={100}
+			placeholder={m.shifts_shift_editor_e_g_evening_service()}
+		/>
 	</Field>
 
 	<Field label={m.common_description()} class="sm:col-span-2">
-		<Textarea
+		<TranslatableField
 			bind:value={draft.description}
+			bind:translations={draft.translations}
+			field="description"
+			{sourceLocale}
+			multiline
 			rows={2}
 			maxlength={2000}
 			placeholder={m.shifts_shift_editor_what_happens_shift()}

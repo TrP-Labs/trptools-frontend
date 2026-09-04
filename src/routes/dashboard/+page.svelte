@@ -14,6 +14,7 @@
 	import { permissionLabel } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -69,15 +70,15 @@
 						class="card flex h-full flex-col p-5 transition-colors hover:border-border-strong"
 					>
 						<div class="flex items-center gap-3">
-							<Avatar src={group.icon} name={group.name} size={44} />
+							<Avatar src={group.icon} name={localized(group, 'name')} size={44} />
 							<div class="min-w-0">
-								<h2 class="truncate font-semibold text-text">{group.name}</h2>
+								<h2 class="truncate font-semibold text-text">{localized(group, 'name')}</h2>
 								<p class="text-xs text-text-muted">{formatNumber(group.members)} members</p>
 							</div>
 						</div>
 
-						{#if group.tagline}
-							<p class="mt-3 line-clamp-2 text-sm text-text-muted">{group.tagline}</p>
+						{#if localized(group, 'tagline')}
+							<p class="mt-3 line-clamp-2 text-sm text-text-muted">{localized(group, 'tagline')}</p>
 						{/if}
 
 						<div class="mt-auto flex flex-wrap items-center gap-2 pt-4">
@@ -108,6 +109,11 @@
 		</p>
 	{:else}
 		<ul class="space-y-2">
+			<!--
+				Roblox groups not on TrP Tools yet, so there is no row to have
+				written another language's name against — this is Roblox's name
+				and nothing else.
+			-->
 			{#each data.creatable as group (group.robloxId)}
 				<li
 					class="flex items-center gap-3 rounded-lg border border-border-base bg-background-secondary p-3"

@@ -23,6 +23,8 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
+	import { localized, type Translations } from '$lib/utils/translations';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
@@ -75,6 +77,35 @@
 		archiveFilter = archiveFilter === status ? 'ALL' : status;
 	}
 
+	/**
+	 * The form's own text, held locally so a name and its translations save
+	 * together. Reseeded from the server whenever nothing is unsaved, the same
+	 * way the sign-up sheet editor does it.
+	 */
+	let formName = $state('');
+	let formDescription = $state('');
+	let formTranslations = $state<Translations>({});
+	let textDirty = $state(false);
+
+	$effect(() => {
+		if (textDirty) return;
+
+		formName = localized(application, 'name');
+		formDescription = localized(application, 'description');
+		formTranslations = structuredClone(application.translations);
+	});
+
+	async function saveText() {
+		if (!textDirty || !formName.trim()) return;
+		textDirty = false;
+
+		await patch({
+			name: formName.trim(),
+			description: formDescription,
+			translations: formTranslations
+		});
+	}
+
 	async function patch(body: Record<string, unknown>, success?: string) {
 		busy = true;
 		try {
@@ -93,7 +124,7 @@
 	async function remove() {
 		if (
 			!confirm(
-				m.dashboard_applications_delete_confirm({ name: application.name })
+				m.dashboard_applications_delete_confirm({ name: localized(application, 'name') })
 			)
 		)
 			return;
@@ -116,8 +147,8 @@
 <ObjectPage
 	backHref={base}
 	backLabel="Applications"
-	title={application.name}
-	description={application.description}
+	title={localized(application, 'name')}
+	description={localized(application, 'description')}
 	accent={application.color}
 	{sections}
 >
@@ -174,6 +205,7 @@
 			{/if}
 
 			<QuestionEditor
+				sourceLocale={group.sourceLocale}
 				groupId={group.id}
 				applicationId={application.id}
 				questions={application.questions}
@@ -238,14 +270,15 @@
 					<div class="space-y-4">
 						<div class="grid gap-4 sm:grid-cols-[1fr_auto]">
 							<Field label={m.common_name()}>
-								<Input
-									value={application.name}
+								<TranslatableField
+									bind:value={formName}
+									bind:translations={formTranslations}
+									field="name"
+									sourceLocale={group.sourceLocale}
 									maxlength={100}
 									disabled={busy}
-									onblur={(event) => {
-										const next = (event.currentTarget as HTMLInputElement).value.trim();
-										if (next && next !== application.name) patch({ name: next }, 'Renamed');
-									}}
+									oninput={() => (textDirty = true)}
+									onblur={saveText}
 								/>
 							</Field>
 
@@ -259,15 +292,17 @@
 						</div>
 
 						<Field label={m.common_description()} hint={m.dashboard_applications_line_about_who_should_apply_what()}>
-							<Textarea
-								value={application.description}
+							<TranslatableField
+								bind:value={formDescription}
+								bind:translations={formTranslations}
+								field="description"
+								sourceLocale={group.sourceLocale}
+								multiline
 								rows={3}
 								maxlength={2000}
 								disabled={busy}
-								onblur={(event) => {
-									const next = (event.currentTarget as HTMLTextAreaElement).value;
-									if (next !== application.description) patch({ description: next });
-								}}
+								oninput={() => (textDirty = true)}
+								onblur={saveText}
 							/>
 						</Field>
 
