@@ -16,6 +16,7 @@
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import DiscordSetting from '$lib/components/bot/DiscordSetting.svelte';
+	import LanguageTags from '$lib/components/i18n/LanguageTags.svelte';
 	import AutomationRow from '$lib/components/bot/AutomationRow.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
@@ -218,6 +219,24 @@
 				{/if}
 			</div>
 		</div>
+
+		<!--
+			What language the bot speaks. Above the channels because it
+			applies to every message the rest of this page arranges, rather
+			than being another setting among them.
+		-->
+		<section class="card p-4">
+			<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_languages()}</h2>
+			<p class="mt-1 mb-4 text-xs text-text-muted">
+				{m.dashboard_bot_languages_description()}
+			</p>
+
+			<LanguageTags
+				value={config.languages}
+				disabled={busy}
+				onchange={(languages) => patch({ languages })}
+			/>
+		</section>
 
 		<!-- Where things go -->
 		<section class="card p-4">
