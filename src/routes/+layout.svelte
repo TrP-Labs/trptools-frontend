@@ -15,10 +15,7 @@
 
 <svelte:head>
 	<title>{m.common_trp_tools()}</title>
-	<meta
-		name="description"
-		content="Group management, shift scheduling and multi-user dispatch for TrP."
-	/>
+	<meta name="description" content={m.layout_meta_description()} />
 </svelte:head>
 
 <div class="flex min-h-dvh flex-col">

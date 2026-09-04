@@ -8,7 +8,7 @@
 			href: '/tools/stage',
 			icon: IconBulb,
 			title: m.common_stage_programmer(),
-			body: 'Build lighting programs against a waveform, then export them into the game.',
+			body: m.tools_stage_programmer_body(),
 			available: true
 		},
 		{
@@ -18,7 +18,7 @@
 			href: '/tools/dispatch',
 			icon: IconRadio,
 			title: m.common_dispatch(),
-			body: "Assign the game's routes to a vehicle list on your own, with no group to set up.",
+			body: m.tools_dispatch_body(),
 			available: true
 		}
 	];
@@ -26,7 +26,7 @@
 
 <svelte:head>
 	<title>{m.tools_tools_trp_tools()}</title>
-	<meta name="description" content="Utilities for running a TrP transit group." />
+	<meta name="description" content={m.tools_meta_description()} />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-10">

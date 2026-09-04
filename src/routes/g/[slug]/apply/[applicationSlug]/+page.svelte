@@ -410,7 +410,7 @@
 							text-xs text-text-muted transition-colors hover:text-text"
 					>
 						<IconWorld size={14} />
-						Sending as {timezone} · {locale}
+						{m.g_apply_sending_as({ timezone, locale })}
 					</button>
 
 					{#if missing.length > 0}

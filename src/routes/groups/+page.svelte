@@ -30,7 +30,7 @@
 
 <svelte:head>
 	<title>{m.groups_groups_trp_tools()}</title>
-	<meta name="description" content="Browse transit groups running on TrP Tools." />
+	<meta name="description" content={m.groups_meta_description()} />
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-10">
