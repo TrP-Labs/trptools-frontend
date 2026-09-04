@@ -57,7 +57,7 @@
 		route a group has not published never reaches the page at all — so
 		these lists say nothing the group's own pages do not.
 	-->
-	{#each [{ routes: favourites, title: m.users_favourite_routes(), tone: 'success' }, { routes: disliked, title: m.users_disliked_routes(), tone: 'danger' }] as section (section.title)}
+	{#each [{ routes: favourites, title: m.users_favorite_routes(), tone: 'success' }, { routes: disliked, title: m.users_disliked_routes(), tone: 'danger' }] as section (section.title)}
 		{#if section.routes.length > 0}
 			<section>
 				<h2 class="mb-3 flex items-center gap-2 text-lg font-semibold">

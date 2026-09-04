@@ -178,8 +178,8 @@
 			>
 				<Toggle
 					bind:checked={favoriteRoutesPublic}
-					label={m.settings_favourite_routes()}
-					description={m.settings_show_routes_have_marked_as_favourites()}
+					label={m.settings_favorite_routes()}
+					description={m.settings_show_routes_have_marked_as_favorites()}
 				/>
 
 				<Toggle

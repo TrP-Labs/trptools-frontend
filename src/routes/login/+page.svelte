@@ -28,7 +28,7 @@
 			<p
 				class="mt-4 flex items-center justify-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger"
 			>
-				<IconAlertTriangle size={16} /> {m.login_sign_was_cancelled()}
+				<IconAlertTriangle size={16} /> {m.login_sign_was_canceled()}
 			</p>
 		{:else if suspended}
 			<div

@@ -139,11 +139,11 @@
 					<Select bind:value={draft.shape} options={shapes} />
 				</Field>
 
-				<Field label={m.routes_route_editor_route_colour()}>
+				<Field label={m.routes_route_editor_route_color()}>
 					<ColorInput bind:value={draft.color} />
 				</Field>
 
-				<Field label={m.routes_route_editor_label_colour()} hint={m.routes_route_editor_ink_used_route_number_itself()}>
+				<Field label={m.routes_route_editor_label_color()} hint={m.routes_route_editor_ink_used_route_number_itself()}>
 					<ColorInput bind:value={draft.textColor} />
 				</Field>
 

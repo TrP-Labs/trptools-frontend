@@ -126,7 +126,7 @@
 
 <Modal bind:open={createOpen} title={m.settings_api_keys_new_api_key()} description={m.settings_api_keys_grant_only_what_integration_needs()}>
 	<div class="space-y-4">
-		<Field label={m.common_name()} hint={m.settings_api_keys_so_can_recognise_later()}>
+		<Field label={m.common_name()} hint={m.settings_api_keys_so_can_recognize_later()}>
 			<Input bind:value={name} maxlength={60} placeholder={m.settings_api_keys_e_g_discord_bot()} />
 		</Field>
 

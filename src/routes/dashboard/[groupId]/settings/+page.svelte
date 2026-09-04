@@ -110,7 +110,7 @@
 				</div>
 			</Field>
 
-			<Field label={m.dashboard_settings_accent_colour()}>
+			<Field label={m.dashboard_settings_accent_color()}>
 				<ColorInput bind:value={form.accentColor} />
 			</Field>
 

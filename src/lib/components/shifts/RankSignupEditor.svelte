@@ -156,7 +156,7 @@
 				/>
 			</Field>
 
-			<Field label={m.common_colour()}>
+			<Field label={m.common_color()}>
 				<ColorInput value={signup.color} disabled={busy} oncommit={(color) => save({ color })} />
 			</Field>
 		</div>

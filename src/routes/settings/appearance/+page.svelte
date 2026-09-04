@@ -11,7 +11,7 @@
 	let { data }: PageProps = $props();
 
 	const themes = [
-		{ value: 'dim', label: m.settings_appearance_dim(), hint: m.settings_appearance_soft_dark_grey(), swatches: ['#1d1d1d', '#313131', '#5b9dff'] },
+		{ value: 'dim', label: m.settings_appearance_dim(), hint: m.settings_appearance_soft_dark_gray(), swatches: ['#1d1d1d', '#313131', '#5b9dff'] },
 		{ value: 'midnight', label: m.settings_appearance_midnight(), hint: m.settings_appearance_near_black(), swatches: ['#0a0a0a', '#121212', '#5b9dff'] },
 		{ value: 'light', label: m.settings_appearance_light(), hint: m.settings_appearance_bright(), swatches: ['#f2f3f5', '#ffffff', '#2563eb'] }
 	] as const;
