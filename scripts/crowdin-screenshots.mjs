@@ -231,17 +231,23 @@ async function upload(taken) {
 	const byName = new Map(existing.data.map((s) => [s.data.name, s.data.id]));
 
 	for (const shot of taken) {
+		// Crowdin validates the name as a file name, not as a label: without an
+		// extension it refuses the whole request with `fileExtensionFalse`. The
+		// same name is what the update-in-place lookup matches on, so it is
+		// derived once here rather than built at each call site.
+		const name = `${shot.name}.png`;
+
 		const bytes = readFileSync(shot.file);
 		const storage = await api('/storages', {
 			method: 'POST',
 			headers: {
-				'Crowdin-API-FileName': encodeURIComponent(`${shot.name}.png`),
+				'Crowdin-API-FileName': encodeURIComponent(name),
 				'Content-Type': 'application/octet-stream'
 			},
 			body: bytes
 		});
 
-		const previous = byName.get(shot.name);
+		const previous = byName.get(name);
 		if (previous) {
 			// Replacing the image re-runs the tagging against the new one, so a
 			// moved or renamed string does not keep pointing at a stale position.
@@ -250,19 +256,19 @@ async function upload(taken) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ storageId: storage.data.id, autoTag: true, fileId: source.data.id })
 			});
-			console.log(`  updated ${shot.name}`);
+			console.log(`  updated ${name}`);
 		} else {
 			await api(`/projects/${PROJECT_ID}/screenshots`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					storageId: storage.data.id,
-					name: shot.name,
+					name,
 					autoTag: true,
 					fileId: source.data.id
 				})
 			});
-			console.log(`  added ${shot.name}`);
+			console.log(`  added ${name}`);
 		}
 	}
 }
