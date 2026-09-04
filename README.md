@@ -91,8 +91,11 @@ than a string literal. The Paraglide compiler generates them into
 `vite build`), so a renamed key is a compile error and only the locales a
 reader actually loads reach the browser.
 
-`messages/` is **vendored** from [TrP-Labs/Locales][locales], not fetched at
-runtime:
+Translation itself happens in [Crowdin][crowdin], which syncs with
+[TrP-Labs/Locales][locales] — English is pushed up when that repository
+changes, and finished languages come back to it as a pull request. This
+project takes them from there: `messages/` is **vendored**, not fetched at
+runtime.
 
 ```bash
 ./scripts/pull-locales.sh                  # TrP-Labs/Locales @ prod
@@ -130,6 +133,7 @@ for, so rewording one upstream cannot quietly drop every language back to
 English.
 
 [locales]: https://github.com/TrP-Labs/Locales
+[crowdin]: https://crowdin.com/project/trp-labs
 
 ## Theming
 

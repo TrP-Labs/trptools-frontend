@@ -13,6 +13,11 @@
  * that does not track whether it is inside a string literal silently truncates
  * the file at the first one.
  *
+ * The inlang `$schema` hint is added back on the way out. It is what gives an
+ * editor autocomplete over a message file, but it is deliberately absent from
+ * the Crowdin source — left in, Crowdin would offer a JSON Schema URL up for
+ * somebody to translate.
+ *
  * Usage: node scripts/jsonc-to-json.mjs <in.jsonc> <out.json>
  */
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -86,4 +91,7 @@ if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
 	process.exit(1);
 }
 
-writeFileSync(output, JSON.stringify(parsed, null, '\t') + '\n');
+const SCHEMA = 'https://inlang.com/schema/inlang-message-format';
+const { $schema: _ignored, ...messages } = parsed;
+
+writeFileSync(output, JSON.stringify({ $schema: SCHEMA, ...messages }, null, '\t') + '\n');

@@ -27,9 +27,9 @@
 		en: 'English',
 		cs: 'Čeština',
 		de: 'Deutsch',
-		es: 'Español',
 		pl: 'Polski',
-		ru: 'Русский'
+		ru: 'Русский',
+		uk: 'Українська'
 	};
 
 	// Seeded from the server-rendered theme, then owned by this component.
