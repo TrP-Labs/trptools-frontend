@@ -1,16 +1,16 @@
 {
 	"name": "trptools-frontend",
 	"private": true,
-	"version": "2.5.1",
+	"version": "2.5.2",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync && bun run messages || echo ''",
-		"check": "svelte-kit sync && bun run messages && node scripts/check-api-errors.mjs && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && bun run messages && node scripts/check-api-errors.mjs && node scripts/check-spelling.mjs && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && bun run messages && svelte-check --tsconfig ./tsconfig.json --watch",
-		"messages": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide"
+		"messages": "node scripts/messages.mjs"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",

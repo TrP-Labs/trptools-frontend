@@ -36,7 +36,7 @@
 		class="relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-border-base"
 		style="background: {value}"
 	>
-		<span class="sr-only">{m.ui_color_input_pick_colour()}</span>
+		<span class="sr-only">{m.ui_color_input_pick_color()}</span>
 		<input
 			{id}
 			type="color"

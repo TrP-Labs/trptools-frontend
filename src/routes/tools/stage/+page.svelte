@@ -208,7 +208,7 @@
 
 <svelte:head>
 	<title>{m.tools_stage_stage_programmer_trp_tools()}</title>
-	<meta name="description" content="Build stage lighting programs against a waveform." />
+	<meta name="description" content={m.tools_stage_meta_description()} />
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-10">

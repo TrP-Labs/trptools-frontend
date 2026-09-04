@@ -181,7 +181,7 @@
 							/>
 						</Field>
 
-						<Field label={m.common_colour()}>
+						<Field label={m.common_color()}>
 							<ColorInput
 								value={rank.color}
 								disabled={busy}

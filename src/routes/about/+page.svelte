@@ -7,7 +7,7 @@
 
 <svelte:head>
 	<title>{m.about_about_trp_tools()}</title>
-	<meta name="description" content="What TrP Tools is and how it works." />
+	<meta name="description" content={m.about_meta_description()} />
 </svelte:head>
 
 <div class="mx-auto max-w-2xl px-4 py-10">

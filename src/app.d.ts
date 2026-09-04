@@ -12,12 +12,15 @@ declare global {
 			theme: string;
 			/** Resolved by the Paraglide middleware, for loads that need it. */
 			locale: Locale;
+			/** Which of the three things decided `locale`. */
+			localeSource: 'device' | 'account' | 'automatic';
 		}
 
 		interface PageData {
 			user?: SessionUser | null;
 			theme?: string;
 			locale?: Locale;
+			localeSource?: 'device' | 'account' | 'automatic';
 		}
 
 		interface Error {

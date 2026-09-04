@@ -31,7 +31,7 @@
 
 	const kinds: Array<{ value: MarkerKind; label: string; hint: string }> = [
 		{ value: 'lights', label: m.stage_marker_dialog_lights(), hint: m.stage_marker_dialog_turn_fixtures_off() },
-		{ value: 'colors', label: m.common_colour(), hint: m.stage_marker_dialog_recolour_fixtures() },
+		{ value: 'colors', label: m.common_color(), hint: m.stage_marker_dialog_recolor_fixtures() },
 		{ value: 'action', label: m.stage_marker_dialog_action(), hint: m.stage_marker_dialog_flashes_throws() },
 		{ value: 'other', label: m.stage_marker_dialog_other(), hint: m.stage_marker_dialog_tracking_background() }
 	];
@@ -129,7 +129,7 @@
 				</div>
 			</Field>
 		{:else if kind === 'colors'}
-			<Field label={m.common_colour()}>
+			<Field label={m.common_color()}>
 				<div class="flex flex-wrap gap-1.5">
 					{#each COLORS as option (option)}
 						<button

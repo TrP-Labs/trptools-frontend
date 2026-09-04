@@ -100,7 +100,7 @@
 		<Select bind:value={draft.repeat} options={repeats} />
 	</Field>
 
-	<Field label={m.common_colour()}>
+	<Field label={m.common_color()}>
 		<ColorInput bind:value={draft.color} />
 	</Field>
 

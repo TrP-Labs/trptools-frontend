@@ -9,9 +9,10 @@
 # reachable, and a translation change shows up as a reviewable diff in the
 # frontend's own pull request.
 #
-# The source is authored as JSONC so translators can leave notes for each
-# other; the comments are stripped on the way in, because the message format
-# plugin reads strict JSON.
+# English is authored as JSONC upstream so its comments can carry context for
+# translators; every other language is written by Crowdin as plain JSON. Both
+# go through the same stripper here — it is a no-op on a file with no comments,
+# and it is also what refuses a malformed one.
 #
 # Adding a language is deliberately two steps. This script brings the file in;
 # listing the locale in project.inlang/settings.json is what actually ships it,
@@ -61,26 +62,37 @@ fi
 
 pulled=()
 for locale in "${locales[@]}"; do
-	url="https://raw.githubusercontent.com/$REPO/$REF/locales/$locale/strings.jsonc"
+	# strings.json first: that is what Crowdin writes, and for English it is
+	# the generated twin of the .jsonc, so preferring it means one code path.
+	# The .jsonc fallback is for a language being drafted by hand upstream,
+	# before Crowdin has anything for it.
+	found=""
+	for name in strings.json strings.jsonc; do
+		url="https://raw.githubusercontent.com/$REPO/$REF/locales/$locale/$name"
+		if curl -fsSL "$url" -o "messages/$locale.src.tmp"; then
+			found="$name"
+			break
+		fi
+	done
 
-	if ! curl -fsSL "$url" -o "messages/$locale.jsonc.tmp"; then
-		echo "note: $locale has no strings.jsonc — skipping." >&2
-		rm -f "messages/$locale.jsonc.tmp"
+	if [ -z "$found" ]; then
+		echo "note: $locale has no strings.json or strings.jsonc — skipping." >&2
+		rm -f "messages/$locale.src.tmp"
 		continue
 	fi
 
 	# Written to a temporary file first: a half-downloaded or malformed source
 	# must not replace a good translation already in the tree.
-	if node scripts/jsonc-to-json.mjs "messages/$locale.jsonc.tmp" "messages/$locale.json.tmp"; then
+	if node scripts/jsonc-to-json.mjs "messages/$locale.src.tmp" "messages/$locale.json.tmp"; then
 		mv "messages/$locale.json.tmp" "messages/$locale.json"
 		pulled+=("$locale")
-		echo "Pulled $locale"
+		echo "Pulled $locale ($found)"
 	else
-		echo "warning: $locale is not valid JSONC and was left unchanged." >&2
+		echo "warning: $locale is not valid and was left unchanged." >&2
 		rm -f "messages/$locale.json.tmp"
 	fi
 
-	rm -f "messages/$locale.jsonc.tmp"
+	rm -f "messages/$locale.src.tmp"
 done
 
 # A language present upstream but not listed in the inlang project is pulled

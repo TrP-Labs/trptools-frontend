@@ -255,7 +255,7 @@
 								<Input bind:value={editDraft.name} maxlength={60} />
 							</Field>
 
-							<Field label={m.common_colour()}>
+							<Field label={m.common_color()}>
 								<ColorInput bind:value={editDraft.color} />
 							</Field>
 
@@ -354,7 +354,7 @@
 				<Input bind:value={createDraft.name} maxlength={60} placeholder={m.dashboard_depots_e_g_cat_island()} />
 			</Field>
 
-			<Field label={m.common_colour()}>
+			<Field label={m.common_color()}>
 				<ColorInput bind:value={createDraft.color} />
 			</Field>
 

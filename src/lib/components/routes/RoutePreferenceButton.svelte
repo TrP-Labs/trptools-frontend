@@ -158,7 +158,7 @@
 				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text
 					transition-colors hover:bg-background-muted"
 			>
-				<IconThumbUp size={15} class="text-success" /> {m.routes_route_preference_button_favourite()}
+				<IconThumbUp size={15} class="text-success" /> {m.routes_route_preference_button_favorite()}
 			</button>
 
 			<button

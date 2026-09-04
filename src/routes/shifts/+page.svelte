@@ -28,7 +28,7 @@
 
 <svelte:head>
 	<title>{m.shifts_shifts_trp_tools()}</title>
-	<meta name="description" content="Upcoming shifts across your groups." />
+	<meta name="description" content={m.shifts_meta_description()} />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-10">
