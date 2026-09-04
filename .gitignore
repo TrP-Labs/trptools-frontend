@@ -33,3 +33,6 @@ project.inlang/cache
 
 # Local Claude Code config (dev server launch settings, per-machine).
 .claude
+
+# Screenshots captured for Crowdin (see scripts/crowdin-screenshots.mjs).
+.screenshots
