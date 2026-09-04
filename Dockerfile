@@ -1,6 +1,13 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1-alpine AS deps
+# Bun is pinned rather than tracking oven/bun:1-alpine. 1.4.1's bundler renames
+# a CommonJS export onto a name already bound in the same scope, emitting
+# `var Check2 = Check2`, which fails to parse — elysia and @sinclair/typebox
+# both bind `Check` and trip it. Fixed upstream but unreleased as of 1.4.1.
+# TODO: return to oven/bun:1-alpine once 1.4.2 is out.
+# https://github.com/oven-sh/bun/issues/41351
+
+FROM oven/bun:1.4.0-alpine AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 
@@ -12,7 +19,7 @@ COPY package.json bun.lock* ./
 RUN bun --eval "const p = require('./package.json'); delete p.devDependencies['trptools-backend']; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2))" \
 	&& bun install
 
-FROM oven/bun:1-alpine AS build
+FROM oven/bun:1.4.0-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
@@ -35,7 +42,7 @@ ENV PUBLIC_API_URL=$PUBLIC_API_URL
 # blank button, so strings are pinned to the build that expects them.
 RUN bun run build
 
-FROM oven/bun:1-alpine AS runtime
+FROM oven/bun:1.4.0-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
