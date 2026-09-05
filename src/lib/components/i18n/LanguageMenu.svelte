@@ -87,7 +87,7 @@
 			role="menu"
 			aria-label={label}
 			class="absolute z-30 mt-1 max-h-72 w-52 overflow-y-auto rounded-xl border border-border-base
-				bg-background-raised p-1 shadow-lg {align === 'right' ? 'right-0' : 'left-0'}"
+				bg-background-secondary p-1 shadow-lg {align === 'right' ? 'right-0' : 'left-0'}"
 		>
 			{#each choices as locale (locale)}
 				<button

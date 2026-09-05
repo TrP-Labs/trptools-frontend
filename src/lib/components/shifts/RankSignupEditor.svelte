@@ -159,7 +159,7 @@
 {#if !signup}
 	<EmptyState
 		title={m.shifts_rank_signup_editor_no_sign_up_sheet()}
-		description="Slots people at this rank or above can take on any shift. Nobody below {rankName} ever sees it."
+		description={m.shifts_rank_signup_editor_no_sheet_description({ rank: rankName })}
 	>
 		{#snippet icon()}<IconClipboardList size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}

@@ -148,9 +148,12 @@
 						{/if}
 
 						<p class="mt-2 text-xs text-text-subtle">
-							Reported by {report.reporter?.displayName ??
-								report.reporter?.username ??
-								'a deleted account'}
+							{m.admin_reported_by({
+								name:
+									report.reporter?.displayName ??
+									report.reporter?.username ??
+									m.admin_a_deleted_account()
+							})}
 						</p>
 					</div>
 

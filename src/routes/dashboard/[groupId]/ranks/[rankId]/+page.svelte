@@ -98,7 +98,7 @@
 >
 	{#snippet meta()}
 		{#if isOwner}<Badge tone="accent">{m.dashboard_ranks_owner()}</Badge>{/if}
-		<Badge>Rank {rank.cachedRank}</Badge>
+		<Badge>{m.dashboard_ranks_rank_number({ number: rank.cachedRank })}</Badge>
 		<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
 			{permissionLabel(rank.permissionLevel)}
 		</Badge>

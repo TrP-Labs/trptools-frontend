@@ -183,7 +183,7 @@
 						{#each visibleRoutes as route (route.id)}
 							{@const href = `/g/${group.slug}/route/${route.slug}`}
 							<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
-								<a {href} class="absolute inset-0" aria-label="Open route {localized(route, 'name')}"></a>
+								<a {href} class="absolute inset-0" aria-label={m.g_open_route({ route: localized(route, 'name') })}></a>
 
 								<RouteBadge
 									label={localized(route, 'name')}
@@ -264,9 +264,9 @@
 								text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
 						>
 							{#if allRoutes}
-								Show less <IconChevronUp size={15} />
+								{m.g_show_less()} <IconChevronUp size={15} />
 							{:else}
-								Show {group.routes.length - ROUTE_PREVIEW} more <IconChevronDown size={15} />
+								{m.g_show_more({ count: group.routes.length - ROUTE_PREVIEW })} <IconChevronDown size={15} />
 							{/if}
 						</button>
 					{/if}
@@ -282,7 +282,7 @@
 					{#each visibleDepots as depot (depot.id)}
 						{@const href = `/g/${group.slug}/depot/${depot.slug}`}
 						<li class="card group relative flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-accent/50">
-							<a {href} class="absolute inset-0" aria-label="Open depot {localized(depot, 'name')}"></a>
+							<a {href} class="absolute inset-0" aria-label={m.g_open_depot({ depot: localized(depot, 'name') })}></a>
 
 							<DepotBadge
 								number={depot.number}
@@ -342,9 +342,9 @@
 							text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
 					>
 						{#if allDepots}
-							Show less <IconChevronUp size={15} />
+							{m.g_show_less()} <IconChevronUp size={15} />
 						{:else}
-							Show {group.depots.length - DEPOT_PREVIEW} more <IconChevronDown size={15} />
+							{m.g_show_more({ count: group.depots.length - DEPOT_PREVIEW })} <IconChevronDown size={15} />
 						{/if}
 					</button>
 				{/if}
@@ -390,7 +390,7 @@
 									<p class="font-medium text-text">{localized(application, 'name')}</p>
 									{#if application.rankName}
 										<p class="mt-0.5 text-sm text-text-muted">
-											Applying for {application.rankName}
+											{m.g_applying_for({ rank: application.rankName })}
 										</p>
 									{/if}
 									{#if localized(application, 'description')}
@@ -444,9 +444,9 @@
 								text-sm text-text-muted transition-colors hover:bg-background-secondary hover:text-text"
 						>
 							{#if allShifts}
-								Show less <IconChevronUp size={15} />
+								{m.g_show_less()} <IconChevronUp size={15} />
 							{:else}
-								Show {group.upcomingShifts.length - SHIFT_PREVIEW} more <IconChevronDown size={15} />
+								{m.g_show_more({ count: group.upcomingShifts.length - SHIFT_PREVIEW })} <IconChevronDown size={15} />
 							{/if}
 						</button>
 					{/if}

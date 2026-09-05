@@ -39,9 +39,9 @@
 				</p>
 				<p class="mt-1 text-danger/85">
 					{#if until}
-						You can sign in again from {formatDateTime(until)}.
+						{m.login_can_sign_in_again_from({ date: formatDateTime(until) })}
 					{:else}
-						Contact the site administrators if you think this is a mistake.
+						{m.login_contact_the_site_administrators()}
 					{/if}
 				</p>
 			</div>
@@ -57,6 +57,8 @@
 	</div>
 
 	{#if next !== '/dashboard'}
-		<p class="mt-4 text-center text-xs text-text-subtle">You will return to {next} afterwards.</p>
+		<p class="mt-4 text-center text-xs text-text-subtle">
+			{m.login_you_will_return_to({ page: next })}
+		</p>
 	{/if}
 </div>

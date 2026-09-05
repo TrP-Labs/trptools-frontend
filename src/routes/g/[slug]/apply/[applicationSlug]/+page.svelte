@@ -204,7 +204,7 @@
 								class="inline-block size-2 rounded-full"
 								style="background: {application.rankColor}"
 							></span>
-							Applying for {application.rankName}
+							{m.g_applying_for({ rank: application.rankName })}
 						</Badge>
 					{/if}
 					{#if !application.open}
@@ -241,8 +241,7 @@
 			<div class="min-w-0 flex-1">
 				<p class="font-medium text-text">{m.g_apply_application_with_group()}</p>
 				<p class="text-sm text-text-muted">
-					Sent {formatDateTime(mine.submittedAt)}. You will not be able to send another until it has
-					been read.
+					{m.g_apply_sent_on_waiting({ date: formatDateTime(mine.submittedAt) })}
 				</p>
 			</div>
 		</div>
@@ -265,7 +264,9 @@
 					{approved ? m.g_apply_application_was_approved() : m.g_apply_application_was_not_taken_forward()}
 				</p>
 				{#if mine.reviewedAt}
-					<p class="text-sm text-text-muted">Decided {formatDateTime(mine.reviewedAt)}.</p>
+					<p class="text-sm text-text-muted">
+						{m.g_apply_decided_on({ date: formatDateTime(mine.reviewedAt) })}
+					</p>
 				{/if}
 				{#if mine.reviewNote}
 					<p class="mt-2 whitespace-pre-line text-sm text-text">“{mine.reviewNote}”</p>
@@ -281,9 +282,10 @@
 				-->
 				{#if stillCounts && standing?.retryAt}
 					<p class="mt-2 text-sm text-text-subtle">
-						You can apply again {formatRelative(standing.retryAt)}, on {formatDateTime(
-							standing.retryAt
-						)}.
+						{m.g_apply_can_apply_again_on({
+							relative: formatRelative(standing.retryAt),
+							date: formatDateTime(standing.retryAt)
+						})}
 					</p>
 				{:else if stillCounts && !approved}
 					<p class="mt-2 text-sm text-text-subtle">

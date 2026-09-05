@@ -21,6 +21,7 @@
 	 * under it by a popup opening.
 	 */
 	import { tick } from 'svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * What an option means to whoever is choosing.
@@ -73,7 +74,7 @@
 		options,
 		id,
 		disabled = false,
-		placeholder = 'Select…',
+		placeholder = m.common_select_placeholder(),
 		ariaLabel,
 		invalid = false,
 		title,

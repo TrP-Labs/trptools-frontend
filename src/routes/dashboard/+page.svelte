@@ -121,7 +121,7 @@
 					<Avatar src={group.icon} name={group.name} size={36} />
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium text-text">{group.name}</p>
-						<p class="text-xs text-text-subtle">Roblox ID {group.robloxId}</p>
+						<p class="text-xs text-text-subtle">{m.dashboard_roblox_id({ id: group.robloxId })}</p>
 					</div>
 					<Button
 						size="sm"

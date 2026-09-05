@@ -116,7 +116,7 @@
 			<li
 				class="card relative flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-accent/50"
 			>
-				<a {href} class="absolute inset-0" aria-label="Open {localized(application, 'name')}"></a>
+				<a {href} class="absolute inset-0" aria-label={m.dashboard_applications_open_named_form({ name: localized(application, 'name') })}></a>
 
 				<span
 					class="h-9 w-1.5 shrink-0 rounded-full"

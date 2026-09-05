@@ -135,7 +135,7 @@
 				size={44}
 			/>
 			<div class="text-right text-xs text-text-subtle">
-				<p>Roblox ID {user.robloxId}</p>
+				<p>{m.dashboard_roblox_id({ id: user.robloxId })}</p>
 				<p class="capitalize">{user.siteRank}</p>
 			</div>
 		</div>

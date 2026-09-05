@@ -84,7 +84,7 @@
 
 					<div class="hidden shrink-0 items-center gap-2 sm:flex">
 						{#if rank.cachedRank === 255}<Badge tone="accent">{m.dashboard_ranks_owner()}</Badge>{/if}
-						<Badge>Rank {rank.cachedRank}</Badge>
+						<Badge>{m.dashboard_ranks_rank_number({ number: rank.cachedRank })}</Badge>
 						<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
 							{permissionLabel(rank.permissionLevel)}
 						</Badge>
@@ -116,7 +116,7 @@
 				>
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium text-text">{role.name}</p>
-						<p class="text-xs text-text-subtle">Rank {role.rank}</p>
+						<p class="text-xs text-text-subtle">{m.dashboard_ranks_rank_number({ number: role.rank })}</p>
 					</div>
 					<Button
 						size="sm"
