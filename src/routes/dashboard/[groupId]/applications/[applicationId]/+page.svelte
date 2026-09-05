@@ -184,9 +184,9 @@
 				)}
 		>
 			{#if application.open}
-				<IconLock size={15} /> Close applications
+				<IconLock size={15} /> {m.dashboard_applications_close_applications()}
 			{:else}
-				<IconLockOpen size={15} /> Open applications
+				<IconLockOpen size={15} /> {m.dashboard_applications_open_applications()}
 			{/if}
 		</Button>
 	{/snippet}

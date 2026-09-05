@@ -39,7 +39,7 @@
 			{:else}
 				<ul
 					class="flex snap-x gap-2 overflow-x-auto px-4 pt-1 pb-4"
-					aria-label="{rank.name} members"
+					aria-label={m.users_rank_roster_rank_members({ rank: rank.name })}
 				>
 					{#each rank.members as member (member.robloxId)}
 						<li class="shrink-0 snap-start">

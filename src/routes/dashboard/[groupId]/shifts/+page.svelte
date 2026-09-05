@@ -225,7 +225,10 @@
 							<div class="min-w-0 flex-1">
 								<p class="truncate font-medium text-text">{localized(shift, 'name')}</p>
 								<p class="mt-0.5 text-xs text-text-muted">
-									Repeats {shift.recurrenceText} · {formatDuration(shift.duration)}
+									{m.dashboard_shifts_repeats_every({
+										recurrence: shift.recurrenceText,
+										duration: formatDuration(shift.duration)
+									})}
 								</p>
 								{#if shift.visibility !== 'PUBLIC'}
 									<div class="mt-2 flex flex-wrap gap-1.5">

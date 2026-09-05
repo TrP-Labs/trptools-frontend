@@ -111,8 +111,10 @@
 					</div>
 
 					<p class="mt-2 text-xs text-text-subtle">
-						Created {formatRelative(key.createdAt)}
-						{#if key.lastUsedAt}· last used {formatRelative(key.lastUsedAt)}{:else}· never used{/if}
+						{m.settings_api_keys_created_ago({ when: formatRelative(key.createdAt) })}
+						{#if key.lastUsedAt}·
+							{m.settings_api_keys_last_used_ago({ when: formatRelative(key.lastUsedAt) })}
+						{:else}· {m.settings_api_keys_never_used()}{/if}
 					</p>
 				</div>
 

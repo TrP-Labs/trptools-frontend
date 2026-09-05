@@ -123,10 +123,10 @@
 	>
 		{#if preference === 'FAVORITE'}
 			<IconThumbUp size={15} />
-			{#if showLabel}Favourite{/if}
+			{#if showLabel}{m.routes_preference_favorite()}{/if}
 		{:else if preference === 'DISLIKE'}
 			<IconThumbDown size={15} />
-			{#if showLabel}Disliked{/if}
+			{#if showLabel}{m.routes_preference_disliked()}{/if}
 		{:else}
 			<!--
 				The two thumbs read as one mark rather than as two buttons: they
@@ -136,7 +136,7 @@
 				<IconThumbUp size={11} class="absolute top-0 left-0" />
 				<IconThumbDown size={11} class="absolute right-0 bottom-0" />
 			</span>
-			{#if showLabel}Rate route{/if}
+			{#if showLabel}{m.routes_preference_rate_route()}{/if}
 		{/if}
 	</button>
 
@@ -182,7 +182,7 @@
 					on the card distinguishes the two.
 				-->
 				<p class="border-t border-border-base px-3 pt-2 pb-1 text-xs text-text-subtle">
-					Applies to route {routeName} in every group.
+					{m.routes_preference_applies_in_every_group({ route: routeName })}
 				</p>
 			{/if}
 		</div>

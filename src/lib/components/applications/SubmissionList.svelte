@@ -233,7 +233,7 @@
 				{#if open}
 					<div class="space-y-5 border-t border-border-base p-4">
 						<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-subtle">
-							<span>Sent {formatDateTime(submission.submittedAt)}</span>
+							<span>{m.applications_submission_list_sent_on({ date: formatDateTime(submission.submittedAt) })}</span>
 							<!-- Sent with the form: when they are actually around, and in what language. -->
 							<span class="inline-flex items-center gap-1">
 								<IconWorld size={12} />
@@ -316,8 +316,9 @@
 									{/if}
 									{#if submission.clearedAt}
 										<p class="text-text-subtle">
-											Record cleared {formatDateTime(submission.clearedAt)} — this no longer stops
-											them applying.
+											{m.applications_submission_list_record_cleared_on({
+												date: formatDateTime(submission.clearedAt)
+											})}
 										</p>
 									{/if}
 								</div>

@@ -245,9 +245,9 @@
 
 			<Button onclick={togglePlay} disabled={!ready}>
 				{#if playing}
-					<IconPlayerPause size={16} /> Pause
+					<IconPlayerPause size={16} /> {m.stage_pause()}
 				{:else}
-					<IconPlayerPlay size={16} /> Play
+					<IconPlayerPlay size={16} /> {m.stage_play()}
 				{/if}
 			</Button>
 

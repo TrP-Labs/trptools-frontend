@@ -131,7 +131,7 @@
 		<section class="card flex flex-wrap items-center gap-3 p-4">
 			<IconClock size={18} class="shrink-0 text-text-subtle" />
 			<p class="text-sm text-text-muted">
-				Sign-ups for the next one open {formatRelative(nextSignupOpening)}.
+				{m.g_shift_signups_for_next_open({ when: formatRelative(nextSignupOpening) })}
 			</p>
 		</section>
 	{/if}

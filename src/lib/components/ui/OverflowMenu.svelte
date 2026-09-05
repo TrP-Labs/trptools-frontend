@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconDots } from '@tabler/icons-svelte';
 	import type { Snippet } from 'svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		label?: string;
@@ -9,7 +10,7 @@
 		class?: string;
 	}
 
-	let { label = 'More actions', children, class: className = '' }: Props = $props();
+	let { label = m.common_more_actions(), children, class: className = '' }: Props = $props();
 
 	let open = $state(false);
 	let root = $state<HTMLDivElement | null>(null);

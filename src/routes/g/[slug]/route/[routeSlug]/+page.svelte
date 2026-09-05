@@ -21,9 +21,21 @@
 </script>
 
 <svelte:head>
-	<title>Route {localized(route, 'name')} — {localized(group, 'name')} — TrP Tools</title>
-	<meta name="description" content={localized(route, 'description') || `Route ${localized(route, 'name')} on ${localized(group, 'name')}.`} />
-	<meta property="og:title" content="Route {localized(route, 'name')} — {localized(group, 'name')}" />
+	<title>
+		{m.g_route_page_title({ route: localized(route, 'name') })} — {localized(group, 'name')} — TrP Tools
+	</title>
+	<meta
+		name="description"
+		content={localized(route, 'description') ||
+			m.g_route_meta_description({
+				route: localized(route, 'name'),
+				group: localized(group, 'name')
+			})}
+	/>
+	<meta
+		property="og:title"
+		content="{m.g_route_page_title({ route: localized(route, 'name') })} — {localized(group, 'name')}"
+	/>
 	<meta property="og:description" content={localized(route, 'description') || `Route ${localized(route, 'name')} on ${localized(group, 'name')}.`} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={route.icon ?? route.images[0]?.url ?? group.icon ?? ''} />
@@ -48,7 +60,7 @@
 
 			<div class="min-w-0 flex-1">
 				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">
-					Route {localized(route, 'name')}
+					{m.g_route_page_title({ route: localized(route, 'name') })}
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
@@ -68,7 +80,7 @@
 						/>
 					{/if}
 
-					<ReportButton targetType="ROUTE" targetId={route.id} label="route {localized(route, 'name')}" />
+					<ReportButton targetType="ROUTE" targetId={route.id} label={m.g_report_label_route({ route: localized(route, 'name') })} />
 				</div>
 			</div>
 		</div>
@@ -136,6 +148,7 @@
 		href="/g/{group.slug}"
 		class="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-text"
 	>
-		<IconBuildingWarehouse size={15} /> All routes and depots on {localized(group, 'name')}
+		<IconBuildingWarehouse size={15} />
+		{m.g_all_routes_and_depots_on({ group: localized(group, 'name') })}
 	</a>
 </div>

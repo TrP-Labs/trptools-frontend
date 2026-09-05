@@ -33,7 +33,7 @@
 	let {
 		open = $bindable(false),
 		groupId,
-		title = 'Choose a role',
+		title = m.dashboard_bot_choose_role(),
 		description,
 		value,
 		allowNone = true,

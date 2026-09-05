@@ -115,7 +115,21 @@
 	}
 </script>
 
-<div class="flex items-start gap-2 {className}">
+<!--
+	One box, not two.
+	
+	The flag used to be a separate bordered square beside the field, which read
+	as a second control that happened to sit nearby rather than as something
+	belonging to the text. The border, background and focus ring now live on
+	this wrapper, the field inside it is transparent and borderless, and the
+	button is divided off with a hairline — so the whole thing looks and
+	focuses like the plain `Input` next to it on the same form.
+-->
+<div
+	class="flex rounded-lg border border-border-base bg-background-secondary transition-colors
+		focus-within:border-accent {multiline ? 'items-start' : 'items-stretch'}
+		{disabled ? 'cursor-not-allowed opacity-60' : ''} {className}"
+>
 	{#if multiline}
 		<textarea
 			{id}
@@ -127,9 +141,8 @@
 			onblur={() => onblur?.()}
 			placeholder={isSource ? placeholder : value}
 			lang={editing}
-			class="w-full min-w-0 flex-1 resize-y rounded-lg border border-border-base bg-background-secondary
-				px-3 py-2 text-sm text-text placeholder:text-text-subtle focus:border-accent
-				focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+			class="min-w-0 flex-1 resize-y rounded-lg bg-transparent px-3 py-2 text-sm text-text
+				placeholder:text-text-subtle focus:outline-none disabled:cursor-not-allowed"
 		></textarea>
 	{:else}
 		<input
@@ -141,9 +154,8 @@
 			onblur={() => onblur?.()}
 			placeholder={isSource ? placeholder : value}
 			lang={editing}
-			class="w-full min-w-0 flex-1 rounded-lg border border-border-base bg-background-secondary px-3
-				py-2 text-sm text-text placeholder:text-text-subtle focus:border-accent focus:outline-none
-				disabled:cursor-not-allowed disabled:opacity-60"
+			class="min-w-0 flex-1 rounded-lg bg-transparent px-3 py-2 text-sm text-text
+				placeholder:text-text-subtle focus:outline-none disabled:cursor-not-allowed"
 		/>
 	{/if}
 
@@ -152,6 +164,7 @@
 		options={SITE_LOCALES}
 		label={m.translate_language_for_this_box()}
 		onpick={(locale) => (editing = locale)}
+		class="self-stretch"
 	>
 		{#snippet trigger({ open, toggle })}
 			<button
@@ -164,11 +177,12 @@
 					? m.translate_writing_in_source({ language: languageName(editing) })
 					: m.translate_writing_in({ language: languageName(editing) })}
 				aria-label={m.translate_writing_in({ language: languageName(editing) })}
-				class="relative grid size-9 shrink-0 place-items-center rounded-lg border transition-colors
-					disabled:opacity-50
+				class="relative grid h-full w-9 shrink-0 place-items-center rounded-r-lg border-l
+					border-border-base transition-colors disabled:cursor-not-allowed
+					{multiline ? 'py-2.5' : ''}
 					{isSource
-					? 'border-border-base text-text-subtle hover:border-border-strong hover:text-text'
-					: 'border-accent bg-accent/10 text-accent'}"
+					? 'text-text-subtle hover:bg-background-muted hover:text-text'
+					: 'bg-accent/10 text-accent hover:bg-accent/15'}"
 			>
 				<Flag locale={editing} class="h-3.5 w-5 rounded-xs ring-1 ring-black/20" />
 
@@ -177,9 +191,13 @@
 						The only outward sign that this field has been
 						translated at all. Without it a form somebody has
 						filled in four languages looks exactly like one nobody
-						has touched.
+						has touched. Inside the box now, so it sits on the
+						divider rather than poking out of the top corner.
 					-->
-					<span class="absolute -top-1 -right-1 size-2 rounded-full bg-accent"></span>
+					<span
+						class="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent"
+						class:top-2={multiline}
+					></span>
 				{/if}
 			</button>
 		{/snippet}

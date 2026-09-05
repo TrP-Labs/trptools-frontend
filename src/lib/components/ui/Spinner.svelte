@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	interface Props {
 		size?: number;
 		class?: string;
 		label?: string;
 	}
 
-	let { size = 20, class: className = '', label = 'Loading' }: Props = $props();
+	let { size = 20, class: className = '', label = m.common_loading() }: Props = $props();
 </script>
 
 <span

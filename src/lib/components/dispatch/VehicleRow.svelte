@@ -334,12 +334,17 @@
 					size="sm"
 					invalid={mismatch}
 					tone={selectTone}
-					ariaLabel="Route for vehicle {vehicle.id}"
+					ariaLabel={m.dispatch_vehicle_row_route_for_vehicle({ vehicle: vehicle.id })}
 					title={mismatch
-						? `${matched ? localized(matched, 'name') : ''} does not run from ${vehicle.depot}`
+						? m.dispatch_vehicle_row_does_not_run_from({
+								route: matched ? localized(matched, 'name') : '',
+								depot: vehicle.depot
+							})
 						: selectTone
-							? `${matched ? localized(matched, 'name') : ''} is one of this driver's favourite routes`
-							: `Route for vehicle ${vehicle.id}`}
+							? m.dispatch_vehicle_row_driver_favorite_route({
+									route: matched ? localized(matched, 'name') : ''
+								})
+							: m.dispatch_vehicle_row_route_for_vehicle({ vehicle: vehicle.id })}
 					class="min-w-28 flex-1"
 					onchange={onroute}
 				/>
@@ -360,8 +365,14 @@
 				{#if mismatch}
 					<span
 						class="shrink-0 text-danger"
-						title="{matched ? localized(matched, 'name') : ''} does not run from {vehicle.depot}"
-						aria-label="{matched ? localized(matched, 'name') : ''} does not run from {vehicle.depot}"
+						title={m.dispatch_vehicle_row_does_not_run_from({
+							route: matched ? localized(matched, 'name') : '',
+							depot: vehicle.depot
+						})}
+						aria-label={m.dispatch_vehicle_row_does_not_run_from({
+							route: matched ? localized(matched, 'name') : '',
+							depot: vehicle.depot
+						})}
 					>
 						<IconAlertTriangle size={15} />
 					</span>
@@ -379,7 +390,7 @@
 						type="button"
 						disabled={towed}
 						title={m.dispatch_vehicle_row_assign_route_automatically()}
-						aria-label="Assign a route automatically to vehicle {vehicle.id}"
+						aria-label={m.dispatch_vehicle_row_assign_route_to_vehicle({ vehicle: vehicle.id })}
 						onclick={onsolve}
 						class="shrink-0 rounded-md border border-border-base p-1.5 text-text-subtle
 							transition-colors hover:border-accent hover:text-accent disabled:opacity-50
@@ -487,7 +498,7 @@
 		bind:this={refs.delete}
 		type="button"
 		disabled={busy}
-		aria-label="Remove vehicle {vehicle.id}"
+		aria-label={m.dispatch_vehicle_row_remove_vehicle({ vehicle: vehicle.id })}
 		onclick={ondelete}
 		class="ml-auto shrink-0 rounded-md p-1.5 text-text-subtle transition-colors hover:text-danger
 			disabled:opacity-50 {selecting ? 'pointer-events-none' : ''} {ring('delete')}"

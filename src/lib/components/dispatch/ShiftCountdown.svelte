@@ -102,9 +102,9 @@
 
 				<p class="mt-2.5 text-xs text-text-subtle">
 					{#if unlocked}
-						Everyone with dispatch access can join once the room is open.
+						{m.dispatch_shift_countdown_everyone_can_join()}
 					{:else}
-						Unlocks {lead}.
+						{m.dispatch_shift_countdown_unlocks({ when: lead })}
 					{/if}
 				</p>
 			</div>

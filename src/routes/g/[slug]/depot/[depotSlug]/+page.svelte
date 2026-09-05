@@ -54,9 +54,9 @@
 					{localized(depot, 'name')}
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
-					<Badge>Depot {depot.number}</Badge>
+					<Badge>{m.g_depot_number({ number: depot.number })}</Badge>
 					<Badge><IconRoute size={13} /> {data.routes.length} routes</Badge>
-					<ReportButton targetType="DEPOT" targetId={depot.id} label="depot {depot.number}" />
+					<ReportButton targetType="DEPOT" targetId={depot.id} label={m.g_report_label_depot({ number: depot.number })} />
 				</div>
 			</div>
 		</div>

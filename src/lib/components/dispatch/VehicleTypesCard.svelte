@@ -121,7 +121,7 @@
 
 				<button
 					type="button"
-					aria-label="Remove {row.name || 'this vehicle'}"
+					aria-label={m.dispatch_vehicle_types_remove({ vehicle: row.name || m.dispatch_vehicle_types_this_vehicle() })}
 					onclick={() => rows.splice(index, 1)}
 					class="rounded-md p-1.5 text-text-subtle transition-colors hover:text-danger"
 				>

@@ -84,7 +84,7 @@
 		reset();
 		onclose();
 	}}
-	title="Add marker at {formatTimecode(time)}"
+	title={m.stage_marker_dialog_add_marker_at({ time: formatTimecode(time) })}
 	description={m.stage_marker_dialog_markers_fire_order_as_track_plays()}
 >
 	<div class="space-y-4">

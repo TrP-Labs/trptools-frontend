@@ -34,7 +34,7 @@
 	let {
 		open = $bindable(false),
 		groupId,
-		title = 'Choose a channel',
+		title = m.dashboard_bot_choose_channel(),
 		description,
 		value,
 		allowNone = true,

@@ -80,7 +80,7 @@
 					title={m.dashboard_bot_move_language_earlier({ language: languageName(locale) })}
 					aria-label={m.dashboard_bot_move_language_earlier({ language: languageName(locale) })}
 					class="grid size-5 place-items-center rounded-md text-text-subtle transition-colors
-						hover:bg-background-raised hover:text-text disabled:opacity-50"
+						hover:bg-background hover:text-text disabled:opacity-50"
 				>
 					<IconArrowLeft size={13} />
 				</button>
@@ -94,7 +94,7 @@
 					title={m.dashboard_bot_remove_language({ language: languageName(locale) })}
 					aria-label={m.dashboard_bot_remove_language({ language: languageName(locale) })}
 					class="grid size-5 place-items-center rounded-md text-text-subtle transition-colors
-						hover:bg-background-raised hover:text-danger disabled:opacity-50"
+						hover:bg-background hover:text-danger disabled:opacity-50"
 				>
 					<IconX size={13} />
 				</button>
