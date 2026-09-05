@@ -5,6 +5,7 @@
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import type { ShiftOccurrence } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	interface Props {
 		/** Upcoming occurrences across the group, soonest first. */
@@ -80,7 +81,7 @@
 			{live ? m.dispatch_shift_countdown_running_now() : m.dispatch_shift_countdown_next_shift()}
 		</p>
 
-		<h2 class="mt-1 text-xl font-semibold text-text">{next.name}</h2>
+		<h2 class="mt-1 text-xl font-semibold text-text">{localized(next, 'name')}</h2>
 		<p class="mt-1 text-sm text-text-muted">{formatDateTime(next.start)}</p>
 
 		<p

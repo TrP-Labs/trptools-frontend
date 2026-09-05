@@ -10,6 +10,7 @@
 	import { loginUrl } from '$lib/api/client';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -82,7 +83,7 @@
 									></span>
 
 									<div class="min-w-0 flex-1">
-										<p class="truncate font-medium text-text">{occurrence.name}</p>
+										<p class="truncate font-medium text-text">{localized(occurrence, 'name')}</p>
 										<div class="mt-0.5 flex items-center gap-1.5">
 											<Avatar src={occurrence.groupIcon} name={occurrence.groupName} size={14} />
 											<span class="truncate text-xs text-text-muted">

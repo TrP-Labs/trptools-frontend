@@ -20,6 +20,7 @@
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
 	import { API_URL, api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import {
@@ -44,9 +45,11 @@
 		groupId: string;
 		applicationId: string;
 		questions: ApplicationQuestion[];
+		/** The language the group writes in, which the boxes default to. */
+		sourceLocale: string;
 	}
 
-	let { groupId, applicationId, questions }: Props = $props();
+	let { groupId, applicationId, questions, sourceLocale }: Props = $props();
 
 	let drafts = $state<QuestionDraft[]>([]);
 	let dirty = $state(false);
@@ -64,6 +67,7 @@
 			type: question.type,
 			prompt: question.prompt,
 			description: question.description,
+			translations: structuredClone(question.translations),
 			required: question.required,
 			options: [...question.options],
 			maxLength: question.maxLength,
@@ -95,6 +99,7 @@
 				type,
 				prompt: '',
 				description: '',
+				translations: {},
 				required: false,
 				options: isChoice(type) ? ['', ''] : [],
 				maxLength: null,
@@ -171,6 +176,7 @@
 					type: draft.type,
 					prompt: draft.prompt.trim(),
 					description: draft.description,
+					translations: draft.translations,
 					required: draft.required,
 					options: isChoice(draft.type)
 						? draft.options.map((option) => option.trim()).filter(Boolean)
@@ -198,6 +204,7 @@
 			type: question.type,
 			prompt: question.prompt,
 			description: question.description,
+			translations: structuredClone(question.translations),
 			required: question.required,
 			options: [...question.options],
 			maxLength: question.maxLength,
@@ -297,8 +304,11 @@
 								</label>
 
 								<Field label={m.applications_question_editor_caption()} hint={m.applications_question_editor_optional_shown_under_picture()}>
-									<Input
+									<TranslatableField
 										bind:value={draft.prompt}
+										bind:translations={draft.translations}
+										field="prompt"
+										{sourceLocale}
 										maxlength={300}
 										placeholder={m.applications_question_editor_e_g_evening_service_at_cat()}
 										oninput={() => (dirty = true)}
@@ -308,8 +318,11 @@
 						</div>
 					{:else}
 						<Field label={draft.type === 'SECTION' ? m.applications_question_editor_heading() : m.applications_question_editor_question()}>
-							<Input
+							<TranslatableField
 								bind:value={draft.prompt}
+								bind:translations={draft.translations}
+								field="prompt"
+								{sourceLocale}
 								maxlength={300}
 								placeholder={draft.type === 'SECTION'
 									? m.applications_question_editor_e_g_before_start()
@@ -324,8 +337,12 @@
 								? m.applications_question_editor_shown_applicants_as_paragraph()
 								: m.applications_question_editor_optional_guidance_under_question()}
 						>
-							<Textarea
+							<TranslatableField
 								bind:value={draft.description}
+								bind:translations={draft.translations}
+								field="description"
+								{sourceLocale}
+								multiline
 								rows={draft.type === 'SECTION' ? 4 : 2}
 								maxlength={1000}
 								oninput={() => (dirty = true)}
@@ -361,11 +378,22 @@
 								{#each draft.options as _, optionIndex (optionIndex)}
 									<li class="flex items-center gap-2">
 										<span class="text-xs text-text-subtle tabular-nums">{optionIndex + 1}</span>
-										<Input
+										<!--
+											Choices are keyed by position, so
+											reordering the source list moves the
+											translations out from under them —
+											the same trade the editor already
+											makes reusing question rows by id.
+										-->
+										<TranslatableField
 											bind:value={draft.options[optionIndex]}
+											bind:translations={draft.translations}
+											field="option:{optionIndex}"
+											{sourceLocale}
 											maxlength={120}
 											placeholder={m.applications_question_editor_e_g_weekends_only()}
 											oninput={() => (dirty = true)}
+											class="min-w-0 flex-1"
 										/>
 										<button
 											type="button"

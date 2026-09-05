@@ -16,6 +16,7 @@
 		type VehicleBucket
 	} from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	interface OwnerProfile {
 		displayName: string | null;
@@ -158,7 +159,7 @@
 			const tone = toneFor(route);
 			return {
 				value: route.id,
-				label: route.name,
+				label: localized(route, 'name'),
 				color: route.color,
 				tone,
 				hint: tone ? TONE_HINTS[tone] : undefined
@@ -316,7 +317,7 @@
 					<span class="note-dot shrink-0" title={m.dispatch_vehicle_row_custom_note()}></span>
 				{:else if vehicle.route}
 					<RouteBadge
-						label={matched?.name ?? vehicle.route}
+						label={matched ? localized(matched, 'name') : vehicle.route}
 						color={matched?.color ?? '#8a8a8a'}
 						textColor={matched?.textColor}
 						shape={matched?.shape ?? 'AUTO'}
@@ -335,9 +336,9 @@
 					tone={selectTone}
 					ariaLabel="Route for vehicle {vehicle.id}"
 					title={mismatch
-						? `${matched?.name} does not run from ${vehicle.depot}`
+						? `${matched ? localized(matched, 'name') : ''} does not run from ${vehicle.depot}`
 						: selectTone
-							? `${matched?.name} is one of this driver's favourite routes`
+							? `${matched ? localized(matched, 'name') : ''} is one of this driver's favourite routes`
 							: `Route for vehicle ${vehicle.id}`}
 					class="min-w-28 flex-1"
 					onchange={onroute}
@@ -359,8 +360,8 @@
 				{#if mismatch}
 					<span
 						class="shrink-0 text-danger"
-						title="{matched?.name} does not run from {vehicle.depot}"
-						aria-label="{matched?.name} does not run from {vehicle.depot}"
+						title="{matched ? localized(matched, 'name') : ''} does not run from {vehicle.depot}"
+						aria-label="{matched ? localized(matched, 'name') : ''} does not run from {vehicle.depot}"
 					>
 						<IconAlertTriangle size={15} />
 					</span>

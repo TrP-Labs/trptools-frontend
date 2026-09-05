@@ -16,6 +16,7 @@
 	import type { ShiftEvent } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -36,7 +37,8 @@
 			repeat: 'WEEKLY',
 			days: [],
 			visibility: 'PUBLIC',
-			hostLevel: 2
+			hostLevel: 2,
+			translations: {}
 		};
 	}
 
@@ -52,7 +54,8 @@
 			repeat: recurrence.repeat,
 			days: recurrence.days,
 			visibility: shift.visibility,
-			hostLevel: shift.hostLevel
+			hostLevel: shift.hostLevel,
+			translations: structuredClone(shift.translations)
 		};
 	}
 
@@ -75,7 +78,8 @@
 			rrule: buildRule({ repeat: draft.repeat, days: draft.days }, start),
 			duration: draft.duration,
 			visibility: draft.visibility,
-			hostLevel: draft.hostLevel
+			hostLevel: draft.hostLevel,
+			translations: draft.translations
 		};
 	}
 
@@ -176,7 +180,7 @@
 
 							<div class="min-w-0 flex-1">
 								<div class="flex flex-wrap items-baseline gap-x-2">
-									<p class="font-medium text-text">{occurrence.name}</p>
+									<p class="font-medium text-text">{localized(occurrence, 'name')}</p>
 									<span class="text-xs text-text-subtle">{formatRelative(occurrence.start)}</span>
 								</div>
 								<p class="text-sm text-text-muted">{formatDateTime(occurrence.start)}</p>
@@ -219,7 +223,7 @@
 								style="background: {shift.color}"
 							></span>
 							<div class="min-w-0 flex-1">
-								<p class="truncate font-medium text-text">{shift.name}</p>
+								<p class="truncate font-medium text-text">{localized(shift, 'name')}</p>
 								<p class="mt-0.5 text-xs text-text-muted">
 									Repeats {shift.recurrenceText} · {formatDuration(shift.duration)}
 								</p>
@@ -252,6 +256,7 @@
 	<ShiftEditor
 		bind:draft={createDraft}
 		mode="create"
+		sourceLocale={group.sourceLocale}
 		busy={creating}
 		ranksHref="/dashboard/{group.slug}/ranks"
 		onsave={createShift}
@@ -268,6 +273,7 @@
 		ranksHref="/dashboard/{group.slug}/ranks"
 		bind:draft={editDraft}
 		mode="edit"
+		sourceLocale={group.sourceLocale}
 		busy={savingEdit}
 		onsave={saveShift}
 		ondelete={deleteShift}

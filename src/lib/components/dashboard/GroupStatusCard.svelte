@@ -12,6 +12,7 @@
 	import { formatRelative } from '$lib/utils/format';
 	import { PERMISSION, permissionLabel, type DashboardGroup } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	interface Props {
 		group: DashboardGroup;
@@ -54,11 +55,11 @@
 		{primary ? 'border-accent/50' : ''}"
 >
 	<div class="flex items-start gap-3">
-		<Avatar src={group.icon} name={group.name} size={42} />
+		<Avatar src={group.icon} name={localized(group, 'name')} size={42} />
 
 		<div class="min-w-0 flex-1">
 			<a href="/dashboard/{group.slug}" class="font-semibold text-text before:absolute before:inset-0">
-				<span class="wrap-anywhere">{group.name}</span>
+				<span class="wrap-anywhere">{localized(group, 'name')}</span>
 			</a>
 			<p class="mt-0.5 text-xs text-text-muted">{permissionLabel(group.permissionLevel)}</p>
 		</div>
@@ -77,7 +78,7 @@
 			onclick={() => onpin(group.id)}
 			aria-busy={pinning === group.id}
 			aria-pressed={primary}
-			aria-label={primary ? `Unpin ${group.name}` : `Make ${group.name} your primary group`}
+			aria-label={primary ? `Unpin ${localized(group, 'name')}` : `Make ${localized(group, 'name')} your primary group`}
 			title={primary ? m.dashboard_group_status_card_primary_group() : m.dashboard_group_status_card_make_primary_group()}
 			class="relative z-10 shrink-0 rounded-lg p-1.5 transition-colors
 				{pinning === group.id ? 'opacity-50' : ''}

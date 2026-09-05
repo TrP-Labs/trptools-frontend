@@ -9,6 +9,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -53,10 +54,10 @@
 </script>
 
 <svelte:head>
-	<title>{shift.name} — {group.name} — TrP Tools</title>
-	<meta name="description" content={shift.description || `${shift.name} on ${group.name}.`} />
-	<meta property="og:title" content="{shift.name} — {group.name}" />
-	<meta property="og:description" content={shift.description || `${shift.name} on ${group.name}.`} />
+	<title>{localized(shift, 'name')} — {localized(group, 'name')} — TrP Tools</title>
+	<meta name="description" content={localized(shift, 'description') || `${localized(shift, 'name')} on ${localized(group, 'name')}.`} />
+	<meta property="og:title" content="{localized(shift, 'name')} — {localized(group, 'name')}" />
+	<meta property="og:description" content={localized(shift, 'description') || `${localized(shift, 'name')} on ${localized(group, 'name')}.`} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={group.icon ?? ''} />
 </svelte:head>
@@ -66,13 +67,13 @@
 	style="background: linear-gradient(180deg, {withAlpha(shift.color, 0.18)}, transparent);"
 >
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<GroupCrumb {group} current={shift.name} />
+		<GroupCrumb {group} current={localized(shift, 'name')} />
 
 		<div class="mt-5 flex flex-wrap items-start gap-5">
 			<span class="h-16 w-1.5 shrink-0 rounded-full" style="background: {shift.color}"></span>
 
 			<div class="min-w-0 flex-1">
-				<h1 class="text-3xl font-semibold tracking-tight text-balance">{shift.name}</h1>
+				<h1 class="text-3xl font-semibold tracking-tight text-balance">{localized(shift, 'name')}</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge><IconRepeat size={13} /> {shift.recurrenceText}</Badge>
 					<Badge><IconClock size={13} /> {length}</Badge>
@@ -135,10 +136,10 @@
 		</section>
 	{/if}
 
-	{#if shift.description}
+	{#if localized(shift, 'description')}
 		<section>
 			<h2 class="mb-3 text-lg font-semibold">{m.g_shift_about_shift()}</h2>
-			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{shift.description}</p>
+			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{localized(shift, 'description')}</p>
 		</section>
 	{/if}
 

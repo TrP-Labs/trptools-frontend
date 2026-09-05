@@ -8,6 +8,7 @@
 import type { App } from 'trptools-backend';
 import type { Treaty } from '@elysiajs/eden';
 import { m } from '$lib/paraglide/messages.js';
+import type { Translations } from '$lib/utils/translations';
 
 type Api = Treaty.Create<App>;
 
@@ -111,6 +112,14 @@ export interface QuestionDraft {
 	type: ApplicationQuestionType;
 	prompt: string;
 	description: string;
+	/**
+	 * Every other language's version of this component's text.
+	 *
+	 * `prompt` and `description` are keyed by name; a choice is keyed by its
+	 * position, `option:0` upwards, since an array has nothing else stable to
+	 * key it by.
+	 */
+	translations: Translations;
 	required: boolean;
 	options: string[];
 	maxLength: number | null;
@@ -210,6 +219,14 @@ export function permissionDescription(level: number): string {
 export interface BoardRoute {
 	id: string;
 	name: string;
+	/**
+	 * Per-language versions of the name, for a group's own route.
+	 *
+	 * Optional because the personal board at `/tools/dispatch` draws the
+	 * game's built-in routes, which are not rows anywhere — and a built-in's
+	 * name is the game's and cannot be translated in any case.
+	 */
+	translations?: Translations;
 	color: string;
 	textColor: string;
 	shape: RouteShape;

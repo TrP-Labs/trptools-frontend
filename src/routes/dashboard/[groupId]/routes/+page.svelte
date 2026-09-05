@@ -14,6 +14,7 @@
 	import type { RouteRecord } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -31,7 +32,8 @@
 			visibility: 'PUBLIC',
 			showOnGroupPage: true,
 			archived: false,
-			depots: []
+			depots: [],
+			translations: {}
 		};
 	}
 
@@ -47,7 +49,8 @@
 			visibility: route.visibility,
 			showOnGroupPage: route.showOnGroupPage,
 			archived: route.archived,
-			depots: [...route.depots]
+			depots: [...route.depots],
+			translations: structuredClone(route.translations)
 		};
 	}
 
@@ -104,7 +107,7 @@
 	}
 
 	async function deleteRoute(route: RouteRecord) {
-		if (!confirm(m.dashboard_routes_delete_confirm({ route: route.name }))) return;
+		if (!confirm(m.dashboard_routes_delete_confirm({ route: localized(route, 'name') }))) return;
 
 		savingId = route.id;
 		try {
@@ -176,7 +179,7 @@
 					class="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-background-secondary/60"
 				>
 					<RouteBadge
-						label={route.name}
+						label={localized(route, 'name')}
 						color={route.color}
 						textColor={route.textColor}
 						shape={route.shape}
@@ -186,11 +189,11 @@
 
 					<div class="min-w-0 flex-1">
 						<p class="flex items-center gap-1.5 truncate font-medium text-text">
-							{route.name}
+							{localized(route, 'name')}
 							{#if route.builtIn}<IconLock size={13} class="shrink-0 text-text-subtle" />{/if}
 						</p>
-						{#if route.description}
-							<p class="truncate text-sm text-text-muted">{route.description}</p>
+						{#if localized(route, 'description')}
+							<p class="truncate text-sm text-text-muted">{localized(route, 'description')}</p>
 						{/if}
 					</div>
 
@@ -220,6 +223,7 @@
 				{#if open}
 					<div class="border-t border-border-base p-4">
 						<RouteEditor
+							sourceLocale={data.group.sourceLocale}
 							bind:draft={editDraft}
 							depots={data.depots}
 							mode="edit"
@@ -241,6 +245,7 @@
 
 <Modal bind:open={createOpen} title={m.dashboard_routes_new_route()} size="lg">
 	<RouteEditor
+		sourceLocale={data.group.sourceLocale}
 		bind:draft={createDraft}
 		depots={data.depots}
 		mode="create"

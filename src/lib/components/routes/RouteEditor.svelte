@@ -3,17 +3,18 @@
 	import RouteBadge from './RouteBadge.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import FieldGroup from '$lib/components/ui/FieldGroup.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ImageManager from '$lib/components/media/ImageManager.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
 	import IconUploader from '$lib/components/media/IconUploader.svelte';
 	import { formatShare } from '$lib/utils/format';
 	import type { Depot, MediaItem, RouteShape } from '$lib/api/types';
+	import type { Translations } from '$lib/utils/translations';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	export interface RouteDraft {
 		name: string;
@@ -28,6 +29,8 @@
 		showOnGroupPage: boolean;
 		archived: boolean;
 		depots: string[];
+		/** Every other language's version of the name and description. */
+		translations: Translations;
 	}
 
 	interface Props {
@@ -36,6 +39,8 @@
 		busy?: boolean;
 		mode: 'create' | 'edit';
 		builtIn?: boolean;
+		/** The language the group writes in, which the boxes default to. */
+		sourceLocale: string;
 		/** Existing route id, so images can be attached. */
 		routeId?: string;
 		groupId?: string;
@@ -53,6 +58,7 @@
 		busy = false,
 		mode,
 		builtIn = false,
+		sourceLocale,
 		routeId,
 		groupId,
 		images = [],
@@ -127,8 +133,16 @@
 						? m.routes_route_editor_built_routes_keep_name_game_uses()
 						: m.routes_route_editor_must_match_route_name_game_up()}
 				>
-					<Input
+					<!--
+						A built-in's name is the game's, so the box is locked —
+						and so is translating it, since every group's route 6
+						is the same route 6.
+					-->
+					<TranslatableField
 						bind:value={draft.name}
+						bind:translations={draft.translations}
+						field="name"
+						{sourceLocale}
 						maxlength={24}
 						disabled={builtIn}
 						placeholder={m.routes_route_editor_e_g_14_express()}
@@ -148,8 +162,12 @@
 				</Field>
 
 				<Field label={m.common_description()} class="sm:col-span-2">
-					<Textarea
+					<TranslatableField
 						bind:value={draft.description}
+						bind:translations={draft.translations}
+						field="description"
+						{sourceLocale}
+						multiline
 						rows={2}
 						maxlength={1000}
 						placeholder={m.routes_route_editor_where_route_runs_anything_drivers_should()}
@@ -191,7 +209,7 @@
 								: 'border-border-base bg-background-secondary text-text-muted hover:text-text'}"
 						>
 							<span class="font-mono text-xs opacity-70">{depot.number}</span>
-							{depot.name}
+							{localized(depot, 'name')}
 						</button>
 					{/each}
 				</div>

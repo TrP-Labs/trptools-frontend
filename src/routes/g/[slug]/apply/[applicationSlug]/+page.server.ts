@@ -44,6 +44,8 @@ export const load: PageServerLoad = async (event) => {
 			name: group.name,
 			icon: group.icon,
 			tagline: group.tagline,
+			sourceLocale: group.sourceLocale,
+			translations: group.translations,
 			accentColor: group.accentColor
 		},
 		standing

@@ -14,7 +14,7 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import FieldGroup from '$lib/components/ui/FieldGroup.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import Textarea from '$lib/components/ui/Textarea.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
@@ -25,6 +25,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { Depot } from '$lib/api/types';
+	import { localized, type Translations } from '$lib/utils/translations';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -43,6 +44,8 @@
 		/** Whether the group's public page lists this depot. */
 		showOnGroupPage: boolean;
 		archived: boolean;
+		/** Every other language's version of the name and description. */
+		translations: Translations;
 	}
 
 	function emptyDraft(): DepotDraft {
@@ -55,7 +58,8 @@
 			aliases: '',
 			visibility: 'PUBLIC',
 			showOnGroupPage: true,
-			archived: false
+			archived: false,
+			translations: {}
 		};
 	}
 
@@ -68,7 +72,8 @@
 			aliases: depot.aliases.join(', '),
 			visibility: depot.visibility,
 			showOnGroupPage: depot.showOnGroupPage,
-			archived: depot.archived
+			archived: depot.archived,
+			translations: structuredClone(depot.translations)
 		};
 	}
 
@@ -100,7 +105,8 @@
 		aliases: '',
 		visibility: 'PUBLIC',
 		showOnGroupPage: true,
-		archived: false
+		archived: false,
+		translations: {}
 	});
 	let creating = $state(false);
 
@@ -158,7 +164,7 @@
 	async function deleteDepot(depot: Depot) {
 		if (
 			!confirm(
-				m.dashboard_depots_delete_confirm({ number: depot.number, name: depot.name })
+				m.dashboard_depots_delete_confirm({ number: depot.number, name: localized(depot, 'name') })
 			)
 		)
 			return;
@@ -214,14 +220,14 @@
 						number={depot.number}
 						color={depot.color}
 						icon={depot.icon}
-						name={depot.name}
+						name={localized(depot, 'name')}
 						size="sm"
 					/>
 
 					<div class="min-w-0 flex-1">
-						<p class="truncate font-medium text-text">{depot.name}</p>
-						{#if depot.description}
-							<p class="truncate text-sm text-text-muted">{depot.description}</p>
+						<p class="truncate font-medium text-text">{localized(depot, 'name')}</p>
+						{#if localized(depot, 'description')}
+							<p class="truncate text-sm text-text-muted">{localized(depot, 'description')}</p>
 						{/if}
 					</div>
 
@@ -252,7 +258,13 @@
 							</Field>
 
 							<Field label={m.common_name()}>
-								<Input bind:value={editDraft.name} maxlength={60} />
+								<TranslatableField
+									bind:value={editDraft.name}
+									bind:translations={editDraft.translations}
+									field="name"
+									sourceLocale={data.group.sourceLocale}
+									maxlength={60}
+								/>
 							</Field>
 
 							<Field label={m.common_color()}>
@@ -260,8 +272,12 @@
 							</Field>
 
 							<Field label={m.common_description()} class="sm:col-span-2">
-								<Textarea
+								<TranslatableField
 									bind:value={editDraft.description}
+									bind:translations={editDraft.translations}
+									field="description"
+									sourceLocale={data.group.sourceLocale}
+									multiline
 									rows={3}
 									maxlength={2000}
 									placeholder={m.dashboard_depots_where_what_runs_from_anything_worth()}
@@ -351,7 +367,14 @@
 			</Field>
 
 			<Field label={m.common_name()}>
-				<Input bind:value={createDraft.name} maxlength={60} placeholder={m.dashboard_depots_e_g_cat_island()} />
+				<TranslatableField
+					bind:value={createDraft.name}
+					bind:translations={createDraft.translations}
+					field="name"
+					sourceLocale={data.group.sourceLocale}
+					maxlength={60}
+					placeholder={m.dashboard_depots_e_g_cat_island()}
+				/>
 			</Field>
 
 			<Field label={m.common_color()}>
@@ -359,7 +382,15 @@
 			</Field>
 
 			<Field label={m.common_description()} class="sm:col-span-2">
-				<Textarea bind:value={createDraft.description} rows={3} maxlength={2000} />
+				<TranslatableField
+					bind:value={createDraft.description}
+					bind:translations={createDraft.translations}
+					field="description"
+					sourceLocale={data.group.sourceLocale}
+					multiline
+					rows={3}
+					maxlength={2000}
+				/>
 			</Field>
 
 			<Field

@@ -7,7 +7,8 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
-	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
+	import { getLocale, setLocale, type Locale } from '$lib/paraglide/runtime.js';
+	import { languageName, SITE_LOCALES } from '$lib/utils/languages';
 
 	let { data }: PageProps = $props();
 
@@ -16,23 +17,6 @@
 		{ value: 'midnight', label: m.settings_appearance_midnight(), hint: m.settings_appearance_near_black(), swatches: ['#0a0a0a', '#121212', '#5b9dff'] },
 		{ value: 'light', label: m.settings_appearance_light(), hint: m.settings_appearance_bright(), swatches: ['#f2f3f5', '#ffffff', '#2563eb'] }
 	] as const;
-
-	/**
-	 * What each shipped language calls itself.
-	 *
-	 * Endonyms, and deliberately not run through the message files: a reader
-	 * looking for their own language needs to recognize it while the interface
-	 * is still in one they cannot read.
-	 */
-	const LANGUAGE_NAMES: Record<string, string> = {
-		en: 'English',
-		cs: 'Čeština',
-		de: 'Deutsch',
-		fr: 'Français',
-		pl: 'Polski',
-		ru: 'Русский',
-		uk: 'Українська'
-	};
 
 	// Seeded from the server-rendered theme, then owned by this component.
 	// svelte-ignore state_referenced_locally
@@ -154,13 +138,13 @@
 				</span>
 				<span class="block truncate text-xs text-text-muted">
 					{isAuto
-						? (LANGUAGE_NAMES[resolved] ?? resolved)
+						? languageName(resolved)
 						: m.settings_appearance_follows_browser_language()}
 				</span>
 			</span>
 		</button>
 
-		{#each locales as locale (locale)}
+		{#each SITE_LOCALES as locale (locale)}
 			{@const active = language === locale}
 			<button
 				type="button"
@@ -172,7 +156,7 @@
 			>
 				<Flag {locale} class="h-5 w-7 shrink-0 rounded-sm ring-1 ring-black/20" />
 				<span class="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium text-text">
-					<span class="truncate">{LANGUAGE_NAMES[locale] ?? locale}</span>
+					<span class="truncate">{languageName(locale)}</span>
 					{#if active}<IconCheck size={15} class="shrink-0 text-accent" />{/if}
 				</span>
 			</button>

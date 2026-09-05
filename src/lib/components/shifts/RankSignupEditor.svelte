@@ -7,9 +7,11 @@
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ColorInput from '$lib/components/ui/ColorInput.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import TranslatableField from '$lib/components/i18n/TranslatableField.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { RankSignup } from '$lib/api/types';
+	import type { Translations } from '$lib/utils/translations';
 	import { m } from '$lib/paraglide/messages.js';
 
 	/**
@@ -25,9 +27,11 @@
 		rankName: string;
 		rankColor: string;
 		signup: RankSignup | null;
+		/** The language the group writes in, which the boxes default to. */
+		sourceLocale: string;
 	}
 
-	let { rankId, rankName, rankColor, signup }: Props = $props();
+	let { rankId, rankName, rankColor, signup, sourceLocale }: Props = $props();
 
 	let busy = $state(false);
 
@@ -38,8 +42,41 @@
 	 * matches slots by name to keep existing sign-ups attached — so a partial
 	 * name would orphan them.
 	 */
-	let draftSlots = $state<Array<{ name: string; description: string; capacity: number }>>([]);
+	let draftSlots = $state<
+		Array<{ name: string; description: string; capacity: number; translations: Translations }>
+	>([]);
 	let dirty = $state(false);
+
+	/**
+	 * The sheet's own text, held locally for the same reason the slots are.
+	 *
+	 * The source text and its translations are one save — a blur that sent
+	 * only the box that changed would drop whichever of the two the editor was
+	 * not looking at.
+	 */
+	let sheetName = $state('');
+	let sheetDescription = $state('');
+	let sheetTranslations = $state<Translations>({});
+	let sheetDirty = $state(false);
+
+	$effect(() => {
+		if (sheetDirty || !signup) return;
+
+		sheetName = signup.name;
+		sheetDescription = signup.description;
+		sheetTranslations = structuredClone(signup.translations);
+	});
+
+	async function saveSheetText() {
+		if (!sheetDirty || !sheetName.trim()) return;
+		sheetDirty = false;
+
+		await save({
+			name: sheetName.trim(),
+			description: sheetDescription,
+			translations: sheetTranslations
+		});
+	}
 
 	/**
 	 * The server is the source of truth right up until someone starts typing.
@@ -55,7 +92,8 @@
 		draftSlots = incoming.map((slot) => ({
 			name: slot.name,
 			description: slot.description,
-			capacity: slot.capacity
+			capacity: slot.capacity,
+			translations: structuredClone(slot.translations)
 		}));
 	});
 
@@ -79,6 +117,7 @@
 				.map((slot, index) => ({
 					name: slot.name.trim(),
 					description: slot.description,
+					translations: slot.translations,
 					capacity: slot.capacity,
 					order: index
 				}))
@@ -107,7 +146,7 @@
 	}
 
 	function addSlot() {
-		draftSlots = [...draftSlots, { name: '', description: '', capacity: 1 }];
+		draftSlots = [...draftSlots, { name: '', description: '', capacity: 1, translations: {} }];
 		dirty = true;
 	}
 
@@ -145,14 +184,15 @@
 
 		<div class="grid gap-3 sm:grid-cols-[1fr_auto]">
 			<Field label={m.shifts_rank_signup_editor_sheet_name()} hint={m.shifts_rank_signup_editor_shown_as_heading_shift_page_discord()}>
-				<Input
-					value={signup.name}
+				<TranslatableField
+					bind:value={sheetName}
+					bind:translations={sheetTranslations}
+					field="name"
+					{sourceLocale}
 					maxlength={60}
 					disabled={busy}
-					onblur={(event) => {
-						const next = (event.currentTarget as HTMLInputElement).value.trim();
-						if (next && next !== signup.name) save({ name: next });
-					}}
+					oninput={() => (sheetDirty = true)}
+					onblur={saveSheetText}
 				/>
 			</Field>
 
@@ -162,15 +202,16 @@
 		</div>
 
 		<Field label={m.common_description()} hint={m.shifts_rank_signup_editor_optional_shown_under_heading()}>
-			<Input
-				value={signup.description}
+			<TranslatableField
+				bind:value={sheetDescription}
+				bind:translations={sheetTranslations}
+				field="description"
+				{sourceLocale}
 				maxlength={300}
 				disabled={busy}
 				placeholder={m.shifts_rank_signup_editor_e_g_runs_shift_from_dispatch()}
-				onblur={(event) => {
-					const next = (event.currentTarget as HTMLInputElement).value;
-					if (next !== signup.description) save({ description: next });
-				}}
+				oninput={() => (sheetDirty = true)}
+				onblur={saveSheetText}
 			/>
 		</Field>
 
@@ -196,8 +237,11 @@
 						>
 							<div class="min-w-32 flex-1">
 								<Field label={m.common_name()}>
-									<Input
+									<TranslatableField
 										bind:value={slot.name}
+										bind:translations={slot.translations}
+										field="name"
+										{sourceLocale}
 										maxlength={60}
 										placeholder={m.shifts_rank_signup_editor_e_g_dispatcher()}
 										oninput={() => (dirty = true)}
@@ -206,8 +250,11 @@
 							</div>
 							<div class="min-w-40 flex-[2]">
 								<Field label={m.common_description()}>
-									<Input
+									<TranslatableField
 										bind:value={slot.description}
+										bind:translations={slot.translations}
+										field="description"
+										{sourceLocale}
 										maxlength={300}
 										placeholder={m.shifts_rank_signup_editor_optional()}
 										oninput={() => (dirty = true)}

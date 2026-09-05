@@ -6,6 +6,7 @@
 	import type { RouteShape } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 	let profile = $derived(data.profile);
@@ -79,9 +80,9 @@
 					be revisited when the type scale changes.
 				-->
 				<ul class="grid auto-rows-fr gap-3 sm:grid-cols-2">
-					{#each section.routes as route (route.routeId ?? route.name)}
+					{#each section.routes as route (route.routeId ?? localized(route, 'name'))}
 						{@const badge = {
-							label: route.name,
+							label: localized(route, 'name'),
 							color: route.color,
 							textColor: route.textColor,
 							shape: route.shape as RouteShape,
@@ -98,7 +99,7 @@
 							{#if route.global}
 								<div class="card flex h-full items-center gap-3 p-3">
 									<RouteBadge {...badge} size="sm" />
-									<span class="min-w-0 flex-1 truncate font-medium text-text">{route.name}</span>
+									<span class="min-w-0 flex-1 truncate font-medium text-text">{localized(route, 'name')}</span>
 								</div>
 							{:else}
 								<a
@@ -108,7 +109,7 @@
 								>
 									<RouteBadge {...badge} size="sm" />
 									<span class="min-w-0 flex-1">
-										<span class="block truncate font-medium text-text">{route.name}</span>
+										<span class="block truncate font-medium text-text">{localized(route, 'name')}</span>
 										<span class="block truncate text-xs text-text-muted">{route.groupName}</span>
 									</span>
 								</a>

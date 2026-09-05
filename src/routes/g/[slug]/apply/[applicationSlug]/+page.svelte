@@ -24,6 +24,7 @@
 	import type { PublicApplication } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized, localizedOption } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -83,11 +84,21 @@
 	 * evening service, so it is worth being able to correct without a trip to
 	 * settings first.
 	 */
-	let accountTimezone = $derived(standing?.timezone ?? 'UTC');
+	/**
+	 * Where the applicant is, defaulted from the account and falling back to
+	 * this device.
+	 *
+	 * The account's zone is null until somebody sets one, and the answer to
+	 * that is what the browser resolves — not UTC. Defaulting to UTC is what
+	 * sent every application out stamped UTC unless the applicant noticed the
+	 * line above the send button and pressed Detect, which put a reviewer in
+	 * the position of reading a zone nobody had actually claimed.
+	 */
+	let accountTimezone = $derived(standing?.timezone ?? detectTimezone());
 	let accountLocale = $derived(standing?.locale ?? 'en');
 
 	// svelte-ignore state_referenced_locally
-	let timezone = $state(data.standing?.timezone ?? 'UTC');
+	let timezone = $state(data.standing?.timezone ?? detectTimezone());
 	// svelte-ignore state_referenced_locally
 	let locale = $state(data.standing?.locale ?? 'en');
 	let localeOpen = $state(false);
@@ -158,13 +169,13 @@
 </script>
 
 <svelte:head>
-	<title>{application.name} — {group.name} — TrP Tools</title>
+	<title>{localized(application, 'name')} — {localized(group, 'name')} — TrP Tools</title>
 	<meta
 		name="description"
-		content={application.description || `Apply to ${group.name} on TrP Tools.`}
+		content={localized(application, 'description') || `Apply to ${localized(group, 'name')} on TrP Tools.`}
 	/>
-	<meta property="og:title" content="{application.name} — {group.name}" />
-	<meta property="og:description" content={application.description} />
+	<meta property="og:title" content="{localized(application, 'name')} — {localized(group, 'name')}" />
+	<meta property="og:description" content={localized(application, 'description')} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={group.icon ?? ''} />
 </svelte:head>
@@ -174,16 +185,16 @@
 	style="background: linear-gradient(180deg, {withAlpha(application.color, 0.18)}, transparent);"
 >
 	<div class="mx-auto max-w-3xl px-4 py-8">
-		<GroupCrumb {group} current={application.name} />
+		<GroupCrumb {group} current={localized(application, 'name')} />
 
 		<div class="mt-5 flex flex-wrap items-start gap-5">
 			<span class="h-16 w-1.5 shrink-0 rounded-full" style="background: {application.color}"></span>
 
 			<div class="min-w-0 flex-1">
-				<h1 class="text-3xl font-semibold tracking-tight text-balance">{application.name}</h1>
+				<h1 class="text-3xl font-semibold tracking-tight text-balance">{localized(application, 'name')}</h1>
 
-				{#if application.description}
-					<p class="mt-2 text-pretty text-text-muted">{application.description}</p>
+				{#if localized(application, 'description')}
+					<p class="mt-2 text-pretty text-text-muted">{localized(application, 'description')}</p>
 				{/if}
 
 				<div class="mt-3 flex flex-wrap items-center gap-2">
@@ -217,8 +228,8 @@
 				<p class="font-medium text-text">{m.g_apply_already_rank_above()}</p>
 				<p class="text-sm text-text-muted">
 					{application.rankName
-						? `This form is for ${application.rankName}, and the rank you hold in ${group.name} is higher than that.`
-						: `The rank you hold in ${group.name} is higher than the one this form is for.`}
+						? `This form is for ${application.rankName}, and the rank you hold in ${localized(group, 'name')} is higher than that.`
+						: `The rank you hold in ${localized(group, 'name')} is higher than the one this form is for.`}
 					There is nothing here for you to apply for — speak to the group directly if that looks
 					wrong.
 				</p>
@@ -276,7 +287,7 @@
 					</p>
 				{:else if stillCounts && !approved}
 					<p class="mt-2 text-sm text-text-subtle">
-						{group.name} is not taking another application from you for this at the moment.
+						{localized(group, 'name')} is not taking another application from you for this at the moment.
 					</p>
 				{/if}
 			</div>
@@ -287,7 +298,7 @@
 		<div class="card p-6 text-center">
 			<p class="font-medium text-text">{m.g_apply_applications_are_closed()}</p>
 			<p class="mt-1 text-sm text-text-muted">
-				{group.name} is not taking new applications for this at the moment.
+				{localized(group, 'name')} is not taking new applications for this at the moment.
 			</p>
 		</div>
 	{:else if !data.user}
@@ -311,28 +322,28 @@
 			{#each questions as question (question.id)}
 				<div class="card p-5">
 					{#if question.type === 'SECTION'}
-						{#if question.prompt}
-							<h2 class="text-base font-semibold text-text">{question.prompt}</h2>
+						{#if localized(question, 'prompt')}
+							<h2 class="text-base font-semibold text-text">{localized(question, 'prompt')}</h2>
 						{/if}
-						{#if question.description}
+						{#if localized(question, 'description')}
 							<p class="mt-1 text-sm leading-relaxed whitespace-pre-line text-text-muted">
-								{question.description}
+								{localized(question, 'description')}
 							</p>
 						{/if}
 					{:else if question.type === 'IMAGE'}
 						{#if question.image}
 							<img
 								src={question.image}
-								alt={question.prompt}
+								alt={localized(question, 'prompt')}
 								class="mx-auto max-h-96 w-auto rounded-lg"
 								loading="lazy"
 							/>
 						{/if}
-						{#if question.prompt}
-							<p class="mt-2 text-center text-sm text-text-muted">{question.prompt}</p>
+						{#if localized(question, 'prompt')}
+							<p class="mt-2 text-center text-sm text-text-muted">{localized(question, 'prompt')}</p>
 						{/if}
 					{:else}
-						<Field label={question.prompt} hint={question.description || undefined}>
+						<Field label={localized(question, 'prompt')} hint={localized(question, 'description') || undefined}>
 							{#if question.type === 'SHORT_TEXT'}
 								<Input
 									bind:value={values[question.id]}
@@ -353,10 +364,17 @@
 								<!-- The buttons carry radio/checkbox roles, so the list has to be their group. -->
 								<ul
 									role={single ? 'radiogroup' : 'group'}
-									aria-label={question.prompt}
+									aria-label={localized(question, 'prompt')}
 									class="space-y-2"
 								>
-									{#each question.options as option (option)}
+									<!--
+										The label is translated; the value sent
+										is not. An answer is stored against the
+										choice the group wrote, so a reviewer
+										reads the same words whichever language
+										the applicant filled the form in.
+									-->
+									{#each question.options as option, optionIndex (option)}
 										{@const picked = (choices[question.id] ?? []).includes(option)}
 										<li>
 											<button
@@ -379,7 +397,7 @@
 														<IconCheck size={11} class="text-accent-contrast" />
 													{/if}
 												</span>
-												{option}
+												{localizedOption(question, optionIndex)}
 											</button>
 										</li>
 									{/each}
@@ -453,7 +471,15 @@
 		</Field>
 
 		<p class="text-xs text-text-subtle">
-			Your account still says {accountTimezone} · {accountLocale}. Change that in
+			<!--
+				Honest about which of the two this is. An account with no zone
+				of its own is following this device, and saying "your account
+				says America/Phoenix" when nothing on the account says any such
+				thing is how somebody ends up not setting one.
+			-->
+			{standing?.timezone
+				? m.g_apply_account_says({ timezone: accountTimezone, locale: accountLocale })
+				: m.g_apply_account_has_no_zone({ timezone: accountTimezone, locale: accountLocale })}
 			<a href="/settings" class="underline underline-offset-2">{m.g_apply_account_settings()}</a>.
 		</p>
 	</div>

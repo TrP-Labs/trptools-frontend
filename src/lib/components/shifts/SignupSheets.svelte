@@ -10,6 +10,7 @@
 	import { withAlpha } from '$lib/utils/color';
 	import type { SignupSheet } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	/**
 	 * The sign-up sheets for one occurrence of a shift.
@@ -82,9 +83,9 @@
 					style="background: {withAlpha(sheet.color, 0.08)};"
 				>
 					<div class="min-w-0 flex-1">
-						<h3 class="text-sm font-semibold text-text">{sheet.name}</h3>
-						{#if sheet.description}
-							<p class="mt-0.5 text-xs text-text-muted">{sheet.description}</p>
+						<h3 class="text-sm font-semibold text-text">{localized(sheet, 'name')}</h3>
+						{#if localized(sheet, 'description')}
+							<p class="mt-0.5 text-xs text-text-muted">{localized(sheet, 'description')}</p>
 						{/if}
 					</div>
 					<Badge>{sheet.rankName} and above</Badge>
@@ -97,14 +98,14 @@
 						<li class="flex flex-wrap items-center gap-3 px-4 py-3">
 							<div class="min-w-0 flex-1">
 								<div class="flex flex-wrap items-center gap-2">
-									<p class="text-sm font-medium text-text">{slot.name}</p>
+									<p class="text-sm font-medium text-text">{localized(slot, 'name')}</p>
 									<Badge tone={full ? 'success' : 'neutral'}>
 										{slot.signups.length}/{slot.capacity}
 									</Badge>
 								</div>
 
-								{#if slot.description}
-									<p class="mt-0.5 text-xs text-text-muted">{slot.description}</p>
+								{#if localized(slot, 'description')}
+									<p class="mt-0.5 text-xs text-text-muted">{localized(slot, 'description')}</p>
 								{/if}
 
 								{#if slot.signups.length > 0}

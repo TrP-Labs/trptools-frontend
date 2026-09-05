@@ -6,6 +6,7 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { MediaItem } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	interface Props {
 		images: MediaItem[];
@@ -41,7 +42,7 @@
 			>
 				<img
 					src={image.url}
-					alt={image.caption || 'Group image'}
+					alt={localized(image, 'caption') || 'Group image'}
 					loading="lazy"
 					decoding="async"
 					class="bg-background-muted object-cover transition-transform group-hover:scale-105
@@ -80,9 +81,9 @@
 				</OverflowMenu>
 			</div>
 
-			{#if image.caption}
+			{#if localized(image, 'caption')}
 				<p class="mt-1 truncate text-xs text-text-subtle {layout === 'grid' ? '' : 'w-44'}">
-					{image.caption}
+					{localized(image, 'caption')}
 				</p>
 			{/if}
 		</li>
@@ -98,11 +99,11 @@
 		<figure class="max-h-full max-w-4xl">
 			<img
 				src={lightbox.url}
-				alt={lightbox.caption || 'Group image'}
+				alt={localized(lightbox, 'caption') || 'Group image'}
 				class="max-h-[80vh] w-auto rounded-lg object-contain"
 			/>
-			{#if lightbox.caption}
-				<figcaption class="mt-2 text-center text-sm text-white/80">{lightbox.caption}</figcaption>
+			{#if localized(lightbox, 'caption')}
+				<figcaption class="mt-2 text-center text-sm text-white/80">{localized(lightbox, 'caption')}</figcaption>
 			{/if}
 		</figure>
 

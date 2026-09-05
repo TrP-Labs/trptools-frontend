@@ -12,6 +12,7 @@
 	import { formatShare } from '$lib/utils/format';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
+	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
@@ -20,10 +21,10 @@
 </script>
 
 <svelte:head>
-	<title>Route {route.name} — {group.name} — TrP Tools</title>
-	<meta name="description" content={route.description || `Route ${route.name} on ${group.name}.`} />
-	<meta property="og:title" content="Route {route.name} — {group.name}" />
-	<meta property="og:description" content={route.description || `Route ${route.name} on ${group.name}.`} />
+	<title>Route {localized(route, 'name')} — {localized(group, 'name')} — TrP Tools</title>
+	<meta name="description" content={localized(route, 'description') || `Route ${localized(route, 'name')} on ${localized(group, 'name')}.`} />
+	<meta property="og:title" content="Route {localized(route, 'name')} — {localized(group, 'name')}" />
+	<meta property="og:description" content={localized(route, 'description') || `Route ${localized(route, 'name')} on ${localized(group, 'name')}.`} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={route.icon ?? route.images[0]?.url ?? group.icon ?? ''} />
 </svelte:head>
@@ -33,11 +34,11 @@
 	style="background: linear-gradient(180deg, {withAlpha(route.color, 0.18)}, transparent);"
 >
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<GroupCrumb {group} current="Route {route.name}" />
+		<GroupCrumb {group} current="Route {localized(route, 'name')}" />
 
 		<div class="mt-5 flex flex-wrap items-center gap-5">
 			<RouteBadge
-				label={route.name}
+				label={localized(route, 'name')}
 				color={route.color}
 				textColor={route.textColor}
 				shape={route.shape}
@@ -47,7 +48,7 @@
 
 			<div class="min-w-0 flex-1">
 				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">
-					Route {route.name}
+					Route {localized(route, 'name')}
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
@@ -61,13 +62,13 @@
 					{#if data.user}
 						<RoutePreferenceButton
 							routeId={route.id}
-							routeName={route.name}
+							routeName={localized(route, 'name')}
 							builtIn={route.builtIn}
 							showLabel
 						/>
 					{/if}
 
-					<ReportButton targetType="ROUTE" targetId={route.id} label="route {route.name}" />
+					<ReportButton targetType="ROUTE" targetId={route.id} label="route {localized(route, 'name')}" />
 				</div>
 			</div>
 		</div>
@@ -75,10 +76,10 @@
 </section>
 
 <div class="mx-auto max-w-4xl space-y-10 px-4 py-10">
-	{#if route.description}
+	{#if localized(route, 'description')}
 		<section>
 			<h2 class="mb-3 text-lg font-semibold">{m.g_route_about_route()}</h2>
-			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{route.description}</p>
+			<p class="text-sm leading-relaxed whitespace-pre-line text-text-muted">{localized(route, 'description')}</p>
 		</section>
 	{/if}
 
@@ -108,10 +109,10 @@
 								number={depot.number}
 								color={depot.color}
 								icon={depot.icon}
-								name={depot.name}
+								name={localized(depot, 'name')}
 								size="sm"
 							/>
-							<span class="min-w-0 flex-1 truncate font-medium text-text">{depot.name}</span>
+							<span class="min-w-0 flex-1 truncate font-medium text-text">{localized(depot, 'name')}</span>
 						</a>
 					</li>
 				{/each}
@@ -135,6 +136,6 @@
 		href="/g/{group.slug}"
 		class="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-text"
 	>
-		<IconBuildingWarehouse size={15} /> All routes and depots on {group.name}
+		<IconBuildingWarehouse size={15} /> All routes and depots on {localized(group, 'name')}
 	</a>
 </div>

@@ -197,6 +197,7 @@
 				description={m.dashboard_ranks_slots_people_at_rank_above_can()}
 			>
 				<RankSignupEditor
+					sourceLocale={data.group.sourceLocale}
 					rankId={rank.id}
 					rankName={rank.cachedName}
 					rankColor={rank.color}

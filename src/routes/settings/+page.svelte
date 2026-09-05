@@ -18,9 +18,21 @@
 
 	let user = $derived(data.user!);
 
-	// Seeded from the session, then replaced by the fetch below.
+	/**
+	 * The zone this account is in.
+	 *
+	 * Seeded from the session, then replaced by the fetch below. An account
+	 * that has never been given one falls back to whatever the browser
+	 * resolves rather than to UTC — which is the whole reason the column is
+	 * nullable: "nobody has chosen" and "chose UTC" used to look identical,
+	 * and every application form went out stamped UTC because of it.
+	 */
 	// svelte-ignore state_referenced_locally
-	let timezone = $state(data.user?.timezone ?? 'UTC');
+	let timezone = $state(data.user?.timezone ?? detectTimezone());
+
+	/** Whether the account has one of its own, or is following this device. */
+	// svelte-ignore state_referenced_locally
+	let timezoneChosen = $state(data.user?.timezone !== null && data.user?.timezone !== undefined);
 	let profilePublic = $state(true);
 	let favoriteRoutesPublic = $state(true);
 	let dislikedRoutesPublic = $state(true);
@@ -43,7 +55,8 @@
 			.get()
 			.then(({ data: preferences }) => {
 				if (!preferences) return;
-				timezone = preferences.timezone;
+				timezone = preferences.timezone ?? detectTimezone();
+				timezoneChosen = preferences.timezone !== null;
 				profilePublic = preferences.profilePublic;
 				favoriteRoutesPublic = preferences.favoriteRoutesPublic;
 				dislikedRoutesPublic = preferences.dislikedRoutesPublic;
@@ -130,14 +143,30 @@
 
 	<Card title={m.settings_preferences()}>
 		{#snippet actions()}
-			<Button onclick={() => save({ timezone }, (value) => (saving = value))} loading={saving}>
+			<Button
+				onclick={() => {
+					timezoneChosen = true;
+					save({ timezone }, (value) => (saving = value));
+				}}
+				loading={saving}
+			>
 				{m.common_save()}
 			</Button>
 		{/snippet}
 
-		<Field label={m.settings_time_zone()} hint={m.settings_shift_times_are_shown_zone()}>
+		<Field
+			label={m.settings_time_zone()}
+			hint={timezoneChosen
+				? m.settings_shift_times_are_shown_zone()
+				: m.settings_time_zone_from_this_device()}
+		>
 			<div class="flex flex-wrap gap-2">
-				<Input bind:value={timezone} spellcheck="false" class="min-w-48 flex-1" />
+				<Input
+					bind:value={timezone}
+					spellcheck="false"
+					class="min-w-48 flex-1"
+					oninput={() => (timezoneChosen = true)}
+				/>
 				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>{m.settings_detect()}</Button>
 			</div>
 		</Field>
