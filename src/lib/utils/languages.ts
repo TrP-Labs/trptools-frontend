@@ -40,6 +40,28 @@ export const SITE_LOCALES: Locale[] = [...locales].sort((a, b) =>
 	languageName(a).localeCompare(languageName(b))
 );
 
+/**
+ * Languages shipped before their translation covers the whole site.
+ *
+ * Listing a locale in `project.inlang/settings.json` reads as a promise that
+ * picking it gives you the site in that language. German keeps about two fifths
+ * of that promise today: every key it has not reached falls back to English,
+ * and a half-English page looks like something broken rather than like a
+ * translation still being written. Saying so under the language is the
+ * difference between the two.
+ *
+ * Take a language off this list when its translation reaches the whole
+ * catalogue. Nothing checks that for you — in the same way nothing checks that
+ * a locale in the inlang settings is finished enough to ship at all. Both are
+ * one human decision, and this is the second half of it.
+ */
+export const PARTLY_TRANSLATED: readonly string[] = ['de'];
+
+/** Whether a language ships without covering the whole interface. */
+export function isPartlyTranslated(locale: string): boolean {
+	return PARTLY_TRANSLATED.includes(locale);
+}
+
 /** A language's own name for itself, falling back to its tag. */
 export function languageName(locale: string): string {
 	return LANGUAGE_NAMES[locale] ?? LANGUAGE_NAMES[locale.split('-')[0]] ?? locale;
