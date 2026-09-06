@@ -12,6 +12,14 @@
 
 	let { data }: PageProps = $props();
 
+	/**
+	 * Both settings on this page live in a cookie, which is why it opens to
+	 * everybody. The account is where the choice is *kept* — so signed out
+	 * every write below stops at the cookie and the PATCH is not attempted,
+	 * rather than fired and refused.
+	 */
+	let signedIn = $derived(Boolean(data.user));
+
 	const themes = [
 		{ value: 'dim', label: m.settings_appearance_dim(), hint: m.settings_appearance_soft_dark_gray(), swatches: ['#1d1d1d', '#313131', '#5b9dff'] },
 		{ value: 'midnight', label: m.settings_appearance_midnight(), hint: m.settings_appearance_near_black(), swatches: ['#0a0a0a', '#121212', '#5b9dff'] },
@@ -49,6 +57,9 @@
 		document.documentElement.classList.add(theme);
 		document.cookie = `theme=${theme}; path=/; max-age=31536000; samesite=lax`;
 
+		// The cookie above is the whole of it without an account.
+		if (!signedIn) return;
+
 		try {
 			await api.users.me.preferences.patch({ theme });
 		} catch {
@@ -62,10 +73,12 @@
 
 		// Sync to the account first. Both branches below end the document, and
 		// anything still in flight when they do is not guaranteed to finish.
-		try {
-			await api.users.me.preferences.patch({ locale: choice === 'auto' ? null : choice });
-		} catch {
-			toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
+		if (signedIn) {
+			try {
+				await api.users.me.preferences.patch({ locale: choice === 'auto' ? null : choice });
+			} catch {
+				toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
+			}
 		}
 
 		if (choice === 'auto') {
@@ -84,7 +97,12 @@
 	}
 </script>
 
-<PageHeader title={m.settings_appearance_appearance()} description={m.settings_appearance_how_trp_tools_looks_account()} />
+<PageHeader
+	title={m.settings_appearance_appearance()}
+	description={signedIn
+		? m.settings_appearance_how_trp_tools_looks_account()
+		: m.settings_appearance_how_trp_tools_looks_device()}
+/>
 
 <Card title={m.settings_appearance_theme()}>
 	<div class="grid gap-3 sm:grid-cols-3">
@@ -175,3 +193,14 @@
 		{/each}
 	</div>
 </Card>
+
+{#if !signedIn}
+	<!--
+		Said after the choice rather than before it: nothing here is refused
+		without an account, it simply does not travel. Somebody who only ever
+		uses this browser never needs to act on it.
+	-->
+	<p class="mt-6 text-sm text-text-muted">
+		{m.settings_appearance_sign_in_to_keep()}
+	</p>
+{/if}

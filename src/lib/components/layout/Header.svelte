@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconExternalLink, IconMenu2, IconShieldCheck, IconX } from '@tabler/icons-svelte';
+	import { IconExternalLink, IconMenu2, IconPalette, IconShieldCheck, IconX } from '@tabler/icons-svelte';
 	import UserMenu from './UserMenu.svelte';
 	import type { SessionUser } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -77,6 +77,31 @@
 				>
 					<IconShieldCheck size={13} />
 					<span class="hidden sm:inline">{m.layout_header_admin_mode()}</span>
+				</a>
+			{/if}
+
+			<!--
+				Theme and language are the only settings that work without an
+				account, and somebody who landed on the English page and reads
+				Russian has nowhere else to look. Signed in this is not drawn:
+				the same page is one row down the user menu, and a second way
+				in beside it would only be another thing in the header.
+
+				Deliberately not a popover of its own. The appearance page is
+				already the two pickers and nothing else, so a popover would be
+				a second copy of it to keep in step — and the icon is the one
+				the settings rail uses for that page, so the two read as the
+				same place.
+			-->
+			{#if !user}
+				<a
+					href="/settings/appearance"
+					title={m.layout_header_theme_and_language()}
+					aria-label={m.layout_header_theme_and_language()}
+					class="rounded-lg p-2 text-text-muted transition-colors hover:bg-background-secondary hover:text-text
+						{currentSection === '/settings' ? 'bg-background-secondary text-text' : ''}"
+				>
+					<IconPalette size={20} stroke={1.7} />
 				</a>
 			{/if}
 
