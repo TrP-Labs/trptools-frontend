@@ -8,7 +8,7 @@
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale, setLocale, type Locale } from '$lib/paraglide/runtime.js';
-	import { languageName, SITE_LOCALES } from '$lib/utils/languages';
+	import { isPartlyTranslated, languageName, SITE_LOCALES } from '$lib/utils/languages';
 
 	let { data }: PageProps = $props();
 
@@ -150,14 +150,26 @@
 				type="button"
 				onclick={() => pickLanguage(locale)}
 				aria-pressed={active}
-				lang={locale}
 				class="flex items-center gap-2.5 rounded-xl border p-4 text-left transition-colors
 					{active ? 'border-accent bg-accent/10' : 'border-border-base hover:border-border-strong'}"
 			>
 				<Flag {locale} class="h-5 w-7 shrink-0 rounded-sm ring-1 ring-black/20" />
-				<span class="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium text-text">
-					<span class="truncate">{languageName(locale)}</span>
-					{#if active}<IconCheck size={15} class="shrink-0 text-accent" />{/if}
+				<!--
+					`lang` marks the endonym alone, not the whole button. The note
+					below it is written in the reader's language, not in the one
+					being offered, and tagging both would have a screen reader
+					pronounce "Partly translated" as though it were German.
+				-->
+				<span class="min-w-0 flex-1">
+					<span class="flex items-center gap-1.5 text-sm font-medium text-text">
+						<span class="truncate" lang={locale}>{languageName(locale)}</span>
+						{#if active}<IconCheck size={15} class="shrink-0 text-accent" />{/if}
+					</span>
+					{#if isPartlyTranslated(locale)}
+						<span class="block truncate text-xs text-warning">
+							{m.settings_appearance_partly_translated()}
+						</span>
+					{/if}
 				</span>
 			</button>
 		{/each}
