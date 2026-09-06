@@ -154,7 +154,7 @@
 				credentials: 'include'
 			});
 
-			if (!response.ok) throw (await response.text().catch(() => '')) || `Upload failed`;
+			if (!response.ok) throw (await response.text().catch(() => '')) || m.applications_question_editor_upload_failed();
 
 			const item = (await response.json()) as { id: string; url: string };
 			drafts[index].mediaId = item.id;

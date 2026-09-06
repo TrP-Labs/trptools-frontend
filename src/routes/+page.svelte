@@ -78,37 +78,37 @@
 
 	let greeting = $derived.by(() => {
 		const hour = new Date().getHours();
-		if (hour < 5) return 'Still up';
-		if (hour < 12) return 'Good morning';
-		if (hour < 18) return 'Good afternoon';
-		return 'Good evening';
+		if (hour < 5) return m.home_greeting_still_up();
+		if (hour < 12) return m.home_greeting_good_morning();
+		if (hour < 18) return m.home_greeting_good_afternoon();
+		return m.home_greeting_good_evening();
 	});
 
 	const features = [
 		{
 			icon: IconRadio,
 			title: m.home_multi_user_dispatch(),
-			body: 'Run a shift with your whole team in one room. Assignments, tows and vehicle deletions stay in sync for everyone, live.'
+			body: m.home_multi_user_dispatch_body()
 		},
 		{
 			icon: IconRoute,
 			title: m.home_custom_routes_properly(),
-			body: 'Give every route its own colour, shape and depots. Automatic assignment treats a route you invented exactly like a built-in one.'
+			body: m.home_custom_routes_properly_body()
 		},
 		{
 			icon: IconCalendarTime,
 			title: m.home_shift_scheduling(),
-			body: 'Recurring shifts with slots people can sign up for, and a dashboard showing who is on which shift.'
+			body: m.home_shift_scheduling_body()
 		},
 		{
 			icon: IconUsers,
 			title: m.home_rank_based_access(),
-			body: 'Map your Roblox roles to permissions once. Access follows your group, so promotions apply immediately.'
+			body: m.home_rank_based_access_body()
 		},
 		{
 			icon: IconBulb,
 			title: m.common_stage_programmer(),
-			body: 'Build lighting programs against a waveform and export them straight into the game.'
+			body: m.home_stage_programmer_body()
 		}
 	];
 </script>
@@ -127,15 +127,23 @@
 		<header class="mb-8 flex flex-wrap items-end justify-between gap-4">
 			<div class="min-w-0">
 				<h1 class="text-2xl font-semibold tracking-tight text-text">
-					{greeting}, {data.user.displayName ?? data.user.username ?? 'there'}
+					{m.home_greeting({
+						greeting,
+						name: data.user.displayName ?? data.user.username ?? m.home_there()
+					})}
 				</h1>
 				<p class="mt-1 text-sm text-text-muted">
-					{groupTotal}
-					{groupTotal === 1 ? 'group' : 'groups'}
+					{groupTotal === 1
+						? m.home_groups_count_one({ count: groupTotal })
+						: m.home_groups_count_other({ count: groupTotal })}
 					{#if waiting > 0}
-						· {waiting} {waiting === 1 ? 'application' : 'applications'} waiting on you
+						· {waiting === 1
+							? m.home_applications_waiting_one({ count: waiting })
+							: m.home_applications_waiting_other({ count: waiting })}
 					{:else if shifts.length > 0}
-						· {shifts.length} {shifts.length === 1 ? 'shift' : 'shifts'} in the next fortnight
+						· {shifts.length === 1
+							? m.home_shifts_fortnight_one({ count: shifts.length })
+							: m.home_shifts_fortnight_other({ count: shifts.length })}
 					{/if}
 				</p>
 			</div>
@@ -176,24 +184,29 @@
 
 				<!-- With nothing waiting there is no queue card to jump to. -->
 				{@render tile(
-					waiting === 1 ? 'application waiting' : 'applications waiting',
+					waiting === 1 ? m.home_tile_application_waiting() : m.home_tile_applications_waiting(),
 					waiting,
 					waiting > 0 ? '#review' : '/dashboard',
 					waiting > 0 ? 'text-warning' : 'text-text'
 				)}
 				{@render tile(
-					liveRooms === 1 ? 'dispatch room live' : 'dispatch rooms live',
+					liveRooms === 1 ? m.home_tile_dispatch_room_live() : m.home_tile_dispatch_rooms_live(),
 					liveRooms,
 					'#groups',
 					liveRooms > 0 ? 'text-success' : 'text-text'
 				)}
 				{@render tile(
-					shifts.length === 1 ? 'shift coming up' : 'shifts coming up',
+					shifts.length === 1 ? m.home_tile_shift_coming_up() : m.home_tile_shifts_coming_up(),
 					shifts.length,
 					'/shifts',
 					'text-text'
 				)}
-				{@render tile(groupTotal === 1 ? 'group' : 'groups', groupTotal, '/dashboard', 'text-text')}
+				{@render tile(
+					groupTotal === 1 ? m.home_tile_group() : m.home_tile_groups(),
+					groupTotal,
+					'/dashboard',
+					'text-text'
+				)}
 			</div>
 		</div>
 
@@ -213,7 +226,9 @@
 				<div class="mb-3 flex items-end justify-between gap-3">
 					<h2 class="text-lg font-semibold">{m.home_groups()}</h2>
 					<a href="/dashboard" class="text-sm text-text-muted transition-colors hover:text-text">
-						{groupTotal > groups.length ? `All ${groupTotal}` : m.common_manage()}
+						{groupTotal > groups.length
+							? m.home_all_count({ count: groupTotal })
+							: m.common_manage()}
 					</a>
 				</div>
 

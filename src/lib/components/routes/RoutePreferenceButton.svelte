@@ -43,9 +43,6 @@
 
 	let route = $derived({ id: routeId, name: routeName, builtIn });
 	let preference = $derived(routePreferences.get(route));
-	let subject = $derived(`route ${routeName}`);
-	/** Said once, where somebody is about to make the choice. */
-	let scope = $derived(builtIn ? ' in every group' : '');
 
 	let open = $state(false);
 	let root = $state<HTMLDivElement | null>(null);
@@ -97,13 +94,31 @@
 				: 'border-transparent text-text-subtle hover:bg-background-muted hover:text-text'
 	);
 
-	let title = $derived(
-		preference === 'FAVORITE'
-			? `You favourited ${subject}${scope} — press to clear it`
-			: preference === 'DISLIKE'
-				? `You disliked ${subject}${scope} — press to clear it`
-				: `Favourite or dislike ${subject}${scope}`
-	);
+	/**
+	 * Six whole sentences rather than a stem and a `${scope}` fragment spliced
+	 * onto it. A built-in route's mark applies everywhere, and where that
+	 * clause lands in the sentence — or whether it is a clause at all — is the
+	 * translator's to decide, not this component's.
+	 */
+	let title = $derived.by(() => {
+		const named = { route: routeName };
+
+		if (preference === 'FAVORITE') {
+			return builtIn
+				? m.routes_route_preference_button_favorited_title_every_group(named)
+				: m.routes_route_preference_button_favorited_title(named);
+		}
+
+		if (preference === 'DISLIKE') {
+			return builtIn
+				? m.routes_route_preference_button_disliked_title_every_group(named)
+				: m.routes_route_preference_button_disliked_title(named);
+		}
+
+		return builtIn
+			? m.routes_route_preference_button_rate_title_every_group(named)
+			: m.routes_route_preference_button_rate_title(named);
+	});
 </script>
 
 <svelte:window onpointerdown={onWindowPointerDown} onkeydown={onWindowKeydown} />

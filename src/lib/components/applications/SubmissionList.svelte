@@ -134,7 +134,11 @@
 				.review.post({ decision, note });
 			if (error) throw error;
 
-			toasts.success(decision === 'APPROVE' ? 'Application approved' : 'Application denied');
+			toasts.success(
+				decision === 'APPROVE'
+					? m.applications_submission_list_application_approved()
+					: m.applications_submission_list_application_denied()
+			);
 			openId = null;
 			detail = null;
 			note = '';
@@ -305,11 +309,14 @@
 							{:else if submission.reviewedAt}
 								<div class="space-y-1 border-t border-border-base pt-4 text-sm">
 									<p class="text-text-muted">
-										{applicationStatusLabel(submission.status)} by
-										{submission.reviewer?.displayName ??
-											submission.reviewer?.username ??
-											'a manager'}
-										on {formatDateTime(submission.reviewedAt)}.
+										{m.applications_submission_list_decided_by({
+											decision: applicationStatusLabel(submission.status),
+											reviewer:
+												submission.reviewer?.displayName ??
+												submission.reviewer?.username ??
+												m.applications_submission_list_a_manager(),
+											date: formatDateTime(submission.reviewedAt)
+										})}
 									</p>
 									{#if submission.reviewNote}
 										<p class="whitespace-pre-line text-text">“{submission.reviewNote}”</p>

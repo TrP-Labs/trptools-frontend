@@ -85,7 +85,7 @@
 							<div class="min-w-0">
 								<h2 class="truncate font-semibold text-text">{localized(group, 'name')}</h2>
 								<p class="text-xs text-text-muted">
-									{formatNumber(group.members)} members
+									{m.common_members_count({ count: formatNumber(group.members) })}
 								</p>
 							</div>
 						</div>

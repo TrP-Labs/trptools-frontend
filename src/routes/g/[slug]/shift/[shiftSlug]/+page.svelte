@@ -109,7 +109,7 @@
 
 							{#if totals.capacity > 0}
 								<Badge tone={totals.filled >= totals.capacity ? 'success' : 'neutral'}>
-									{totals.filled}/{totals.capacity} signed up
+									{m.common_signed_up_of({ filled: totals.filled, capacity: totals.capacity })}
 								</Badge>
 							{/if}
 						</div>

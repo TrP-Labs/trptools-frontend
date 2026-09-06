@@ -56,18 +56,23 @@
 		announced = true;
 
 		if (installed) toasts.success(m.dashboard_bot_discord_server_connected());
-		else if (failure) toasts.error(INSTALL_ERRORS[failure] ?? 'Could not connect that Discord server');
+		else if (failure)
+			toasts.error(
+				INSTALL_ERRORS[failure]?.() ?? m.dashboard_bot_could_not_connect_discord_server()
+			);
 
 		replaceState(page.url.pathname, {});
 	});
 
-	const INSTALL_ERRORS: Record<string, string> = {
-		cancelled: 'The Discord authorisation was cancelled',
-		expired: 'That install link expired — try again',
-		'guild-taken': 'That Discord server is already connected to another group',
-		'exchange-failed': 'Discord refused the install. Check the bot’s redirect URI.',
-		'unknown-group': 'That group no longer exists',
-		unavailable: 'Discord is not configured on this instance'
+	// The keys are what the callback puts in the URL, so they keep Discord's
+	// own spelling; only the sentences beside them are the site's to write.
+	const INSTALL_ERRORS: Record<string, () => string> = {
+		cancelled: m.dashboard_bot_discord_authorization_canceled,
+		expired: m.dashboard_bot_install_link_expired,
+		'guild-taken': m.dashboard_bot_server_already_connected_another_group,
+		'exchange-failed': m.dashboard_bot_discord_refused_install_redirect_uri,
+		'unknown-group': m.dashboard_bot_group_no_longer_exists,
+		unavailable: m.api_error_discord_is_not_configured_on_this_instance
 	};
 
 	async function beginInstall() {
@@ -523,7 +528,9 @@
 								{#if !target.enabled}
 									<IconX size={14} class="shrink-0 text-text-subtle" />
 									<span class="text-text-subtle">#{target.name}</span>
-									<span class="text-xs text-text-subtle">kept — {target.purpose}</span>
+									<span class="text-xs text-text-subtle">
+										{m.dashboard_bot_kept_purpose({ purpose: target.purpose })}
+									</span>
 								{:else if target.canDelete}
 									<IconCheck size={14} class="shrink-0 text-success" />
 									<span class="text-text-muted">#{target.name}</span>

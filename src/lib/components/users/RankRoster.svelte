@@ -25,8 +25,9 @@
 				<span class="size-2.5 shrink-0 rounded-full" style="background: {rank.color}"></span>
 				<h3 class="font-semibold text-text">{rank.name}</h3>
 				<span class="text-xs text-text-subtle tabular-nums">
-					{rank.memberCount}
-					{rank.memberCount === 1 ? 'member' : 'members'}
+					{rank.memberCount === 1
+						? m.users_rank_roster_member({ count: rank.memberCount })
+						: m.users_rank_roster_members({ count: rank.memberCount })}
 				</span>
 
 				{#if rank.description}
@@ -69,7 +70,7 @@
 
 					{#if rank.memberCount > rank.members.length}
 						<li class="flex w-24 shrink-0 items-center justify-center text-xs text-text-subtle">
-							+{rank.memberCount - rank.members.length} more
+							{m.users_rank_roster_more({ count: rank.memberCount - rank.members.length })}
 						</li>
 					{/if}
 				</ul>

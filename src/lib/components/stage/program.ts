@@ -4,7 +4,13 @@
  * A program is a time-ordered list of `[seconds, command, targets?]`, which is
  * what the game consumes and what the legacy programmer exported. Keeping the
  * exact shape means existing programs import without conversion.
+ *
+ * The command vocabulary below is the game's, not the site's: a marker reading
+ * "Big flash" is matched against the game by that exact spelling, so those
+ * arrays stay English the way a route name does. Only what a person reads —
+ * the failures out of `parseProgram` — is translated.
  */
+import { m } from '$lib/paraglide/messages.js';
 
 export type ProgramEntry = [number, string, string[]?];
 export type Program = ProgramEntry[];
@@ -92,31 +98,31 @@ export function parseProgram(raw: string): { program: Program } | { error: strin
 	try {
 		parsed = JSON.parse(raw);
 	} catch {
-		return { error: 'That is not valid JSON.' };
+		return { error: m.stage_not_valid_json() };
 	}
 
-	if (!Array.isArray(parsed)) return { error: 'A program must be an array of markers.' };
+	if (!Array.isArray(parsed)) return { error: m.stage_program_must_be_array() };
 
 	const program: Program = [];
 
 	for (const [index, entry] of parsed.entries()) {
 		if (!Array.isArray(entry) || entry.length < 2) {
-			return { error: `Marker ${index + 1} must be [time, command] at minimum.` };
+			return { error: m.stage_marker_must_be_time_command({ marker: index + 1 }) };
 		}
 
 		const [time, command, targets] = entry as [unknown, unknown, unknown];
 
 		if (typeof time !== 'number' || !Number.isFinite(time) || time < 0) {
-			return { error: `Marker ${index + 1} has an invalid time.` };
+			return { error: m.stage_marker_invalid_time({ marker: index + 1 }) };
 		}
 
 		if (typeof command !== 'string' || command.length === 0) {
-			return { error: `Marker ${index + 1} has an invalid command.` };
+			return { error: m.stage_marker_invalid_command({ marker: index + 1 }) };
 		}
 
 		if (targets !== undefined) {
 			if (!Array.isArray(targets) || targets.some((value) => typeof value !== 'string')) {
-				return { error: `Marker ${index + 1} has invalid targets.` };
+				return { error: m.stage_marker_invalid_targets({ marker: index + 1 }) };
 			}
 			program.push([time, command, targets as string[]]);
 		} else {

@@ -94,7 +94,7 @@
 		{/if}
 		{#if group.pendingApplications > 0}
 			<Badge tone="warning">
-				{group.pendingApplications} to review
+				{m.common_to_review({ count: group.pendingApplications })}
 			</Badge>
 		{/if}
 		{#if group.nextShift}

@@ -34,7 +34,10 @@
 	let display = $derived.by(() => {
 		if (!value) return null;
 		const name = names[value];
-		if (!name) return kind === 'channel' ? 'Unknown channel' : 'Unknown role';
+		if (!name)
+			return kind === 'channel'
+				? m.bot_discord_setting_unknown_channel()
+				: m.bot_discord_setting_unknown_role();
 		return kind === 'channel' ? `#${name}` : `@${name}`;
 	});
 

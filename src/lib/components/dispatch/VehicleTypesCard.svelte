@@ -138,7 +138,7 @@
 
 		{#if duplicate}
 			<p class="text-sm text-danger">
-				“{duplicate}” is listed twice. Remove one before saving.
+				{m.dispatch_vehicle_types_card_listed_twice({ name: duplicate })}
 			</p>
 		{/if}
 

@@ -10,7 +10,7 @@
 
 	let { data }: PageProps = $props();
 	let profile = $derived(data.profile);
-	let name = $derived(profile.displayName ?? profile.username ?? `User ${profile.robloxId}`);
+	let name = $derived(profile.displayName ?? profile.username ?? m.users_user_roblox_id({ id: profile.robloxId }));
 
 	/**
 	 * Null means the section is switched off, an empty array means nothing has

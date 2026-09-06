@@ -55,7 +55,7 @@
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge>{m.g_depot_number({ number: depot.number })}</Badge>
-					<Badge><IconRoute size={13} /> {data.routes.length} routes</Badge>
+					<Badge><IconRoute size={13} /> {m.common_routes_count({ count: data.routes.length })}</Badge>
 					<ReportButton targetType="DEPOT" targetId={depot.id} label={m.g_report_label_depot({ number: depot.number })} />
 				</div>
 			</div>

@@ -107,6 +107,25 @@
 
 	let importOpen = $state(false);
 
+	/**
+	 * What the solver did, as one sentence.
+	 *
+	 * Four whole strings rather than a stem with a comma clause glued on: a
+	 * language that counts differently, or that puts the leftovers first, has
+	 * nothing to work with otherwise.
+	 */
+	function assigned(solved: number, skipped: number) {
+		if (skipped > 0) {
+			return solved === 1
+				? m.tools_dispatch_assigned_vehicle_skipped({ count: solved, skipped })
+				: m.tools_dispatch_assigned_vehicles_skipped({ count: solved, skipped });
+		}
+
+		return solved === 1
+			? m.tools_dispatch_assigned_vehicle({ count: solved })
+			: m.tools_dispatch_assigned_vehicles({ count: solved });
+	}
+
 	async function solve(includeAssigned: boolean) {
 		board.solving = true;
 		try {
@@ -114,15 +133,12 @@
 
 			if (result.solved === 0 && result.skipped > 0) {
 				toasts.error(
-					`Nothing could be assigned. ${result.skipped} ${
-						result.skipped === 1 ? 'vehicle has' : 'vehicles have'
-					} no route serving their depot.`
+					result.skipped === 1
+						? m.tools_dispatch_nothing_assigned_one({ count: result.skipped })
+						: m.tools_dispatch_nothing_assigned_other({ count: result.skipped })
 				);
 			} else {
-				toasts.success(
-					`Assigned ${result.solved} ${result.solved === 1 ? 'vehicle' : 'vehicles'}` +
-						(result.skipped ? `, skipped ${result.skipped}` : '')
-				);
+				toasts.success(assigned(result.solved, result.skipped));
 			}
 		} catch (error) {
 			toasts.error(errorMessage(error, m.tools_dispatch_could_not_solve_routes()));

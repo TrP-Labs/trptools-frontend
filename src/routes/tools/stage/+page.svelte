@@ -124,7 +124,7 @@
 			return;
 		}
 
-		trackName = `Roblox sound ${soundId.trim()}`;
+		trackName = m.tools_stage_roblox_sound({ id: soundId.trim() });
 		soundOpen = false;
 		toasts.info(m.tools_stage_sound_id_saved_load_audio_file());
 	}
@@ -305,7 +305,9 @@
 		<div class="mb-3 flex items-baseline justify-between">
 			<h2 class="text-sm font-semibold tracking-wide text-text-muted uppercase">
 				{m.tools_stage_program()}
-				<span class="ml-1 font-normal text-text-subtle">{program.length} markers</span>
+				<span class="ml-1 font-normal text-text-subtle">
+					{m.tools_stage_markers_count({ count: program.length })}
+				</span>
 			</h2>
 			{#if program.length > 0}
 				<button

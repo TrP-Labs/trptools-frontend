@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import type { PageServerLoad } from './$types';
+import { m } from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async (event) => {
 	const { data, error: apiError } = await serverApi(event)
@@ -9,8 +10,8 @@ export const load: PageServerLoad = async (event) => {
 		.get();
 
 	if (!data) {
-		if (apiError?.status === 404) error(404, 'That depot does not exist');
-		error(502, 'Could not reach the API');
+		if (apiError?.status === 404) error(404, m.error_depot_does_not_exist());
+		error(502, m.error_could_not_reach_api());
 	}
 
 	event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
