@@ -160,7 +160,7 @@
 		{/if}
 
 		{#if application.rank}
-			<Badge tone="accent">For {application.rank.name}</Badge>
+			<Badge tone="accent">{m.dashboard_applications_for_rank({ rank: application.rank.name })}</Badge>
 		{:else}
 			<Badge tone="warning">{m.dashboard_applications_no_rank_bound()}</Badge>
 		{/if}
@@ -231,7 +231,7 @@
 						? 'opacity-40'
 						: ''} {archiveFilter === 'APPROVED' ? 'ring-2 ring-success/50' : ''}"
 				>
-					<Badge tone="success">{data.approved.length} approved</Badge>
+					<Badge tone="success">{m.dashboard_applications_count_approved({ count: data.approved.length })}</Badge>
 				</button>
 
 				<button
@@ -242,7 +242,7 @@
 						? 'opacity-40'
 						: ''} {archiveFilter === 'DENIED' ? 'ring-2 ring-danger/50' : ''}"
 				>
-					<Badge tone="danger">{data.denied.length} denied</Badge>
+					<Badge tone="danger">{m.dashboard_applications_count_denied({ count: data.denied.length })}</Badge>
 				</button>
 
 				{#if archiveFilter !== 'ALL'}

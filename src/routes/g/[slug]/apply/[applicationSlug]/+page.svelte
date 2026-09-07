@@ -228,10 +228,12 @@
 				<p class="font-medium text-text">{m.g_apply_already_rank_above()}</p>
 				<p class="text-sm text-text-muted">
 					{application.rankName
-						? `This form is for ${application.rankName}, and the rank you hold in ${localized(group, 'name')} is higher than that.`
-						: `The rank you hold in ${localized(group, 'name')} is higher than the one this form is for.`}
-					There is nothing here for you to apply for — speak to the group directly if that looks
-					wrong.
+						? m.g_apply_form_is_for_rank_you_hold_higher({
+							rank: application.rankName,
+							group: localized(group, 'name')
+						})
+						: m.g_apply_rank_you_hold_higher_than_form({ group: localized(group, 'name') })}
+					{m.g_apply_nothing_here_to_apply_for()}
 				</p>
 			</div>
 		</div>
@@ -289,7 +291,7 @@
 					</p>
 				{:else if stillCounts && !approved}
 					<p class="mt-2 text-sm text-text-subtle">
-						{localized(group, 'name')} is not taking another application from you for this at the moment.
+						{m.g_apply_not_taking_another_application({ group: localized(group, 'name') })}
 					</p>
 				{/if}
 			</div>
@@ -300,7 +302,7 @@
 		<div class="card p-6 text-center">
 			<p class="font-medium text-text">{m.g_apply_applications_are_closed()}</p>
 			<p class="mt-1 text-sm text-text-muted">
-				{localized(group, 'name')} is not taking new applications for this at the moment.
+				{m.g_apply_not_taking_new_applications({ group: localized(group, 'name') })}
 			</p>
 		</div>
 	{:else if !data.user}
@@ -435,8 +437,9 @@
 
 					{#if missing.length > 0}
 						<p class="mt-1.5 text-sm text-text-muted">
-							{missing.length}
-							{missing.length === 1 ? 'question' : 'questions'} still to answer.
+							{missing.length === 1
+								? m.g_apply_question_still_to_answer({ count: missing.length })
+								: m.g_apply_questions_still_to_answer({ count: missing.length })}
 						</p>
 					{/if}
 				</div>

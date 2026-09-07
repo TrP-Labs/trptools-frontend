@@ -54,8 +54,10 @@
 
 	let lead = $derived(
 		leadMinutes === 0
-			? 'once it starts'
-			: `${leadMinutes} ${leadMinutes === 1 ? 'minute' : 'minutes'} before it starts`
+			? m.dispatch_shift_countdown_once_it_starts()
+			: leadMinutes === 1
+				? m.dispatch_shift_countdown_minute_before_it_starts({ count: leadMinutes })
+				: m.dispatch_shift_countdown_minutes_before_it_starts({ count: leadMinutes })
 	);
 </script>
 

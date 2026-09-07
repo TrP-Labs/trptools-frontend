@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Toggle from '$lib/components/ui/Toggle.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	/**
 	 * One automated action: whether the bot fires it on its own, and how far
@@ -26,7 +27,7 @@
 		description,
 		enabled,
 		lead,
-		leadLabel = 'minutes before the shift starts',
+		leadLabel = m.bot_automation_row_minutes_before_shift_starts(),
 		disabled = false,
 		onchange
 	}: Props = $props();

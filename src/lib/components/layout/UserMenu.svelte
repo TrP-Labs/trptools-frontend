@@ -77,7 +77,7 @@
 						{user.displayName ?? user.username}
 					</p>
 					<p class="truncate text-xs text-text-muted">
-						{user.username ? `@${user.username}` : `Roblox ${user.robloxId}`}
+						{user.username ? `@${user.username}` : m.common_roblox_id({ id: user.robloxId })}
 					</p>
 				</div>
 

@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import type { PageServerLoad } from './$types';
+import { m } from '$lib/paraglide/messages.js';
 
 /**
  * The routes and depots the personal board runs.
@@ -12,7 +13,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async (event) => {
 	const { data } = await serverApi(event).tools.dispatch.setup.get();
 
-	if (!data) error(502, 'Could not reach the API');
+	if (!data) error(502, m.error_could_not_reach_api());
 
 	event.setHeaders({ 'cache-control': 'public, max-age=60, s-maxage=600' });
 

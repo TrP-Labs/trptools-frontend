@@ -125,12 +125,12 @@
 				{/if}
 
 				<div class="mt-4 flex flex-wrap items-center gap-2">
-					<Badge><IconUsers size={13} /> {formatNumber(group.members)} members</Badge>
+					<Badge><IconUsers size={13} /> {m.common_members_count({ count: formatNumber(group.members) })}</Badge>
 					{#if group.showRoutes}
-						<Badge><IconRoute size={13} /> {group.routes.length} routes</Badge>
+						<Badge><IconRoute size={13} /> {m.common_routes_count({ count: group.routes.length })}</Badge>
 					{/if}
 					{#if group.depots.length > 0}
-						<Badge><IconBuildingWarehouse size={13} /> {group.depots.length} depots</Badge>
+						<Badge><IconBuildingWarehouse size={13} /> {m.common_depots_count({ count: group.depots.length })}</Badge>
 					{/if}
 					<a
 						href="https://www.roblox.com/groups/{group.robloxId}"

@@ -63,7 +63,7 @@
 					{m.g_route_page_title({ route: localized(route, 'name') })}
 				</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
-					<Badge tone="accent">{formatShare(route.targetShare)}% target share</Badge>
+					<Badge tone="accent">{m.g_route_target_share({ share: formatShare(route.targetShare) })}</Badge>
 					{#if !route.autoAssign}<Badge tone="warning">{m.g_route_assigned_by_hand()}</Badge>{/if}
 
 					<!--

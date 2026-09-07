@@ -117,7 +117,7 @@
 			{#if next.capacity > 0}
 				<span class="inline-flex items-center gap-1.5 text-xs text-text-subtle">
 					<IconUsers size={14} />
-					{next.filled}/{next.capacity} signed up
+					{m.dashboard_next_shift_card_signed_up({ filled: next.filled, capacity: next.capacity })}
 				</span>
 			{/if}
 		</div>

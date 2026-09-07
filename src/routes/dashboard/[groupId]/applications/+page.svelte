@@ -78,7 +78,9 @@
 			const { error } = await api.applications({ applicationId }).patch({ open });
 			if (error) throw error;
 
-			toasts.success(open ? 'Applications opened' : 'Applications closed');
+			toasts.success(
+				open ? m.dashboard_applications_opened() : m.dashboard_applications_closed_toast()
+			);
 			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, m.dashboard_applications_could_not_change_application()));
@@ -127,10 +129,12 @@
 					<p class="truncate font-medium text-text">{localized(application, 'name')}</p>
 					<p class="mt-0.5 truncate text-sm text-text-muted">
 						{#if application.rank}
-							For {application.rank.name} · {application.questionCount}
-							{application.questionCount === 1 ? 'question' : 'questions'}
+							{m.dashboard_applications_for_rank({ rank: application.rank.name })} ·
+							{application.questionCount === 1
+								? m.dashboard_applications_question({ count: application.questionCount })
+								: m.dashboard_applications_questions({ count: application.questionCount })}
 						{:else}
-							No rank bound yet — it cannot open until one is
+							{m.dashboard_applications_no_rank_bound_yet_cannot_open()}
 						{/if}
 					</p>
 				</div>
@@ -144,7 +148,7 @@
 						<a href="{href}?section=applicants" class="contents">
 							<Badge tone="accent">
 								<IconUsers size={13} />
-								{application.pendingCount} to review
+								{m.common_to_review({ count: application.pendingCount })}
 							</Badge>
 						</a>
 					{:else}

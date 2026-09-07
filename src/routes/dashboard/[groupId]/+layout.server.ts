@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import type { LayoutServerLoad } from './$types';
+import { m } from '$lib/paraglide/messages.js';
 
 /**
  * Loads the group once for every page beneath it, and carries the caller's
@@ -15,15 +16,15 @@ export const load: LayoutServerLoad = async (event) => {
 		.get();
 
 	if (!data) {
-		if (apiError?.status === 404) error(404, 'That group does not exist');
-		error(502, 'Could not reach the API');
+		if (apiError?.status === 404) error(404, m.error_group_does_not_exist());
+		error(502, m.error_could_not_reach_api());
 	}
 
 	// `adminMode`, not `siteRank`: the API already reports MANAGE to an
 	// elevated admin, so this only has to agree with it. An admin who has
 	// turned the mode off is refused here exactly as the API refuses them.
 	if (data.permissionLevel < 1 && !event.locals.user.adminMode) {
-		error(403, 'You do not have access to this group');
+		error(403, m.error_no_access_to_group());
 	}
 
 	return { group: data };

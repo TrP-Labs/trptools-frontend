@@ -92,7 +92,11 @@
 				['open-cloud-key'].put({ apiKey: apiKey.trim() || null });
 			if (error) throw error;
 
-			toasts.success(apiKey.trim() ? 'Open Cloud key verified and stored' : 'Open Cloud key removed');
+			toasts.success(
+				apiKey.trim()
+					? m.dashboard_settings_open_cloud_key_verified_stored()
+					: m.dashboard_settings_open_cloud_key_removed()
+			);
 			apiKey = '';
 			await refreshData();
 		} catch (error) {

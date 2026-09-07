@@ -67,8 +67,8 @@
 
 <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-subtle">
 	<p>
-		{tracked} tracked · {assigned} of {routable} assigned
-		{#if matching !== null}· {matching} matching{/if}
+		{m.dispatch_dispatch_toolbar_tracked_assigned({ tracked, assigned, routable })}
+		{#if matching !== null}· {m.dispatch_dispatch_toolbar_matching({ count: matching })}{/if}
 	</p>
 
 	<p class="flex items-center gap-1.5">

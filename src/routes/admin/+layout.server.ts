@@ -1,4 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
+import { m } from '$lib/paraglide/messages.js';
 import type { LayoutServerLoad } from './$types';
 
 /**
@@ -16,8 +17,8 @@ export const load: LayoutServerLoad = async (event) => {
 		error(
 			403,
 			event.locals.user.siteRank === 'admin'
-				? 'Admin mode is off for this session. Turn it on in Settings → Account.'
-				: 'This area is for site administrators'
+				? m.error_admin_mode_off()
+				: m.error_admin_area()
 		);
 	}
 };

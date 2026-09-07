@@ -14,16 +14,22 @@
 
 	let { signedIn }: Props = $props();
 
+	/**
+	 * The reason travels to the API — and from there to a moderator's queue —
+	 * as the English `value`, never as the translated `label`. A German
+	 * reporter and an English one must file the same thing, or a queue read by
+	 * one person becomes a queue in six languages.
+	 */
 	const REASONS = [
-		'Sexual or explicit content',
-		'Hate or harassment',
-		'Violence or threats',
-		'Spam or advertising',
-		'Impersonation',
-		'Other'
+		{ value: 'Sexual or explicit content', label: m.moderation_report_dialog_reason_sexual_content },
+		{ value: 'Hate or harassment', label: m.moderation_report_dialog_reason_hate_or_harassment },
+		{ value: 'Violence or threats', label: m.moderation_report_dialog_reason_violence_or_threats },
+		{ value: 'Spam or advertising', label: m.moderation_report_dialog_reason_spam_or_advertising },
+		{ value: 'Impersonation', label: m.moderation_report_dialog_reason_impersonation },
+		{ value: 'Other', label: m.moderation_report_dialog_reason_other }
 	];
 
-	let reason = $state(REASONS[0]!);
+	let reason = $state(REASONS[0]!.value);
 	let details = $state('');
 	let sending = $state(false);
 
@@ -44,12 +50,12 @@
 
 			toasts.success(
 				data.hidden
-					? 'Reported. It has been hidden while a moderator reviews it.'
-					: 'Reported. A moderator has already cleared this, so it stays up while we look again.'
+					? m.moderation_report_dialog_reported_hidden()
+					: m.moderation_report_dialog_reported_already_cleared()
 			);
 
 			details = '';
-			reason = REASONS[0]!;
+			reason = REASONS[0]!.value;
 			reportDialog.close();
 		} catch (error) {
 			toasts.error(errorMessage(error, m.moderation_report_dialog_could_not_send_report()));
@@ -73,17 +79,17 @@
 		<div class="space-y-4">
 			<Field label={m.moderation_report_dialog_reason()}>
 				<div class="flex flex-wrap gap-1.5">
-					{#each REASONS as option (option)}
+					{#each REASONS as option (option.value)}
 						<button
 							type="button"
-							onclick={() => (reason = option)}
-							aria-pressed={reason === option}
+							onclick={() => (reason = option.value)}
+							aria-pressed={reason === option.value}
 							class="rounded-lg border px-2.5 py-1.5 text-xs transition-colors
-								{reason === option
+								{reason === option.value
 								? 'border-accent bg-accent/15 text-accent'
 								: 'border-border-base bg-background-secondary text-text-muted hover:text-text'}"
 						>
-							{option}
+							{option.label()}
 						</button>
 					{/each}
 				</div>

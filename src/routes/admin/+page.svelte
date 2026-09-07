@@ -44,7 +44,9 @@
 				action === 'approve' ? await endpoint.approve.post({}) : await endpoint.uphold.post({});
 			if (error) throw error;
 
-			toasts.success(action === 'approve' ? 'Content restored' : 'Content stays hidden');
+			toasts.success(
+				action === 'approve' ? m.admin_content_restored() : m.admin_content_stays_hidden()
+			);
 			await refreshData();
 		} catch (error) {
 			toasts.error(errorMessage(error, m.admin_could_not_resolve_report()));

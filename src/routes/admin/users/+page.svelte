@@ -45,7 +45,7 @@
 	}
 
 	function name(user: AdminUser) {
-		return user.displayName ?? user.username ?? `Roblox ${user.robloxId}`;
+		return user.displayName ?? user.username ?? m.common_roblox_id({ id: user.robloxId });
 	}
 
 	async function lift(user: AdminUser) {
@@ -128,8 +128,9 @@
 					</div>
 
 					<p class="mt-0.5 text-xs text-text-subtle">
-						{user.username ? `@${user.username} · ` : ''}Roblox {user.robloxId} · joined
-						{formatRelative(user.createdAt)}
+						{user.username ? `@${user.username} · ` : ''}{m.common_roblox_id({
+							id: user.robloxId
+						})} · {m.admin_users_joined_ago({ when: formatRelative(user.createdAt) })}
 					</p>
 
 					{#if user.ban}
@@ -138,9 +139,11 @@
 								{user.ban.expiresAt
 									? `${user.ban.active ? m.admin_users_lifts() : m.admin_users_lifted()} ${formatDateTime(user.ban.expiresAt)}`
 									: m.admin_users_permanent()}
-								· set {formatRelative(user.ban.bannedAt)}
+								· {m.admin_users_set_ago({ when: formatRelative(user.ban.bannedAt) })}
 								{#if user.ban.by}
-									by {user.ban.by.displayName ?? user.ban.by.username}
+									{m.admin_users_by({
+										name: user.ban.by.displayName ?? user.ban.by.username ?? ''
+									})}
 								{/if}
 							</p>
 							{#if user.ban.reason}

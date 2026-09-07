@@ -3,14 +3,16 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 
-	const titles: Record<number, string> = {
-		403: 'You do not have access',
-		404: 'Page not found',
-		500: 'Something went wrong',
-		502: 'The API is unreachable'
+	// Called rather than stored, so a client-side language change redraws these
+	// along with everything else on the page.
+	const titles: Record<number, () => string> = {
+		403: m.error_no_access,
+		404: m.error_page_not_found,
+		500: m.common_something_went_wrong,
+		502: m.error_api_unreachable
 	};
 
-	let title = $derived(titles[page.status] ?? 'Something went wrong');
+	let title = $derived((titles[page.status] ?? m.common_something_went_wrong)());
 </script>
 
 <svelte:head><title>{title} — TrP Tools</title></svelte:head>

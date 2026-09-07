@@ -1,10 +1,11 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import type { PageServerLoad } from './$types';
+import { m } from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async (event) => {
 	const parent = await event.parent();
-	if (parent.group.permissionLevel < 3) error(403, 'You need manage access to run applications');
+	if (parent.group.permissionLevel < 3) error(403, m.error_need_manage_access_applications());
 
 	const client = serverApi(event);
 	const applicationId = event.params.applicationId;
@@ -18,8 +19,8 @@ export const load: PageServerLoad = async (event) => {
 	]);
 
 	if (!application.data) {
-		if (application.error?.status === 404) error(404, 'That application does not exist');
-		error(502, 'Could not reach the API');
+		if (application.error?.status === 404) error(404, m.error_application_does_not_exist());
+		error(502, m.error_could_not_reach_api());
 	}
 
 	return {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Avatar from './Avatar.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	interface Props {
 		displayName?: string | null;
@@ -13,7 +14,7 @@
 	let { displayName, username, avatar, subtitle, size = 32, class: className = '' }: Props =
 		$props();
 
-	let primary = $derived(displayName || username || 'Unknown user');
+	let primary = $derived(displayName || username || m.users_user_chip_unknown_user());
 	let secondary = $derived(subtitle ?? (username && username !== displayName ? `@${username}` : null));
 </script>
 

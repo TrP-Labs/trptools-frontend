@@ -88,7 +88,7 @@
 							<p class="mt-0.5 text-xs text-text-muted">{localized(sheet, 'description')}</p>
 						{/if}
 					</div>
-					<Badge>{sheet.rankName} and above</Badge>
+					<Badge>{m.shifts_signup_sheets_rank_and_above({ rank: sheet.rankName })}</Badge>
 				</header>
 
 				<ul class="divide-y divide-border-base">
