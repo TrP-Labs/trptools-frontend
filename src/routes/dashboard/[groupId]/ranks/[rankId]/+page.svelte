@@ -2,18 +2,15 @@
 	import { goto } from '$app/navigation';
 	import { refreshData } from '$lib/utils/refresh';
 	import {
-		IconBan,
 		IconBrandDiscord,
 		IconClipboardList,
-		IconCrown,
-		IconHeadphones,
-		IconMicrophone,
 		IconRefresh,
 		IconSettings,
 		IconShieldLock,
 		IconTrash
 	} from '@tabler/icons-svelte';
 	import ObjectPage, { type ObjectSection } from '$lib/components/layout/ObjectPage.svelte';
+	import PermissionEditor from '$lib/components/ranks/PermissionEditor.svelte';
 	import RankSignupEditor from '$lib/components/shifts/RankSignupEditor.svelte';
 	import RankSignupDiscord from '$lib/components/shifts/RankSignupDiscord.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -26,6 +23,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { permissionDescription, permissionLabel } from '$lib/api/types';
+	import { grantCount } from '$lib/utils/permissions';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -39,13 +37,6 @@
 	let isOwner = $derived(rank.cachedRank === 255);
 
 	let busy = $state(false);
-
-	const levels = [
-		{ level: 0, icon: IconBan },
-		{ level: 1, icon: IconHeadphones },
-		{ level: 2, icon: IconMicrophone },
-		{ level: 3, icon: IconCrown }
-	];
 
 	let sections = $derived<ObjectSection[]>([
 		{ id: 'permissions', label: m.dashboard_ranks_permissions(), icon: IconShieldLock },
@@ -102,6 +93,9 @@
 		<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
 			{permissionLabel(rank.permissionLevel)}
 		</Badge>
+		{#if rank.permissions > 0}
+			<Badge>{m.dashboard_ranks_grants_held({ count: grantCount(rank.permissions) })}</Badge>
+		{/if}
 		{#if rank.visible}<Badge>{m.dashboard_ranks_staff_list()}</Badge>{/if}
 	{/snippet}
 
@@ -124,37 +118,17 @@
 
 	{#snippet children(section)}
 		{#if section === 'permissions'}
-			<Card title={m.dashboard_ranks_access()} description={m.dashboard_ranks_what_members_holding_rank_can_do()}>
-				<div class="flex flex-wrap items-center gap-1">
-					{#each levels as option (option.level)}
-						{@const active = rank.permissionLevel === option.level}
-						<button
-							type="button"
-							disabled={isOwner || busy}
-							title={permissionDescription(option.level)}
-							aria-pressed={active}
-							onclick={() => patch({ permissionLevel: option.level })}
-							class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors
-								disabled:cursor-not-allowed disabled:opacity-50
-								{active
-								? 'border-accent bg-accent/15 text-accent'
-								: 'border-border-base text-text-subtle hover:text-text'}"
-						>
-							<option.icon size={17} />
-							{permissionLabel(option.level)}
-						</button>
-					{/each}
-				</div>
-
-				<p class="mt-3 text-sm text-text-muted">
-					{permissionDescription(rank.permissionLevel)}
-				</p>
-
-				{#if isOwner}
-					<p class="mt-2 text-xs text-text-subtle">
-						{m.dashboard_ranks_owner_rank_always_keeps_full_access()}
-					</p>
-				{/if}
+			<Card
+				title={m.dashboard_ranks_access()}
+				description={m.dashboard_ranks_what_members_holding_rank_can_do()}
+			>
+				<PermissionEditor
+					permissions={rank.permissions}
+					editorPermissions={group.permissions}
+					locked={isOwner}
+					{busy}
+					onchange={(permissions) => patch({ permissions })}
+				/>
 			</Card>
 		{:else if section === 'settings'}
 			<Card title={m.dashboard_ranks_staff_list_2()} description={m.dashboard_ranks_how_rank_appears_group_s_public()}>

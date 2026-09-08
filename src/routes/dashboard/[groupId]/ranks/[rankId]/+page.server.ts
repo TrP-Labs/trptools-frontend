@@ -1,11 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
+import { can, PERM } from '$lib/utils/permissions';
 import type { PageServerLoad } from './$types';
 import { m } from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async (event) => {
 	const parent = await event.parent();
-	if (parent.group.permissionLevel < 3) error(403, m.error_need_manage_access_ranks());
+	if (!can(parent.group.permissions, PERM.MANAGE_RANKS)) error(403, m.error_need_manage_access_ranks());
 
 	const client = serverApi(event);
 	const rankId = event.params.rankId;

@@ -12,6 +12,8 @@
 		IconUsers
 	} from '@tabler/icons-svelte';
 	import Sidebar, { type SidebarItem } from '$lib/components/layout/Sidebar.svelte';
+	import { can, PERM } from '$lib/utils/permissions';
+	import { SETTINGS_GRANTS } from '$lib/utils/settingsSections';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import type { LayoutProps } from './$types';
@@ -26,16 +28,28 @@
 	// readable URL. The API resolves either.
 	let base = $derived(`/dashboard/${group.slug}`);
 
+	// Each entry names the grants that open it, so a rank given exactly one
+	// job sees exactly that page rather than a rail of links to 403s.
 	let items = $derived<SidebarItem[]>([
 		{ href: base, label: m.dashboard_overview(), icon: IconHome, exact: true },
-		{ href: `${base}/dispatch`, label: m.common_dispatch(), icon: IconRadio, level: 1 },
-		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, level: 1 },
-		{ href: `${base}/routes`, label: m.common_routes(), icon: IconRoute, level: 3 },
-		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, level: 3 },
-		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, level: 3 },
-		{ href: `${base}/applications`, label: m.common_applications(), icon: IconClipboardText, level: 3 },
-		{ href: `${base}/bot`, label: m.dashboard_bot(), icon: IconBrandDiscord, level: 3 },
-		{ href: `${base}/settings`, label: m.common_settings(), icon: IconSettings, level: 3 }
+		{ href: `${base}/dispatch`, label: m.common_dispatch(), icon: IconRadio, permissions: [PERM.DISPATCH, PERM.START_ROOM] },
+		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, permissions: [PERM.DISPATCH, PERM.MANAGE_SHIFTS] },
+		{ href: `${base}/routes`, label: m.common_routes(), icon: IconRoute, permissions: [PERM.MANAGE_ROUTES] },
+		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, permissions: [PERM.MANAGE_DEPOTS] },
+		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, permissions: [PERM.MANAGE_RANKS] },
+		{
+			href: `${base}/applications`,
+			label: m.common_applications(),
+			icon: IconClipboardText,
+			permissions: [PERM.MANAGE_APPLICATIONS, PERM.REVIEW_APPLICATIONS]
+		},
+		{ href: `${base}/bot`, label: m.dashboard_bot(), icon: IconBrandDiscord, permissions: [PERM.MANAGE_BOT] },
+		{
+			href: `${base}/settings`,
+			label: m.common_settings(),
+			icon: IconSettings,
+			permissions: SETTINGS_GRANTS
+		}
 	]);
 </script>
 
@@ -66,14 +80,14 @@
 			</a>
 		{/if}
 
-		{#if !group.hasOpenCloudKey && group.permissionLevel >= 3}
+		{#if !group.hasOpenCloudKey && can(group.permissions, PERM.MANAGE_OPEN_CLOUD)}
 			<Badge tone="warning">{m.dashboard_no_open_cloud_key()}</Badge>
 		{/if}
 	</div>
 </div>
 
 <div class="mx-auto flex max-w-7xl flex-col md:flex-row">
-	<Sidebar title={m.common_manage()} {items} permissionLevel={group.permissionLevel} />
+	<Sidebar title={m.common_manage()} {items} permissions={group.permissions} />
 
 	<div class="min-w-0 flex-1 px-4 py-8">
 		{@render children()}

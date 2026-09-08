@@ -33,8 +33,20 @@
 		translations: Translations;
 	}
 
+	/**
+	 * The parts of a route, in the order they are read.
+	 *
+	 * Named rather than always drawn together, because the same form is both
+	 * the create dialog — where everything belongs on one sheet — and the
+	 * route's own page, where each part is a section with its own address
+	 * (§10.1). One component either way, so the two cannot drift.
+	 */
+	export type RouteSection = 'route' | 'dispatch' | 'public' | 'availability';
+
 	interface Props {
 		draft: RouteDraft;
+		/** Which parts to draw. All of them, unless a page asks for one. */
+		show?: RouteSection[];
 		depots: Depot[];
 		busy?: boolean;
 		mode: 'create' | 'edit';
@@ -54,6 +66,7 @@
 
 	let {
 		draft = $bindable(),
+		show = ['route', 'dispatch', 'public', 'availability'],
 		depots,
 		busy = false,
 		mode,
@@ -110,6 +123,7 @@
 </script>
 
 <div class="space-y-6">
+	{#if show.includes('route')}
 	<FieldGroup title={m.routes_route_editor_route()} description={m.routes_route_editor_its_name_how_badge_drawn()} columns={1}>
 		<div class="grid gap-5 sm:grid-cols-[auto_1fr]">
 			<div class="flex flex-col items-center gap-2 sm:w-32">
@@ -187,7 +201,9 @@
 			/>
 		{/if}
 	</FieldGroup>
+	{/if}
 
+	{#if show.includes('dispatch')}
 	<FieldGroup title={m.common_dispatch()} description={m.routes_route_editor_how_automatic_assignment_treats()} columns={1}>
 		<Field
 			label={m.routes_route_editor_depots_served()}
@@ -260,7 +276,9 @@
 			description={m.routes_route_editor_turn_off_routes_should_only_ever()}
 		/>
 	</FieldGroup>
+	{/if}
 
+	{#if show.includes('public')}
 	<FieldGroup title={m.common_public_page()} description={m.routes_route_editor_what_visitors_group_see()} columns={1}>
 		<Field label={m.common_visibility()} hint={m.routes_route_editor_members_only_keeps_route_inside_dashboard()}>
 			<Select bind:value={draft.visibility} options={visibilities} class="sm:max-w-64" />
@@ -287,8 +305,9 @@
 			/>
 		{/if}
 	</FieldGroup>
+	{/if}
 
-	{#if mode === 'edit'}
+	{#if mode === 'edit' && show.includes('availability')}
 		<FieldGroup title={m.routes_route_editor_availability()} columns={1}>
 			<Toggle
 				bind:checked={draft.archived}
@@ -305,7 +324,7 @@
 			{mode === 'create' ? m.routes_route_editor_create_route() : m.common_save_changes()}
 		</Button>
 
-		{#if mode === 'edit'}
+		{#if mode === 'edit' && show.includes('availability')}
 			{#if builtIn}
 				<span class="inline-flex items-center gap-1.5 text-xs text-text-subtle">
 					<IconLock size={14} /> {m.routes_route_editor_built_routes_can_disabled_but_not()}
@@ -317,7 +336,7 @@
 			{/if}
 		{/if}
 
-		{#if published && !draft.showOnGroupPage}
+		{#if published && !draft.showOnGroupPage && show.includes('public')}
 			<span class="ml-auto inline-flex items-center gap-1.5 text-xs text-text-subtle">
 				<IconEyeOff size={14} /> {m.routes_route_editor_not_listed_group_page()}
 			</span>

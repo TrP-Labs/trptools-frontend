@@ -14,6 +14,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { permissionDescription, permissionLabel } from '$lib/api/types';
+	import { grantCount } from '$lib/utils/permissions';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -88,6 +89,9 @@
 						<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
 							{permissionLabel(rank.permissionLevel)}
 						</Badge>
+						{#if rank.permissions > 0}
+							<Badge>{m.dashboard_ranks_grants_held({ count: grantCount(rank.permissions) })}</Badge>
+						{/if}
 						{#if rank.visible}<Badge>{m.dashboard_ranks_staff_list()}</Badge>{/if}
 						{#if sheet}
 							<Badge><IconClipboardList size={13} /> {m.dashboard_ranks_sheet()}</Badge>

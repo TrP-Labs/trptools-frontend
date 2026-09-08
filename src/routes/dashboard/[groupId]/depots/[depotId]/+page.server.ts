@@ -8,9 +8,12 @@ export const load: PageServerLoad = async (event) => {
 	const parent = await event.parent();
 	if (!can(parent.group.permissions, PERM.MANAGE_DEPOTS)) error(403, m.error_need_manage_access_depots());
 
-	const { data } = await serverApi(event).depots.get({
-		query: { groupId: event.params.groupId, includeArchived: 'true' }
-	});
+	const depot = await serverApi(event).depots({ depotId: event.params.depotId }).get();
 
-	return { depots: data ?? [] };
+	if (!depot.data) {
+		if (depot.error?.status === 404) error(404, m.error_depot_does_not_exist());
+		error(502, m.error_could_not_reach_api());
+	}
+
+	return { depot: depot.data };
 };

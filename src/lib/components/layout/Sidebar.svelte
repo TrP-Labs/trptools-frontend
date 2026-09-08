@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { ALL_PERMISSIONS, canAny } from '$lib/utils/permissions';
 	// Tabler still ships class-based Svelte 4 components, so its own `Icon`
 	// type is what fits here rather than the runes-era `Component`.
 	import type { Icon } from '@tabler/icons-svelte';
@@ -8,20 +9,27 @@
 		href: string;
 		label: string;
 		icon: Icon;
-		/** Minimum permission level needed to see this entry. */
-		level?: number;
+		/**
+		 * The grants that open this entry. Any one of them is enough — an
+		 * application form is reached by whoever builds it *and* by whoever
+		 * reviews its queue. Absent means everybody who can see the group.
+		 */
+		permissions?: number[];
 		exact?: boolean;
 	}
 
 	interface Props {
 		title: string;
 		items: SidebarItem[];
-		permissionLevel?: number;
+		/** What the viewer holds in this group. See `$lib/utils/permissions`. */
+		permissions?: number;
 	}
 
-	let { title, items, permissionLevel = 3 }: Props = $props();
+	let { title, items, permissions = ALL_PERMISSIONS }: Props = $props();
 
-	let visible = $derived(items.filter((item) => permissionLevel >= (item.level ?? 0)));
+	let visible = $derived(
+		items.filter((item) => !item.permissions || canAny(permissions, item.permissions))
+	);
 
 	function isActive(item: SidebarItem) {
 		return item.exact

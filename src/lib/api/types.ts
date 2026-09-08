@@ -92,6 +92,8 @@ export type ApplicationSubmissionDetail = Data<
 >;
 export type ApplicationAnswer = ApplicationSubmissionDetail['answers'][number];
 export type ApplicationStatus = ApplicationSubmission['status'];
+/** Somebody waiting on a decision, as a group's own overview lists them. */
+export type PendingApplicant = Data<ReturnType<Api['applications']['pending']['get']>>[number];
 
 /** The same form as an applicant reads it, and what they have already sent. */
 export type PublicApplication = Data<
@@ -175,7 +177,13 @@ export type StageProgramSummary = Data<ReturnType<Api['tools']['stage']['get']>>
 
 export type Visibility = 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
 
-/** Permission levels, mirroring the backend's ladder. */
+/**
+ * Permission levels, mirroring the backend's ladder.
+ *
+ * Still here alongside the granular grants in `$lib/utils/permissions`: a
+ * level is the rung a set of grants lands on, which is what a rank's badge
+ * says and what the preset buttons set.
+ */
 export const PERMISSION = {
 	NONE: 0,
 	DISPATCH: 1,

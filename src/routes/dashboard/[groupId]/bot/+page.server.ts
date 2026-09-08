@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
+import { can, PERM } from '$lib/utils/permissions';
 import type { PageServerLoad } from './$types';
 import { m } from '$lib/paraglide/messages.js';
 
@@ -14,7 +15,7 @@ import { m } from '$lib/paraglide/messages.js';
  */
 export const load: PageServerLoad = async (event) => {
 	const parent = await event.parent();
-	if (parent.group.permissionLevel < 3) error(403, m.error_need_manage_access_bot());
+	if (!can(parent.group.permissions, PERM.MANAGE_BOT)) error(403, m.error_need_manage_access_bot());
 
 	const client = serverApi(event);
 	const groupId = event.params.groupId;
