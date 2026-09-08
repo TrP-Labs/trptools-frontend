@@ -1,11 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
+import { canAny, PERM } from '$lib/utils/permissions';
 import type { PageServerLoad } from './$types';
 import { m } from '$lib/paraglide/messages.js';
 
 export const load: PageServerLoad = async (event) => {
 	const parent = await event.parent();
-	if (parent.group.permissionLevel < 3) error(403, m.error_need_manage_access_applications());
+	if (!canAny(parent.group.permissions, [PERM.MANAGE_APPLICATIONS, PERM.REVIEW_APPLICATIONS])) error(403, m.error_need_manage_access_applications());
 
 	const client = serverApi(event);
 	const groupId = event.params.groupId;

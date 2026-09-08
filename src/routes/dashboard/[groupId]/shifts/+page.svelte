@@ -15,13 +15,14 @@
 	import { buildRule, fromLocalInput, parseRule, toLocalInput } from '$lib/utils/recurrence';
 	import type { ShiftEvent } from '$lib/api/types';
 	import type { PageProps } from './$types';
+	import { can, PERM } from '$lib/utils/permissions';
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
 
 	let group = $derived(data.group);
-	let canManage = $derived(group.permissionLevel >= 3);
+	let canManage = $derived(can(group.permissions, PERM.MANAGE_SHIFTS));
 
 	function emptyDraft(): ShiftDraft {
 		const start = new Date();

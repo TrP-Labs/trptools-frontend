@@ -23,13 +23,14 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { DispatchVehicle } from '$lib/api/types';
+	import { can, PERM } from '$lib/utils/permissions';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
 	let group = $derived(data.group);
-	let canHost = $derived(group.permissionLevel >= 2);
+	let canHost = $derived(can(group.permissions, PERM.START_ROOM));
 
 	const room = new DispatchRoom();
 

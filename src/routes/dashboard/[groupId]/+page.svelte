@@ -2,6 +2,7 @@
 	import {
 		IconBuildingWarehouse,
 		IconCalendarTime,
+		IconClipboardText,
 		IconRoute,
 		IconUsers
 	} from '@tabler/icons-svelte';
@@ -9,8 +10,10 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import GroupApplicants from '$lib/components/dashboard/GroupApplicants.svelte';
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
+	import { can, PERM } from '$lib/utils/permissions';
 	import { formatDateTime, formatNumber, formatRelative } from '$lib/utils/format';
 	import { signupTotals } from '$lib/utils/signups';
 	import type { PageProps } from './$types';
@@ -21,9 +24,22 @@
 
 	let group = $derived(data.group);
 
+	let reviewer = $derived(can(group.permissions, PERM.REVIEW_APPLICATIONS));
+
+	// The applicant count earns a tile of its own for whoever can act on it —
+	// somebody waiting is the one number on this page that is a task.
 	let stats = $derived([
 		{ label: m.common_routes(), value: formatNumber(data.routes.length), icon: IconRoute },
 		{ label: m.common_shifts(), value: formatNumber(data.shifts.length), icon: IconCalendarTime },
+		...(reviewer
+			? [
+					{
+						label: m.dashboard_applicants_waiting(),
+						value: formatNumber(data.applicants.length),
+						icon: IconClipboardText
+					}
+				]
+			: []),
 		{ label: m.dashboard_members(), value: formatNumber(group.members), icon: IconUsers }
 	]);
 </script>
@@ -44,7 +60,12 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-4 sm:grid-cols-3">
+	<!--
+		Literal class names, both of them: Tailwind reads the source for the
+		classes it emits, so a column count built from a variable produces no
+		CSS at all and the row silently collapses to one column.
+	-->
+	<div class="grid gap-4 sm:grid-cols-2 {stats.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}">
 		{#each stats as stat (stat.label)}
 			<div class="card flex items-center gap-3 p-4">
 				<span class="grid size-10 place-items-center rounded-lg bg-background-muted text-accent">
@@ -58,8 +79,43 @@
 		{/each}
 	</div>
 
+	<!--
+		`min-w-0` on every card, because a grid item's automatic minimum is its
+		content's min-content width — and a truncating line of text still
+		reports the full width of the string it is truncating. Without it one
+		long application name pushes the whole page sideways on a phone.
+	-->
 	<div class="grid gap-6 lg:grid-cols-2">
-		<Card title={m.dashboard_next_shifts()} description={m.dashboard_next_occurrences_across_every_schedule()}>
+		{#if reviewer}
+			<Card
+				class="min-w-0"
+				title={m.common_applications()}
+				description={m.dashboard_who_is_waiting_on_decision()}
+			>
+				{#snippet actions()}
+					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/applications">
+						{m.common_manage()}
+					</Button>
+				{/snippet}
+
+				{#if data.applicants.length === 0}
+					<EmptyState
+						title={m.dashboard_nobody_waiting()}
+						description={m.dashboard_applications_people_send_show_here()}
+					>
+						{#snippet icon()}<IconClipboardText size={24} stroke={1.5} />{/snippet}
+					</EmptyState>
+				{:else}
+					<GroupApplicants applicants={data.applicants} groupSlug={group.slug} />
+				{/if}
+			</Card>
+		{/if}
+
+		<Card
+			class="min-w-0"
+			title={m.dashboard_next_shifts()}
+			description={m.dashboard_next_occurrences_across_every_schedule()}
+		>
 			{#snippet actions()}
 				<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/shifts">{m.common_manage()}</Button>
 			{/snippet}
@@ -94,9 +150,13 @@
 			{/if}
 		</Card>
 
-		<Card title={m.common_routes()} description={m.dashboard_what_automatic_dispatch_can_assign()}>
+		<Card
+			class="min-w-0"
+			title={m.common_routes()}
+			description={m.dashboard_what_automatic_dispatch_can_assign()}
+		>
 			{#snippet actions()}
-				{#if group.permissionLevel >= 3}
+				{#if can(group.permissions, PERM.MANAGE_ROUTES)}
 					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/routes">{m.common_manage()}</Button>
 				{/if}
 			{/snippet}
@@ -121,9 +181,13 @@
 			{/if}
 		</Card>
 
-		<Card title={m.common_depots()} description={m.dashboard_where_vehicles_spawn_what_dispatch_matches()}>
+		<Card
+			class="min-w-0"
+			title={m.common_depots()}
+			description={m.dashboard_where_vehicles_spawn_what_dispatch_matches()}
+		>
 			{#snippet actions()}
-				{#if group.permissionLevel >= 3}
+				{#if can(group.permissions, PERM.MANAGE_DEPOTS)}
 					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/depots">{m.common_manage()}</Button>
 				{/if}
 			{/snippet}
@@ -151,7 +215,7 @@
 		</Card>
 	</div>
 
-	{#if group.permissionLevel >= 3 && !group.hasOpenCloudKey}
+	{#if can(group.permissions, PERM.MANAGE_OPEN_CLOUD) && !group.hasOpenCloudKey}
 		<Card
 			title={m.dashboard_connect_open_cloud_key()}
 			description={m.dashboard_roblox_now_requires_authentication_read_group()}

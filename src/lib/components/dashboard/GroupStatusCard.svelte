@@ -10,7 +10,9 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatRelative } from '$lib/utils/format';
-	import { PERMISSION, permissionLabel, type DashboardGroup } from '$lib/api/types';
+	import { permissionLabel, type DashboardGroup } from '$lib/api/types';
+	import { canAny, PERM } from '$lib/utils/permissions';
+	import { SETTINGS_GRANTS } from '$lib/utils/settingsSections';
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized } from '$lib/utils/translations';
 
@@ -32,16 +34,31 @@
 	 */
 	let links = $derived(
 		[
-			{ href: `/dashboard/${group.slug}/dispatch`, label: m.common_dispatch(), icon: IconRadio, level: PERMISSION.DISPATCH },
-			{ href: `/dashboard/${group.slug}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, level: PERMISSION.DISPATCH },
+			{
+				href: `/dashboard/${group.slug}/dispatch`,
+				label: m.common_dispatch(),
+				icon: IconRadio,
+				permissions: [PERM.DISPATCH, PERM.START_ROOM]
+			},
+			{
+				href: `/dashboard/${group.slug}/shifts`,
+				label: m.common_shifts(),
+				icon: IconCalendarTime,
+				permissions: [PERM.DISPATCH, PERM.MANAGE_SHIFTS]
+			},
 			{
 				href: `/dashboard/${group.slug}/applications`,
 				label: m.common_applications(),
 				icon: IconClipboardList,
-				level: PERMISSION.MANAGE
+				permissions: [PERM.MANAGE_APPLICATIONS, PERM.REVIEW_APPLICATIONS]
 			},
-			{ href: `/dashboard/${group.slug}/settings`, label: m.common_settings(), icon: IconSettings, level: PERMISSION.MANAGE }
-		].filter((link) => group.permissionLevel >= link.level)
+			{
+				href: `/dashboard/${group.slug}/settings`,
+				label: m.common_settings(),
+				icon: IconSettings,
+				permissions: SETTINGS_GRANTS
+			}
+		].filter((link) => canAny(group.permissions, link.permissions))
 	);
 </script>
 

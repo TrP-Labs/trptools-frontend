@@ -31,9 +31,17 @@
 	 * behave the way it looks like it should.
 	 */
 	interface Props {
-		/** Where the parent list lives. */
-		backHref: string;
-		backLabel: string;
+		/**
+		 * Where the parent list lives.
+		 *
+		 * Optional, because the shape is worth having on a page that is not
+		 * one *of* something — group settings has the same problem the rank
+		 * editor had, a settings list that grew until finding anything in it
+		 * meant scrolling past everything else, and it has no list to go back
+		 * to.
+		 */
+		backHref?: string;
+		backLabel?: string;
 		title: string;
 		description?: string;
 		/** A colour to lead the header with, when the object carries one. */
@@ -69,13 +77,15 @@
 
 <div class="space-y-6">
 	<div>
-		<a
-			href={backHref}
-			class="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-text"
-		>
-			<IconChevronLeft size={15} />
-			{backLabel}
-		</a>
+		{#if backHref}
+			<a
+				href={backHref}
+				class="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-text"
+			>
+				<IconChevronLeft size={15} />
+				{backLabel}
+			</a>
+		{/if}
 
 		<!--
 			Stacked on a phone rather than wrapped: `justify-between` with a
@@ -83,7 +93,9 @@
 			instead of below it, which read as a heading with a button through
 			the middle of it.
 		-->
-		<header class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+		<header
+			class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between {backHref ? 'mt-3' : ''}"
+		>
 			<div class="flex min-w-0 items-start gap-3 sm:flex-1">
 				{#if accent}
 					<span class="mt-1 h-9 w-1.5 shrink-0 rounded-full" style="background: {accent}"></span>
