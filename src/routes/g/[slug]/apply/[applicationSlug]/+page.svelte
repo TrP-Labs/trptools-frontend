@@ -98,11 +98,11 @@
 	 * line above the send button and pressed Detect, which put a reviewer in
 	 * the position of reading a zone nobody had actually claimed.
 	 */
-	let accountTimezone = $derived(standing?.timezone ?? detectTimezone());
+	let accountTimezone = $derived(standing?.timezone ?? page.data.timezone ?? detectTimezone());
 	let accountLocale = $derived(standing?.locale ?? 'en');
 
 	// svelte-ignore state_referenced_locally
-	let timezone = $state(data.standing?.timezone ?? detectTimezone());
+	let timezone = $state(data.standing?.timezone ?? data.timezone ?? detectTimezone());
 	// svelte-ignore state_referenced_locally
 	let locale = $state(data.standing?.locale ?? 'en');
 	let localeOpen = $state(false);
@@ -536,7 +536,14 @@
 			{standing?.timezone
 				? m.g_apply_account_says({ timezone: accountTimezone, locale: accountLocale })
 				: m.g_apply_account_has_no_zone({ timezone: accountTimezone, locale: accountLocale })}
-			<a href="/settings" class="underline underline-offset-2">{m.g_apply_account_settings()}</a>.
+			<!--
+				Appearance, not the account page: the zone and the language are
+				both set there, because both mean something before anybody
+				signs in.
+			-->
+			<a href="/settings/appearance" class="underline underline-offset-2">
+				{m.g_apply_account_settings()}
+			</a>.
 		</p>
 	</div>
 

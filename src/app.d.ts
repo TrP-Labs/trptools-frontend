@@ -10,6 +10,8 @@ declare global {
 			/** Resolved once per request in hooks.server.ts. */
 			user: SessionUser | null;
 			theme: string;
+			/** The reader's zone, or null to follow their browser. */
+			timezone: string | null;
 			/** Resolved by the Paraglide middleware, for loads that need it. */
 			locale: Locale;
 			/** Which of the three things decided `locale`. */
@@ -19,6 +21,7 @@ declare global {
 		interface PageData {
 			user?: SessionUser | null;
 			theme?: string;
+			timezone?: string | null;
 			locale?: Locale;
 			localeSource?: 'device' | 'account' | 'automatic';
 		}

@@ -2,9 +2,13 @@
 	import { IconCheck, IconWorld } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Flag from '$lib/components/ui/Flag.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { api } from '$lib/api/client';
+	import { refreshData } from '$lib/utils/refresh';
 	import { toasts } from '$lib/stores/toast.svelte';
+	import { detectTimezone, isValidTimezone } from '$lib/utils/format';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale, setLocale, type Locale } from '$lib/paraglide/runtime.js';
@@ -13,7 +17,7 @@
 	let { data }: PageProps = $props();
 
 	/**
-	 * Both settings on this page live in a cookie, which is why it opens to
+	 * Every setting on this page lives in a cookie, which is why it opens to
 	 * everybody. The account is where the choice is *kept* — so signed out
 	 * every write below stops at the cookie and the PATCH is not attempted,
 	 * rather than fired and refused.
@@ -94,6 +98,58 @@
 		}
 
 		setLocale(choice);
+	}
+
+	/**
+	 * The zone dates are drawn in.
+	 *
+	 * It sits here rather than on the account page because it is the same kind
+	 * of setting as the two above — how TrP Tools is shown to whoever is
+	 * reading it — and because it means something before anybody signs in. A
+	 * shift page tells a visitor when the shift starts, and the answer has to
+	 * be in their own time.
+	 */
+	// svelte-ignore state_referenced_locally
+	let timezone = $state(data.timezone ?? detectTimezone());
+
+	/** Whether anything has been chosen, or the browser's answer stands. */
+	let chosen = $derived(Boolean(data.timezone));
+
+	let savingZone = $state(false);
+
+	/**
+	 * The zones this runtime knows, offered as completions rather than as a
+	 * closed list: the box still accepts anything, and Save is what refuses a
+	 * name no date could be drawn in.
+	 */
+	const zones =
+		typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+
+	let zoneUsable = $derived(isValidTimezone(timezone));
+
+	async function saveTimezone() {
+		savingZone = true;
+		try {
+			// The cookie is what the server render reads, so it goes first and
+			// is the whole of it without an account.
+			document.cookie = `timezone=${encodeURIComponent(timezone)}; path=/; max-age=31536000; samesite=lax`;
+
+			if (signedIn) {
+				try {
+					await api.users.me.preferences.patch({ timezone });
+				} catch {
+					toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
+				}
+			}
+
+			toasts.success(m.settings_settings_saved());
+
+			// Every date already on screen was drawn in the old zone, and the
+			// new one is only knowable to the server through the cookie above.
+			await refreshData();
+		} finally {
+			savingZone = false;
+		}
 	}
 </script>
 
@@ -192,6 +248,43 @@
 			</button>
 		{/each}
 	</div>
+</Card>
+
+<Card title={m.settings_time_zone()} description={m.settings_shift_times_are_shown_zone()} class="mt-6">
+	{#snippet actions()}
+		<Button onclick={saveTimezone} loading={savingZone} disabled={!zoneUsable}>
+			{m.common_save()}
+		</Button>
+	{/snippet}
+
+	<div class="flex flex-wrap gap-2">
+		<Input
+			bind:value={timezone}
+			list="timezones"
+			spellcheck="false"
+			maxlength={64}
+			class="min-w-48 flex-1"
+		/>
+		<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>
+			{m.settings_detect()}
+		</Button>
+	</div>
+
+	<datalist id="timezones">
+		{#each zones as zone (zone)}
+			<option value={zone}></option>
+		{/each}
+	</datalist>
+
+	<!--
+		Only said to somebody who has an account to keep it on. Signed out the
+		note at the foot of the page already says the same thing about all
+		three settings, and saying it twice invites the reader to look for two
+		different meanings.
+	-->
+	{#if signedIn && !chosen}
+		<p class="mt-2 text-xs text-text-subtle">{m.settings_time_zone_from_this_device()}</p>
+	{/if}
 </Card>
 
 {#if !signedIn}

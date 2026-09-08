@@ -4,14 +4,12 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import UserChip from '$lib/components/users/UserChip.svelte';
 	import DiscordAccountCard from '$lib/components/settings/DiscordAccountCard.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
-	import { detectTimezone } from '$lib/utils/format';
+	import { formatRelative } from '$lib/utils/format';
 	import type { DiscordAccount } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -20,21 +18,6 @@
 
 	let user = $derived(data.user!);
 
-	/**
-	 * The zone this account is in.
-	 *
-	 * Seeded from the session, then replaced by the fetch below. An account
-	 * that has never been given one falls back to whatever the browser
-	 * resolves rather than to UTC — which is the whole reason the column is
-	 * nullable: "nobody has chosen" and "chose UTC" used to look identical,
-	 * and every application form went out stamped UTC because of it.
-	 */
-	// svelte-ignore state_referenced_locally
-	let timezone = $state(data.user?.timezone ?? detectTimezone());
-
-	/** Whether the account has one of its own, or is following this device. */
-	// svelte-ignore state_referenced_locally
-	let timezoneChosen = $state(data.user?.timezone !== null && data.user?.timezone !== undefined);
 	let profilePublic = $state(true);
 	let favoriteRoutesPublic = $state(true);
 	let dislikedRoutesPublic = $state(true);
@@ -48,7 +31,6 @@
 	 */
 	// svelte-ignore state_referenced_locally
 	let discord = $state<DiscordAccount | null>(data.user?.discord ?? null);
-	let saving = $state(false);
 	let savingVisibility = $state(false);
 	let loaded = $state(false);
 
@@ -61,8 +43,6 @@
 		const { data: preferences } = await api.users.me.preferences.get().catch(() => ({ data: null }));
 		if (!preferences) return;
 
-		timezone = preferences.timezone ?? detectTimezone();
-		timezoneChosen = preferences.timezone !== null;
 		profilePublic = preferences.profilePublic;
 		favoriteRoutesPublic = preferences.favoriteRoutesPublic;
 		dislikedRoutesPublic = preferences.dislikedRoutesPublic;
@@ -148,45 +128,22 @@
 				avatar={user.avatar}
 				size={44}
 			/>
+			<!--
+				Signing in with Roblox is what creates the account, so the row's
+				own age *is* the date the two were connected — there is no
+				separate link to stamp, the way there is for Discord.
+			-->
 			<div class="text-right text-xs text-text-subtle">
 				<p>{m.dashboard_roblox_id({ id: user.robloxId })}</p>
 				<p class="capitalize">{user.siteRank}</p>
+				{#if user.createdAt}
+					<p>{m.settings_discord_connected_ago({ when: formatRelative(user.createdAt) })}</p>
+				{/if}
 			</div>
 		</div>
 	</Card>
 
 	<DiscordAccountCard account={discord} onchange={loadPreferences} />
-
-	<Card title={m.settings_preferences()}>
-		{#snippet actions()}
-			<Button
-				onclick={() => {
-					timezoneChosen = true;
-					save({ timezone }, (value) => (saving = value));
-				}}
-				loading={saving}
-			>
-				{m.common_save()}
-			</Button>
-		{/snippet}
-
-		<Field
-			label={m.settings_time_zone()}
-			hint={timezoneChosen
-				? m.settings_shift_times_are_shown_zone()
-				: m.settings_time_zone_from_this_device()}
-		>
-			<div class="flex flex-wrap gap-2">
-				<Input
-					bind:value={timezone}
-					spellcheck="false"
-					class="min-w-48 flex-1"
-					oninput={() => (timezoneChosen = true)}
-				/>
-				<Button variant="secondary" onclick={() => (timezone = detectTimezone())}>{m.settings_detect()}</Button>
-			</div>
-		</Field>
-	</Card>
 
 	<!--
 		What other people can see, in one place.
@@ -269,7 +226,20 @@
 		</Card>
 	{/if}
 
-	<Card title={m.settings_sessions()} description={m.settings_signed_device_no_longer_have()}>
-		<Button variant="danger" onclick={signOutEverywhere}>{m.settings_sign_out_everywhere()}</Button>
+	<!--
+		The button sits in the header beside the question it answers, rather
+		than in a body of its own: one control under one line of text made a
+		card twice as tall as it had anything to say. `Card` drops the header
+		to a second row on its own when the two cannot share one.
+	-->
+	<Card
+		title={m.settings_sessions()}
+		description={m.settings_signed_device_no_longer_have()}
+	>
+		{#snippet actions()}
+			<Button variant="danger" onclick={signOutEverywhere}>
+				{m.settings_sign_out_everywhere()}
+			</Button>
+		{/snippet}
 	</Card>
 </div>

@@ -7,8 +7,63 @@
  * names and only corrected itself on hydration.
  */
 
+import { page } from '$app/state';
 import { getLocale } from '$lib/paraglide/runtime.js';
 import { m } from '$lib/paraglide/messages.js';
+
+/**
+ * Whether a string is a zone `Intl` will actually accept.
+ *
+ * The preference is free text — an IANA name typed or pasted into a box — so
+ * a stale or misspelt one has to fall back rather than throw. `Intl` raises a
+ * `RangeError` on an unknown zone, and one bad value would otherwise take out
+ * every date on the page rather than just its own.
+ */
+const zoneChecks = new Map<string, boolean>();
+
+function usableZone(zone: string): boolean {
+	const known = zoneChecks.get(zone);
+	if (known !== undefined) return known;
+
+	let ok = true;
+	try {
+		new Intl.DateTimeFormat('en', { timeZone: zone });
+	} catch {
+		ok = false;
+	}
+
+	zoneChecks.set(zone, ok);
+	return ok;
+}
+
+/**
+ * The zone every date on the page is drawn in, unless a caller names one.
+ *
+ * Read from the page data rather than passed down through every component:
+ * the preference belongs to the reader, not to any one date, and threading it
+ * through would mean a call site that forgot it silently rendered in the
+ * server's zone instead. `null` there means nobody has chosen, and `Intl`
+ * falls back to the runtime's own — the browser's, after hydration.
+ *
+ * On the server `page.data` is bound to the request through component context,
+ * so it is only readable while a component is rendering. Everything below is
+ * called from a template, but the guard is what keeps a helper that is one day
+ * called from a `load` function returning a date instead of throwing.
+ */
+function viewerTimezone(): string | undefined {
+	try {
+		const zone = page.data.timezone;
+		return typeof zone === 'string' && zone && usableZone(zone) ? zone : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+/** A caller's explicit zone, this reader's, or the runtime's — in that order. */
+function resolveZone(timezone?: string): string | undefined {
+	if (timezone && usableZone(timezone)) return timezone;
+	return viewerTimezone();
+}
 
 export function formatDateTime(value: Date | string, timezone?: string): string {
 	const date = typeof value === 'string' ? new Date(value) : value;
@@ -20,7 +75,7 @@ export function formatDateTime(value: Date | string, timezone?: string): string 
 		month: 'short',
 		hour: '2-digit',
 		minute: '2-digit',
-		timeZone: timezone || undefined
+		timeZone: resolveZone(timezone)
 	}).format(date);
 }
 
@@ -31,7 +86,7 @@ export function formatTime(value: Date | string, timezone?: string): string {
 	return new Intl.DateTimeFormat(getLocale(), {
 		hour: '2-digit',
 		minute: '2-digit',
-		timeZone: timezone || undefined
+		timeZone: resolveZone(timezone)
 	}).format(date);
 }
 
@@ -43,7 +98,7 @@ export function formatDate(value: Date | string, timezone?: string): string {
 		day: 'numeric',
 		month: 'long',
 		year: 'numeric',
-		timeZone: timezone || undefined
+		timeZone: resolveZone(timezone)
 	}).format(date);
 }
 
@@ -133,4 +188,9 @@ export function detectTimezone(): string {
 	} catch {
 		return 'UTC';
 	}
+}
+
+/** Whether a zone somebody typed is one dates can actually be drawn in. */
+export function isValidTimezone(zone: string): boolean {
+	return usableZone(zone);
 }
