@@ -1,4 +1,5 @@
 import {
+	IconBrandDiscord,
 	IconBuildingWarehouse,
 	IconEye,
 	IconHistory,
@@ -41,6 +42,18 @@ export function settingsSections(): SettingsSection[] {
 			icon: IconCalendarTime,
 			permission: PERM.MANAGE_SHIFTS
 		},
+		/**
+		 * Filed under the grant that already means "this group's Discord",
+		 * rather than split across shifts and applications: it is one decision
+		 * about how a group is reachable, and splitting it would mean neither
+		 * rank could see the pair of switches together.
+		 */
+		{
+			id: 'discord',
+			label: m.dashboard_settings_section_discord(),
+			icon: IconBrandDiscord,
+			permission: PERM.MANAGE_BOT
+		},
 		{
 			id: 'vehicles',
 			label: m.dashboard_settings_section_vehicles(),
@@ -67,6 +80,7 @@ export const SETTINGS_GRANTS = [
 	PERM.MANAGE_GROUP,
 	PERM.MANAGE_VISIBILITY,
 	PERM.MANAGE_SHIFTS,
+	PERM.MANAGE_BOT,
 	PERM.MANAGE_VEHICLES,
 	PERM.MANAGE_OPEN_CLOUD,
 	PERM.VIEW_AUDIT_LOG

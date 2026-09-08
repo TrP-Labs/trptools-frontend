@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
+	import { announceDiscordResult } from '$lib/utils/discordLink';
+	import { refreshData } from '$lib/utils/refresh';
 	import { IconCalendarTime, IconClock, IconRepeat } from '@tabler/icons-svelte';
 	import GroupCrumb from '$lib/components/layout/GroupCrumb.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -15,6 +18,16 @@
 
 	let group = $derived(data.group);
 	let shift = $derived(data.shift);
+
+	/**
+	 * Coming back from connecting a Discord account lands on this page rather
+	 * than on settings, so this is where the outcome is announced — and the
+	 * sheets re-read, since a successful link is what turns their buttons back
+	 * on. Here rather than inside `SignupSheets`, which is drawn once per
+	 * occurrence: a toast per sheet block is a toast too many.
+	 */
+	afterNavigate(() => announceDiscordResult(() => void refreshData()));
+
 
 	/**
 	 * Occurrences whose sign-up window is open and that carry a sheet this
@@ -120,6 +133,8 @@
 								eventId={shift.eventId}
 								occurrence={occurrence.start}
 								userId={data.user?.userId}
+								discordRequired={occurrence.discordRequired}
+								discordLinked={Boolean(data.user?.discord)}
 							/>
 						</div>
 					</li>

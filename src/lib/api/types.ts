@@ -17,6 +17,11 @@ type Data<T> = T extends Promise<infer R> ? (R extends { data: infer D } ? NonNu
 
 export type SessionResponse = Data<ReturnType<Api['auth']['session']['get']>>;
 export type SessionUser = NonNullable<SessionResponse['user']>;
+/** A connected Discord account, as the session and the settings card read it. */
+export type DiscordAccount = NonNullable<SessionUser['discord']>;
+
+/** Account preferences, which carry the Discord link alongside them. */
+export type UserPreferences = Data<ReturnType<Api['users']['me']['preferences']['get']>>;
 
 export type GroupSummary = Data<ReturnType<Api['groups']['get']>>[number];
 

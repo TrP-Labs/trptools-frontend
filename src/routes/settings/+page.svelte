@@ -8,9 +8,11 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import UserChip from '$lib/components/users/UserChip.svelte';
+	import DiscordAccountCard from '$lib/components/settings/DiscordAccountCard.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { detectTimezone } from '$lib/utils/format';
+	import type { DiscordAccount } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -36,6 +38,16 @@
 	let profilePublic = $state(true);
 	let favoriteRoutesPublic = $state(true);
 	let dislikedRoutesPublic = $state(true);
+	/**
+	 * The connected Discord account.
+	 *
+	 * Seeded from the session so the card is right on the first painted frame,
+	 * then kept in step by the same fetch the visibility flags use — and
+	 * re-read after linking or unlinking, which is what `loadPreferences`
+	 * below is for.
+	 */
+	// svelte-ignore state_referenced_locally
+	let discord = $state<DiscordAccount | null>(data.user?.discord ?? null);
 	let saving = $state(false);
 	let savingVisibility = $state(false);
 	let loaded = $state(false);
@@ -45,23 +57,25 @@
 	let adminMode = $derived(user.adminMode);
 	let switching = $state(false);
 
+	async function loadPreferences() {
+		const { data: preferences } = await api.users.me.preferences.get().catch(() => ({ data: null }));
+		if (!preferences) return;
+
+		timezone = preferences.timezone ?? detectTimezone();
+		timezoneChosen = preferences.timezone !== null;
+		profilePublic = preferences.profilePublic;
+		favoriteRoutesPublic = preferences.favoriteRoutesPublic;
+		dislikedRoutesPublic = preferences.dislikedRoutesPublic;
+		discord = preferences.discord;
+	}
+
 	// The visibility flags are not part of the session payload, so they are
 	// fetched once on mount.
 	$effect(() => {
 		if (loaded) return;
 		loaded = true;
 
-		api.users.me.preferences
-			.get()
-			.then(({ data: preferences }) => {
-				if (!preferences) return;
-				timezone = preferences.timezone ?? detectTimezone();
-				timezoneChosen = preferences.timezone !== null;
-				profilePublic = preferences.profilePublic;
-				favoriteRoutesPublic = preferences.favoriteRoutesPublic;
-				dislikedRoutesPublic = preferences.dislikedRoutesPublic;
-			})
-			.catch(() => {});
+		void loadPreferences();
 	});
 
 	/**
@@ -140,6 +154,8 @@
 			</div>
 		</div>
 	</Card>
+
+	<DiscordAccountCard account={discord} onchange={loadPreferences} />
 
 	<Card title={m.settings_preferences()}>
 		{#snippet actions()}
