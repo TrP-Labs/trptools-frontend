@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { refreshData } from '$lib/utils/refresh';
 	import {
+		IconBrandDiscord,
 		IconCheck,
 		IconChevronDown,
 		IconExternalLink,
@@ -242,6 +243,20 @@
 							<span class="inline-flex items-center gap-1">
 								<IconWorld size={12} />
 								{submission.timezone} · {submission.locale}
+							</span>
+							<!--
+								The Discord account as it was when they applied,
+								not as it is now: a reviewer reading an archived
+								application is reading what was sent.
+							-->
+							<span
+								class="inline-flex items-center gap-1"
+								class:text-text-subtle={!submission.discord}
+							>
+								<IconBrandDiscord size={12} />
+								{submission.discord?.username ??
+									submission.discord?.id ??
+									m.applications_submission_list_no_discord_account()}
 							</span>
 							<a
 								href="/users/{submission.applicant.userId}"

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
+	import { page } from '$app/state';
 	import { refreshData } from '$lib/utils/refresh';
 	import {
 		IconAlertTriangle,
+		IconBrandDiscord,
 		IconCheck,
 		IconClock,
 		IconLock,
@@ -19,6 +22,7 @@
 	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import { api, errorMessage, loginUrl } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
+	import { announceDiscordResult, startDiscordLink } from '$lib/utils/discordLink';
 	import { detectTimezone, formatDateTime, formatRelative } from '$lib/utils/format';
 	import { withAlpha } from '$lib/utils/color';
 	import type { PublicApplication } from '$lib/api/types';
@@ -114,6 +118,26 @@
 
 	let canApply = $derived(standing?.canApply ?? false);
 	let blockedBy = $derived(standing?.blockedBy ?? null);
+
+	let linking = $state(false);
+
+	/**
+	 * Connecting a Discord account and coming back to this form.
+	 *
+	 * Discord's consent screen is a page rather than an API, so this is a full
+	 * navigation and whatever has been typed is lost with it. That is why the
+	 * notice sits above the form rather than beside the send button — nothing
+	 * is answerable until it is dealt with, so the order it suggests is the
+	 * one that costs nothing.
+	 */
+	async function connectDiscord() {
+		linking = true;
+		if (!(await startDiscordLink(page.url.pathname))) linking = false;
+	}
+
+	// The return lands back here, so this is where the outcome is announced
+	// and the standing re-read — a successful link is what opens the form.
+	afterNavigate(() => announceDiscordResult(() => void refreshData()));
 
 	function toggleChoice(questionId: string, option: string, single: boolean) {
 		const current = choices[questionId] ?? [];
@@ -237,6 +261,23 @@
 				</p>
 			</div>
 		</div>
+	{:else if blockedBy === 'DISCORD_REQUIRED'}
+		<!--
+			The only blocker the reader can clear from here, which is why it
+			carries a button rather than an explanation alone.
+		-->
+		<div class="card flex flex-wrap items-start gap-3 border-warning/40 p-4">
+			<IconBrandDiscord size={20} class="text-warning" />
+			<div class="min-w-0 flex-1">
+				<p class="font-medium text-text">{m.g_apply_connect_discord_first()}</p>
+				<p class="text-sm text-text-muted">
+					{m.g_apply_group_asks_applicants_connect_discord({ group: localized(group, 'name') })}
+				</p>
+			</div>
+			<Button loading={linking} onclick={connectDiscord}>
+				<IconBrandDiscord size={16} /> {m.g_apply_connect_discord()}
+			</Button>
+		</div>
 	{:else if blockedBy === 'PENDING' && mine}
 		<div class="card flex flex-wrap items-center gap-3 p-4">
 			<IconClock size={20} class="text-accent" />
@@ -311,6 +352,16 @@
 			<p class="mt-1 text-sm text-text-muted">
 				{m.g_apply_applications_are_tied_roblox_account_so()}
 			</p>
+			{#if application.requiresDiscord}
+				<!--
+					Both steps up front. Connecting needs a TrP Tools account to
+					connect *to*, so it cannot be offered here — but meeting the
+					second requirement only after satisfying the first is how
+					somebody fills in a form they were never going to be able to
+					send.
+				-->
+				<p class="mt-1 text-sm text-text-muted">{m.g_apply_discord_also_needed()}</p>
+			{/if}
 			<div class="mt-4 flex justify-center">
 				<Button href={loginUrl()}>{m.common_sign_with_roblox()}</Button>
 			</div>

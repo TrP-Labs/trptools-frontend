@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { refreshData } from '$lib/utils/refresh';
 	import { IconBrandDiscord, IconMinus, IconPlus } from '@tabler/icons-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -6,6 +7,7 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
+	import { startDiscordLink } from '$lib/utils/discordLink';
 	import { signupName } from '$lib/utils/signups';
 	import { withAlpha } from '$lib/utils/color';
 	import type { SignupSheet } from '$lib/api/types';
@@ -25,11 +27,46 @@
 		occurrence: Date | string;
 		/** The viewer, so their own rows can be marked and withdrawn. */
 		userId?: string;
+		/** Whether this group asks for a connected Discord account first. */
+		discordRequired?: boolean;
+		/** Whether this viewer has one. */
+		discordLinked?: boolean;
 	}
 
-	let { sheets, eventId, occurrence, userId }: Props = $props();
+	let {
+		sheets,
+		eventId,
+		occurrence,
+		userId,
+		discordRequired = false,
+		discordLinked = false
+	}: Props = $props();
 
 	let busy = $state<string | null>(null);
+
+	/**
+	 * Whether the group's Discord rule is what stands between this viewer and
+	 * a slot.
+	 *
+	 * The server refuses the sign-up either way — this only decides whether
+	 * the page explains it beforehand instead of after a press. Withdrawing
+	 * stays available throughout, deliberately: somebody who signed up and
+	 * then disconnected, or whose group turned the rule on afterwards, still
+	 * has to be able to take their name off a shift they cannot make.
+	 */
+	let blocked = $derived(Boolean(userId) && discordRequired && !discordLinked);
+
+	let linking = $state(false);
+
+	/**
+	 * Back to this same page afterwards, rather than to settings: somebody who
+	 * pressed this to take a slot should land in front of the sheet they were
+	 * looking at, with the button now live.
+	 */
+	async function connectDiscord() {
+		linking = true;
+		if (!(await startDiscordLink(page.url.pathname + page.url.search))) linking = false;
+	}
 
 	// Passed on as a Date, never a hand-made string: the backend matches an
 	// occurrence on its exact timestamp, and `String(date)` drops milliseconds.
@@ -140,8 +177,8 @@
 									{:else}
 										<Button
 											size="sm"
-											variant={full || mySlot ? 'ghost' : 'primary'}
-											disabled={full || Boolean(mySlot) || busy !== null}
+											variant={full || mySlot || blocked ? 'ghost' : 'primary'}
+											disabled={full || Boolean(mySlot) || blocked || busy !== null}
 											loading={busy === slot.id}
 											onclick={() => act(slot.id, true)}
 										>
@@ -157,7 +194,22 @@
 			</section>
 		{/each}
 
-		{#if mySlot}
+		<!--
+			One notice for the whole shift rather than one per slot: the rule is
+			about the reader, not about any particular slot, and repeating it
+			down a sheet of four would drown the sheet itself.
+		-->
+		{#if blocked}
+			<div class="card flex flex-wrap items-center gap-3 border-warning/40 p-3">
+				<span class="text-text-subtle"><IconBrandDiscord size={18} /></span>
+				<p class="min-w-0 flex-1 text-xs text-text-muted">
+					{m.shifts_signup_sheets_discord_required()}
+				</p>
+				<Button size="sm" loading={linking} onclick={connectDiscord}>
+					{m.shifts_signup_sheets_connect_discord()}
+				</Button>
+			</div>
+		{:else if mySlot}
 			<p class="text-xs text-text-subtle">
 				{m.shifts_signup_sheets_can_only_hold_one_slot_per()}
 			</p>

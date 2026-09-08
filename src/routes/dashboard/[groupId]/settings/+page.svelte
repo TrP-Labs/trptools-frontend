@@ -3,6 +3,7 @@
 	import PageSection from '$lib/components/settings/PageSection.svelte';
 	import VisibilitySection from '$lib/components/settings/VisibilitySection.svelte';
 	import ShiftsSection from '$lib/components/settings/ShiftsSection.svelte';
+	import DiscordSection from '$lib/components/settings/DiscordSection.svelte';
 	import AuditSection from '$lib/components/settings/AuditSection.svelte';
 	import OpenCloudSection from '$lib/components/settings/OpenCloudSection.svelte';
 	import VehicleTypesCard from '$lib/components/dispatch/VehicleTypesCard.svelte';
@@ -42,6 +43,8 @@
 			<VisibilitySection {group} />
 		{:else if section === 'shifts'}
 			<ShiftsSection {group} />
+		{:else if section === 'discord'}
+			<DiscordSection {group} />
 		{:else if section === 'vehicles'}
 			<VehicleTypesCard groupId={group.id} types={data.vehicleTypes} />
 		{:else if section === 'opencloud'}
