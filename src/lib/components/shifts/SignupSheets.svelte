@@ -8,7 +8,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { startDiscordLink } from '$lib/utils/discordLink';
-	import { signupName } from '$lib/utils/signups';
+	import { findMySlot, isMine, signupName } from '$lib/utils/signups';
 	import { withAlpha } from '$lib/utils/color';
 	import type { SignupSheet } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -27,6 +27,14 @@
 		occurrence: Date | string;
 		/** The viewer, so their own rows can be marked and withdrawn. */
 		userId?: string;
+		/**
+		 * Their connected Discord account, if any.
+		 *
+		 * A slot they took from a Discord sheet before connecting is recorded
+		 * against that id rather than their account, and it is still theirs —
+		 * so it is marked and withdrawn from here like any other.
+		 */
+		discordId?: string | null;
 		/** Whether this group asks for a connected Discord account first. */
 		discordRequired?: boolean;
 		/** Whether this viewer has one. */
@@ -38,6 +46,7 @@
 		eventId,
 		occurrence,
 		userId,
+		discordId = null,
 		discordRequired = false,
 		discordLinked = false
 	}: Props = $props();
@@ -73,17 +82,7 @@
 	let occurrenceDate = $derived(occurrence instanceof Date ? occurrence : new Date(occurrence));
 
 	/** The slot this person already holds on this occurrence, if any. */
-	let mySlot = $derived.by(() => {
-		if (!userId) return null;
-
-		for (const sheet of sheets) {
-			for (const slot of sheet.slots) {
-				if (slot.signups.some((signup) => signup.userId === userId)) return slot.id;
-			}
-		}
-
-		return null;
-	});
+	let mySlot = $derived(findMySlot(sheets, userId, discordId));
 
 	async function act(slotId: string, take: boolean) {
 		busy = slotId;
@@ -130,7 +129,7 @@
 
 				<ul class="divide-y divide-border-base">
 					{#each sheet.slots as slot (slot.id)}
-						{@const mine = slot.signups.some((signup) => signup.userId === userId)}
+						{@const mine = slot.signups.some((signup) => isMine(signup, userId, discordId))}
 						{@const full = slot.signups.length >= slot.capacity}
 						<li class="flex flex-wrap items-center gap-3 px-4 py-3">
 							<div class="min-w-0 flex-1">

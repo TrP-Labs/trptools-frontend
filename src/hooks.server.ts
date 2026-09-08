@@ -47,6 +47,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const hasCookieLocale = Boolean(cookieLocale && isLocale(cookieLocale));
 
 	event.locals.theme = hasCookieTheme ? cookieTheme! : 'dim';
+	// Free text, so it is carried as written and validated where it is used
+	// (`utils/format`). An empty cookie means the same as no cookie: nobody
+	// has chosen, and the browser's own zone stands.
+	event.locals.timezone = event.cookies.get('timezone') || null;
 	event.locals.user = null;
 
 	// Why the page is in the language it is in, which the resolved locale
@@ -73,6 +77,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 				// the theme to a device that has not chosen one yet.
 				if (!hasCookieTheme && THEMES.has(data.user.theme)) {
 					event.locals.theme = data.user.theme;
+				}
+
+				// The zone follows the theme's precedence rather than the
+				// language's, and for the theme's reason: it is a preference
+				// about how this device shows things, and somebody who set one
+				// here a moment ago should not have it overruled by an account
+				// value from another machine. The account is what carries it to
+				// a device that has not chosen.
+				if (!event.locals.timezone && data.user.timezone) {
+					event.locals.timezone = data.user.timezone;
 				}
 
 				// Language does *not* follow the theme's precedence, and the

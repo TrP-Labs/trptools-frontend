@@ -133,6 +133,7 @@
 								eventId={shift.eventId}
 								occurrence={occurrence.start}
 								userId={data.user?.userId}
+								discordId={data.user?.discord?.id}
 								discordRequired={occurrence.discordRequired}
 								discordLinked={Boolean(data.user?.discord)}
 							/>
