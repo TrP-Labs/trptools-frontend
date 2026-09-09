@@ -218,5 +218,48 @@ The build uses `adapter-node`, which runs anywhere a JS runtime does — Docker,
 VM, Bun, or a container-based edge platform. Swap the adapter in
 `vite.config.ts` to target a specific serverless platform.
 
-`PUBLIC_API_URL` is read at runtime as well as build time, so one image can be
-pointed at a different backend without rebuilding.
+`PUBLIC_API_URL` and `INTERNAL_API_URL` are read at runtime, so one image can be
+pointed at a different backend without rebuilding. They are not Docker build
+arguments.
+
+Application libraries live in `devDependencies` because adapter-node bundles
+them into the generated server. The runtime image contains `build/` and package
+metadata, without `node_modules`. Keep this boundary when adding a dependency;
+an intentionally external runtime dependency also needs explicit packaging.
+
+Test the actual container before shipping packaging changes:
+
+```bash
+docker build -t trptools-frontend:test .
+bun run test:runtime trptools-frontend:test
+```
+
+The regression test uses an isolated API fixture and temporary policy files,
+then checks SSR, session forwarding, every shipped locale, policy rendering,
+client hydration, icons, appearance persistence, and mobile layout. It needs
+Docker and Chrome/Chromium on the test host; set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE` if the browser is installed elsewhere. No real
+Roblox/Discord credentials or database are used, and test containers are removed
+on completion.
+
+The Docker build runs once on the builder's native CPU (`BUILDPLATFORM`). Its
+JavaScript and static output is shared by the AMD64 and ARM64 runtime stages;
+the final image uses the appropriate platform's Bun binary and does not execute
+target-architecture build commands. This avoids emulating Vite and Paraglide.
+Do not introduce a native addon into the output without revisiting this boundary.
+
+Bun is pinned in `.bun-version` and Dockerfile's `BUN_VERSION` default. Update
+them together. `bun run test` checks that contract and the Docker dependency
+filter: only the sibling backend's type-only declaration is removed, and the
+remaining install uses the frozen lockfile. No package versions are re-resolved.
+
+CI builds and browser-tests the production container on pull requests and main.
+Main publishes both architectures using that build cache, with `latest`, short
+SHA, and full SHA tags. Release tags promote the exact full-SHA image digest
+after its main workflow succeeds; they do not compile or export the cache again.
+The main and tag workflows remain separate for `Project/release.sh`. A tag for
+a commit that has not been published on main fails after a bounded wait: publish
+main first, then rerun the tag workflow. Version aliases do not move `latest`.
+
+See [build and deployment measurements](docs/BUILD-DEPLOYMENT.md) for the size
+breakdown, validation, and remaining limits.

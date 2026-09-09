@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# Keep main publications ordered, while a tag can wait for its main run.
+concurrency:
+  group: publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -27,12 +32,17 @@ jobs:
           path: trptools-backend
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: trptools-frontend/.bun-version
 
       - working-directory: trptools-backend
         run: bun install --frozen-lockfile
 
       - working-directory: trptools-frontend
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      - working-directory: trptools-frontend
+        run: bun run test
 
       # `bun run check` compiles the messages, verifies every API error the
       # backend can return has a translation, and type-checks. The backend is
@@ -40,6 +50,25 @@ jobs:
       # read the literals it compares against.
       - working-directory: trptools-frontend
         run: bun run check
+
+      - uses: docker/setup-buildx-action@v3
+        if: github.ref_type != 'tag'
+
+      # Validate the packaged application before publication. The next job
+      # reuses this native compilation from the cache for both architectures.
+      - uses: docker/build-push-action@v6
+        if: github.ref_type != 'tag'
+        with:
+          context: trptools-frontend
+          load: true
+          tags: trptools-frontend:test
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+      - name: Test the production container in Chromium
+        if: github.ref_type != 'tag'
+        working-directory: trptools-frontend
+        run: bun run test:runtime trptools-frontend:test
 
       # The messages in the tree are vendored from TrP-Labs/Locales, so they
       # can fall behind it. Re-pulling and diffing says so on the pull request
@@ -61,20 +90,8 @@ jobs:
 
   publish:
     needs: check
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
-    # A release pushes `main` and the tag together, so two runs of this job
-    # start on the same commit seconds apart. Both write the same
-    # `type=gha,mode=max` cache scope, and racing on it is what left the second
-    # run hanging for tens of minutes with the image already published.
-    # Serialising them costs nothing: the one that waits builds against the
-    # cache the first has just filled. Not `cancel-in-progress` — the two runs
-    # publish different tags (`latest` from main, the version from the tag), so
-    # cancelling one would drop tags nobody would notice were missing.
-    concurrency:
-      group: publish-${{ github.repository }}
-      cancel-in-progress: false
 
     permissions:
       contents: read
@@ -82,7 +99,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
@@ -98,9 +114,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-,format=short
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=sha,prefix=sha-,format=long
 
       - uses: docker/build-push-action@v6
         with:
@@ -109,5 +123,42 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+  promote:
+    needs: check
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/trp-labs/trptools-frontend
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      # release.sh still observes separate main and tag workflow runs, but
+      # the tag copies the successful main image's index, without rebuilding.
+      - name: Promote the matching main image by digest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: bun scripts/promote-image.ts
