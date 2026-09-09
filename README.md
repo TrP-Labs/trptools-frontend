@@ -252,3 +252,14 @@ Bun is pinned in `.bun-version` and Dockerfile's `BUN_VERSION` default. Update
 them together. `bun run test` checks that contract and the Docker dependency
 filter: only the sibling backend's type-only declaration is removed, and the
 remaining install uses the frozen lockfile. No package versions are re-resolved.
+
+CI builds and browser-tests the production container on pull requests and main.
+Main publishes both architectures using that build cache, with `latest`, short
+SHA, and full SHA tags. Release tags promote the exact full-SHA image digest
+after its main workflow succeeds; they do not compile or export the cache again.
+The main and tag workflows remain separate for `Project/release.sh`. A tag for
+a commit that has not been published on main fails after a bounded wait: publish
+main first, then rerun the tag workflow. Version aliases do not move `latest`.
+
+See [build and deployment measurements](docs/BUILD-DEPLOYMENT.md) for the size
+breakdown, validation, and remaining limits.
