@@ -101,6 +101,22 @@ Cross-architecture execution requires host emulation even though compilation
 does not. The browser test needs installed Chrome/Chromium; see the README for
 its executable override. Multi-platform `--load` needs a containerd image store.
 
+### Linux CI fixture permissions
+
+The first 2.8.2 publication exposed a test-host difference: `mkdtemp` creates
+directories with mode 0700, and GitHub's runner UID differs from the container's
+UID 1000. The mounted policy fixture was unreadable and its test page returned
+404. Docker Desktop's file sharing had masked this during local testing.
+The fixture writer now sets the public test directory to 0755 and its files to
+0644. A regression test checks those modes, including initially private files;
+the failure and fix were also reproduced with distinct UIDs inside Linux.
+Production permissions and application code are unchanged.
+
+Rerunning a failed release uses the code at its original commit. After a code
+fix, cut a new patch release instead of moving an existing release tag. When a
+deployment uses one shared `TAG` for all three apps, release all three at that
+new version even if only the frontend needed a fix.
+
 ## Cloud and serverless implications
 
 A large development install is normal for a compiled frontend. It is not the
