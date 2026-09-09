@@ -40,11 +40,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# adapter-node emits a self-contained server; only production dependencies of
-# the built output are needed alongside it.
+# All application libraries are bundled by adapter-node. The runtime needs
+# neither the compilers nor the original icon/translation catalogues.
 COPY --from=build /app/build ./build
 COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/node_modules ./node_modules
 
 # The footer's links are read from here at startup, not baked into the image —
 # mount a volume over it to publish documents, or leave it empty to ship with a

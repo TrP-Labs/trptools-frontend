@@ -10,7 +10,8 @@
 		"prepare": "svelte-kit sync && bun run messages || echo ''",
 		"check": "svelte-kit sync && bun run messages && node scripts/check-api-errors.mjs && node scripts/check-spelling.mjs && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && bun run messages && svelte-check --tsconfig ./tsconfig.json --watch",
-		"messages": "node scripts/messages.mjs"
+		"messages": "node scripts/messages.mjs",
+		"test:runtime": "bun run scripts/test-runtime.ts"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",
@@ -26,9 +27,7 @@
 		"tailwindcss": "^4.3.3",
 		"trptools-backend": "file:../trptools-backend",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16"
-	},
-	"dependencies": {
+		"vite": "^8.0.16",
 		"@tabler/icons-svelte": "^3.46.0",
 		"marked": "^18.0.9",
 		"rrule": "^2.8.1",
