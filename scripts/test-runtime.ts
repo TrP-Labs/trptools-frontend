@@ -10,6 +10,7 @@ import type { SessionUser } from '../src/lib/api/types';
 // on pull requests without a database or real Roblox/Discord credentials.
 const image = process.argv[2];
 assert(image, 'Usage: bun run test:runtime <image>');
+const platform = process.env.TEST_PLATFORM ? ['--platform', process.env.TEST_PLATFORM] : [];
 const directory = await mkdtemp(join(tmpdir(), 'trptools-runtime-'));
 const name = `trptools-runtime-${crypto.randomUUID()}`;
 const errors: string[] = [];
@@ -61,7 +62,7 @@ try {
 	await writeFile(join(directory, 'Runtime Policy.md'), '# Runtime Policy\n\n## Storage\n\n**Runtime-only document.**');
 	await writeFile(join(directory, 'About.txt'), '/about');
 	await writeFile(join(directory, 'Unsafe.txt'), 'javascript:alert(1)');
-	await docker('run', '--detach', '--name', name,
+	await docker('run', ...platform, '--detach', '--name', name,
 		'--add-host=host.docker.internal:host-gateway',
 		'--publish', '127.0.0.1::3000',
 		'--env', 'ORIGIN=http://localhost:3000',
@@ -97,6 +98,8 @@ try {
 	assert.equal(await docker('exec', name, 'id', '-u'), '1000');
 	await docker('exec', name, 'bun', '-e',
 		'if (require("node:fs").existsSync("/app/node_modules")) throw new Error("Runtime includes node_modules")');
+	await docker('exec', name, 'bun', '-e',
+		'if ([...new Bun.Glob("**/*.node").scanSync("/app/build")].length) throw new Error("Native addons cannot be shared across architectures")');
 
 	const candidates = [process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
 		'/usr/bin/google-chrome', '/usr/bin/chromium',
@@ -140,11 +143,15 @@ try {
 	// A mounted policy directory is optional, and each instance must read its
 	// runtime configuration instead of relying on files from the build machine.
 	await docker('rm', '--force', name);
-	await docker('run', '--detach', '--name', name, '--publish', '127.0.0.1::3000', image);
+	await docker('run', ...platform, '--detach', '--name', name, '--publish', '127.0.0.1::3000', image);
 	const emptyPort = (await docker('port', name, '3000/tcp')).split(':').at(-1);
 	let emptyHtml = '';
 	for (let attempt = 0; attempt < 60; attempt++) {
-		try { emptyHtml = await (await fetch(`http://127.0.0.1:${emptyPort}`, { signal: AbortSignal.timeout(1000) })).text(); break; }
+		try {
+			const response = await fetch(`http://127.0.0.1:${emptyPort}`, { signal: AbortSignal.timeout(1000) });
+			assert.equal(response.status, 200);
+			emptyHtml = await response.text(); break;
+		}
 		catch { await Bun.sleep(500); }
 	}
 	assert.match(emptyHtml, /<html/);

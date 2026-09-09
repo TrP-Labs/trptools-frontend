@@ -11,7 +11,8 @@
 		"check": "svelte-kit sync && bun run messages && node scripts/check-api-errors.mjs && node scripts/check-spelling.mjs && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && bun run messages && svelte-check --tsconfig ./tsconfig.json --watch",
 		"messages": "node scripts/messages.mjs",
-		"test:runtime": "bun run scripts/test-runtime.ts"
+		"test:runtime": "bun run scripts/test-runtime.ts",
+		"test": "bun test scripts/*.test.ts"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",

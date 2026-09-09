@@ -27,12 +27,17 @@ jobs:
           path: trptools-backend
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: trptools-frontend/.bun-version
 
       - working-directory: trptools-backend
         run: bun install --frozen-lockfile
 
       - working-directory: trptools-frontend
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      - working-directory: trptools-frontend
+        run: bun run test
 
       # `bun run check` compiles the messages, verifies every API error the
       # backend can return has a translation, and type-checks. The backend is

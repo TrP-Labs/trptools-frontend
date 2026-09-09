@@ -1,41 +1,31 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1-alpine AS deps
+ARG BUN_VERSION=1.4.2
+
+# The emitted server/client code contains no native addons. Compile once on
+# the builder's native CPU, even when publishing both AMD64 and ARM64 images.
+FROM --platform=$BUILDPLATFORM oven/bun:${BUN_VERSION}-alpine AS deps
 WORKDIR /app
-COPY package.json bun.lock* ./
+COPY package.json bun.lock ./
+COPY scripts/docker-dependencies.ts ./scripts/docker-dependencies.ts
+# Filter the sibling type dependency from both manifests without re-resolving
+# registry packages. Vite generates messages once source is available.
+RUN bun scripts/docker-dependencies.ts
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	bun install --frozen-lockfile --ignore-scripts
 
-# `trptools-backend` is a type-only dependency resolved from a sibling
-# directory, which does not exist inside this build context. Every reference to
-# it is an `import type`, so it is erased before any JavaScript is emitted and
-# the build does not need it. Dropping it here keeps the image buildable from
-# this project alone — the two projects stay independently deployable.
-RUN bun --eval "const p = require('./package.json'); delete p.devDependencies['trptools-backend']; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2))" \
-	&& bun install
+FROM deps AS build
+COPY src ./src
+COPY static ./static
+COPY messages ./messages
+COPY project.inlang ./project.inlang
+COPY vite.config.ts paraglide.config.js tsconfig.json .npmrc ./
 
-FROM oven/bun:1-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./package.json
-COPY . .
+# Origins come from dynamic environment variables at runtime, so deployments
+# reuse one artifact. Documentation and test changes do not invalidate this step.
+RUN bun run build && mkdir -p /app/policies
 
-# Baked into the client bundle at build time; also read at runtime from the
-# environment, so this is only the fallback.
-ARG PUBLIC_API_URL=http://localhost:3001
-ENV PUBLIC_API_URL=$PUBLIC_API_URL
-
-# The site's strings come from ./messages, which is committed rather than
-# fetched: `vite build` compiles them into typed functions and tree-shakes the
-# locales nobody selected, so what a language costs the browser is only what a
-# reader actually loads. Nothing here reaches out to the Locales repository —
-# `scripts/pull-locales.sh` does that on a developer's machine, and the result
-# is reviewed and committed like any other change.
-#
-# This is the one thing that differs from the policies directory below: a
-# policy is content an operator swaps at runtime, whereas a missing string is a
-# blank button, so strings are pinned to the build that expects them.
-RUN bun run build
-
-FROM oven/bun:1-alpine AS runtime
+FROM oven/bun:${BUN_VERSION}-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -48,7 +38,7 @@ COPY --from=build /app/package.json ./package.json
 # The footer's links are read from here at startup, not baked into the image —
 # mount a volume over it to publish documents, or leave it empty to ship with a
 # footer that has no links. See POLICIES_DIR to point elsewhere.
-RUN mkdir -p /app/policies && chown bun:bun /app/policies
+COPY --from=build --chown=bun:bun /app/policies ./policies
 VOLUME /app/policies
 
 USER bun

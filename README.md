@@ -218,8 +218,9 @@ The build uses `adapter-node`, which runs anywhere a JS runtime does — Docker,
 VM, Bun, or a container-based edge platform. Swap the adapter in
 `vite.config.ts` to target a specific serverless platform.
 
-`PUBLIC_API_URL` is read at runtime as well as build time, so one image can be
-pointed at a different backend without rebuilding.
+`PUBLIC_API_URL` and `INTERNAL_API_URL` are read at runtime, so one image can be
+pointed at a different backend without rebuilding. They are not Docker build
+arguments.
 
 Application libraries live in `devDependencies` because adapter-node bundles
 them into the generated server. The runtime image contains `build/` and package
@@ -240,3 +241,14 @@ Docker and Chrome/Chromium on the test host; set
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if the browser is installed elsewhere. No real
 Roblox/Discord credentials or database are used, and test containers are removed
 on completion.
+
+The Docker build runs once on the builder's native CPU (`BUILDPLATFORM`). Its
+JavaScript and static output is shared by the AMD64 and ARM64 runtime stages;
+the final image uses the appropriate platform's Bun binary and does not execute
+target-architecture build commands. This avoids emulating Vite and Paraglide.
+Do not introduce a native addon into the output without revisiting this boundary.
+
+Bun is pinned in `.bun-version` and Dockerfile's `BUN_VERSION` default. Update
+them together. `bun run test` checks that contract and the Docker dependency
+filter: only the sibling backend's type-only declaration is removed, and the
+remaining install uses the frozen lockfile. No package versions are re-resolved.
