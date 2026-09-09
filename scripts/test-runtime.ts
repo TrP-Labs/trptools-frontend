@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright-core';
 import type { SessionUser } from '../src/lib/api/types';
+import { writeRuntimePolicies } from './runtime-policies';
 
 // Exercise the shipped image, not Vite or a server that can accidentally find
 // this checkout's node_modules. The API fixture makes packaging tests usable
@@ -59,9 +60,7 @@ async function docker(...args: string[]) {
 
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
 try {
-	await writeFile(join(directory, 'Runtime Policy.md'), '# Runtime Policy\n\n## Storage\n\n**Runtime-only document.**');
-	await writeFile(join(directory, 'About.txt'), '/about');
-	await writeFile(join(directory, 'Unsafe.txt'), 'javascript:alert(1)');
+	await writeRuntimePolicies(directory);
 	await docker('run', ...platform, '--detach', '--name', name,
 		'--add-host=host.docker.internal:host-gateway',
 		'--publish', '127.0.0.1::3000',
