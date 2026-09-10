@@ -3,6 +3,7 @@
 		IconBrandDiscord,
 		IconBuildingWarehouse,
 		IconCalendarTime,
+		IconClipboardList,
 		IconClipboardText,
 		IconExternalLink,
 		IconHome,
@@ -33,7 +34,17 @@
 	let items = $derived<SidebarItem[]>([
 		{ href: base, label: m.dashboard_overview(), icon: IconHome, exact: true },
 		{ href: `${base}/dispatch`, label: m.common_dispatch(), icon: IconRadio, permissions: [PERM.DISPATCH, PERM.START_ROOM] },
-		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, permissions: [PERM.DISPATCH, PERM.MANAGE_SHIFTS] },
+		// Shifts is the scheduling page and nothing else now, so it names the
+		// grant that opens it rather than also admitting dispatchers, who used
+		// to come here to sign up. Signing up happens on the group's public
+		// shift page, where it is open to every member.
+		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, permissions: [PERM.MANAGE_SHIFTS] },
+		{
+			href: `${base}/signups`,
+			label: m.common_signups(),
+			icon: IconClipboardList,
+			permissions: [PERM.MANAGE_SIGNUPS]
+		},
 		{ href: `${base}/routes`, label: m.common_routes(), icon: IconRoute, permissions: [PERM.MANAGE_ROUTES] },
 		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, permissions: [PERM.MANAGE_DEPOTS] },
 		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, permissions: [PERM.MANAGE_RANKS] },

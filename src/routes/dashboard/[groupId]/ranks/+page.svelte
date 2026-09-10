@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { refreshData } from '$lib/utils/refresh';
-	import {
-		IconChevronRight,
-		IconClipboardList,
-		IconPlus,
-		IconUsers
-	} from '@tabler/icons-svelte';
+	import { IconChevronRight, IconPlus, IconUsers } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -65,7 +60,6 @@
 	-->
 	<ul class="space-y-3">
 		{#each data.ranks as rank (rank.id)}
-			{@const sheet = data.signups[rank.id] ?? null}
 			<li>
 				<a
 					href="{base}/{rank.id}"
@@ -93,9 +87,6 @@
 							<Badge>{m.dashboard_ranks_grants_held({ count: grantCount(rank.permissions) })}</Badge>
 						{/if}
 						{#if rank.visible}<Badge>{m.dashboard_ranks_staff_list()}</Badge>{/if}
-						{#if sheet}
-							<Badge><IconClipboardList size={13} /> {m.dashboard_ranks_sheet()}</Badge>
-						{/if}
 					</div>
 
 					<IconChevronRight size={18} class="shrink-0 text-text-subtle" />

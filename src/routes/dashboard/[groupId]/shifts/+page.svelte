@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
-	import { announceDiscordResult } from '$lib/utils/discordLink';
 	import { refreshData } from '$lib/utils/refresh';
-	import { IconCalendarTime, IconChevronDown, IconPlus } from '@tabler/icons-svelte';
+	import { IconCalendarTime, IconPlus } from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -10,7 +8,6 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import ShiftEditor, { type ShiftDraft } from '$lib/components/shifts/ShiftEditor.svelte';
-	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatDateTime, formatDuration, formatRelative } from '$lib/utils/format';
@@ -23,16 +20,16 @@
 
 	let { data }: PageProps = $props();
 
-	/**
-	 * Coming back from connecting a Discord account lands on this page rather
-	 * than on settings, so this is where the outcome is announced — and the
-	 * sheets re-read, since a successful link is what turns their buttons back
-	 * on. Here rather than inside `SignupSheets`, which is drawn once per
-	 * occurrence: a toast per sheet block is a toast too many.
-	 */
-	afterNavigate(() => announceDiscordResult(() => void refreshData()));
-
 	let group = $derived(data.group);
+
+	/**
+	 * Kept as a variable rather than inlined as `true`.
+	 *
+	 * The loader refuses anybody without it, so this is always true today —
+	 * but "the page is open" and "this control writes" are different claims,
+	 * and collapsing them is how a read-only view later grows a live delete
+	 * button nobody noticed.
+	 */
 	let canManage = $derived(can(group.permissions, PERM.MANAGE_SHIFTS));
 
 	function emptyDraft(): ShiftDraft {
@@ -158,7 +155,7 @@
 	}
 </script>
 
-<PageHeader title={m.common_shifts()} description={m.dashboard_shifts_recurring_services_who_has_signed_up()}>
+<PageHeader title={m.common_shifts()} description={m.dashboard_shifts_page_description()}>
 	{#snippet actions()}
 		{#if canManage}
 			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_shifts_new_shift()}</Button>
@@ -167,7 +164,7 @@
 </PageHeader>
 
 <div class="grid gap-6 lg:grid-cols-[1fr_22rem]">
-	<!-- Upcoming occurrences with signups -->
+	<!-- What the schedule actually produces, so a rule can be checked against it -->
 	<div>
 		<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">{m.dashboard_shifts_upcoming()}</h2>
 
@@ -183,8 +180,14 @@
 		{:else}
 			<ul class="space-y-3">
 				{#each data.occurrences as occurrence (occurrence.eventId + occurrence.start)}
-					<li class="card p-4">
-						<div class="flex items-start gap-3">
+					<li class="card p-4 transition-colors hover:border-accent/50">
+						<!--
+							Linked out to the shift's public page, which is where
+							its sheets live now. Whoever keeps the timetable still
+							wants to see who turned up, and this is the one place
+							that shows it.
+						-->
+						<a class="flex items-start gap-3" href="/g/{group.slug}/shift/{occurrence.slug}">
 							<span
 								class="mt-1 h-10 w-1 shrink-0 rounded-full"
 								style="background: {occurrence.color}"
@@ -196,23 +199,8 @@
 									<span class="text-xs text-text-subtle">{formatRelative(occurrence.start)}</span>
 								</div>
 								<p class="text-sm text-text-muted">{formatDateTime(occurrence.start)}</p>
-
-								<!-- Guarded so an occurrence with no sheet for this
-									 viewer leaves no empty gap behind. -->
-								{#if occurrence.sheets.length > 0}
-									<div class="mt-3">
-										<SignupSheets
-											sheets={occurrence.sheets}
-											eventId={occurrence.eventId}
-											occurrence={occurrence.start}
-											userId={data.user?.userId}
-											discordRequired={occurrence.discordRequired}
-											discordLinked={Boolean(data.user?.discord)}
-										/>
-									</div>
-								{/if}
 							</div>
-						</div>
+						</a>
 					</li>
 				{/each}
 			</ul>

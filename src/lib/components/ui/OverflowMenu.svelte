@@ -5,12 +5,26 @@
 
 	interface Props {
 		label?: string;
+		/**
+		 * Which edge the menu hangs from.
+		 *
+		 * Right by default, which is where these sit on a card. A trigger at
+		 * the *left* of a wide row needs the other one: anchored right, the
+		 * menu grows leftwards off the edge of its container, which is a menu
+		 * with its first few characters cut off.
+		 */
+		align?: 'left' | 'right';
 		/** Menu items, rendered as buttons by the caller. */
 		children: Snippet<[() => void]>;
 		class?: string;
 	}
 
-	let { label = m.common_more_actions(), children, class: className = '' }: Props = $props();
+	let {
+		label = m.common_more_actions(),
+		align = 'right',
+		children,
+		class: className = ''
+	}: Props = $props();
 
 	let open = $state(false);
 	let root = $state<HTMLDivElement | null>(null);
@@ -61,8 +75,8 @@
 		<div
 			role="menu"
 			tabindex="-1"
-			class="absolute right-0 z-30 mt-1 min-w-44 overflow-hidden rounded-lg border border-border-base
-				bg-background-secondary py-1 shadow-lg"
+			class="absolute z-30 mt-1 min-w-44 overflow-hidden rounded-lg border border-border-base
+				bg-background-secondary py-1 shadow-lg {align === 'right' ? 'right-0' : 'left-0'}"
 		>
 			{@render children(close)}
 		</div>

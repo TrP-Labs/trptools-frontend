@@ -67,7 +67,7 @@ export type ReportTarget = 'GROUP' | 'ROUTE' | 'DEPOT' | 'MEDIA';
 
 export type ShiftEvent = Data<ReturnType<Api['schedule']['get']>>[number];
 export type ShiftOccurrence = Data<ReturnType<Api['schedule']['occurrences']['get']>>[number];
-/** One rank's sign-up sheet as it applies to a single occurrence. */
+/** One sign-up sheet as it applies to a single occurrence. */
 export type SignupSheet = ShiftOccurrence['sheets'][number];
 export type SignupSlot = SignupSheet['slots'][number];
 export type SignupUser = SignupSlot['signups'][number];
@@ -80,9 +80,11 @@ export type BotChannel = Data<ReturnType<ReturnType<Api['bot']>['channels']['get
 export type BotRole = Data<ReturnType<ReturnType<Api['bot']>['roles']['get']>>[number];
 export type BotCleanup = Data<ReturnType<ReturnType<Api['bot']>['cleanup']['get']>>;
 
-/** A rank's sign-up sheet as the ranks dashboard edits it. */
-export type RankSignup = NonNullable<Data<ReturnType<ReturnType<Api['ranks']>['signup']['get']>>>;
-export type RankSignupSlot = RankSignup['slots'][number];
+/** A sign-up sheet as the Sign-ups dashboard edits it. */
+export type SignupSheetDetail = Data<ReturnType<ReturnType<Api['signups']>['get']>>;
+export type SignupSheetSlot = SignupSheetDetail['slots'][number];
+/** A bound rank, as the sheet editor's rank picker offers it. */
+export type PickableRank = Data<ReturnType<Api['signups']['ranks']['get']>>[number];
 
 /** Staff application forms, as the dashboard manages them. */
 export type ApplicationSummary = Data<ReturnType<Api['applications']['get']>>[number];

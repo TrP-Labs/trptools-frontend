@@ -256,7 +256,7 @@
 		leadMinutes={group.roomOpenLeadMinutes}
 		{canHost}
 		{opening}
-		manageHref="/dashboard/{group.slug}/shifts"
+		manageHref={can(group.permissions, PERM.MANAGE_SHIFTS) ? `/dashboard/${group.slug}/shifts` : null}
 		onopen={openRoom}
 	/>
 {:else}
