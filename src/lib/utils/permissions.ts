@@ -30,7 +30,11 @@ export const PERM = {
 	MANAGE_OPEN_CLOUD: 1 << 13,
 	VIEW_AUDIT_LOG: 1 << 14,
 
-	ADMINISTRATOR: 1 << 15
+	ADMINISTRATOR: 1 << 15,
+
+	MANAGE_SIGNUPS: 1 << 16,
+	OVERRIDE_SIGNUPS: 1 << 17,
+	EDIT_SIGNUPS: 1 << 18
 } as const;
 
 export type PermissionFlag = (typeof PERM)[keyof typeof PERM];
@@ -62,7 +66,8 @@ export const LEVEL_PERMISSIONS: Record<number, number> = {
 		PERM.DISPATCH |
 		PERM.START_ROOM |
 		PERM.MANAGE_SHIFTS |
-		PERM.REVIEW_APPLICATIONS,
+		PERM.REVIEW_APPLICATIONS |
+		PERM.OVERRIDE_SIGNUPS,
 	3: ALL_PERMISSIONS
 };
 
@@ -122,6 +127,30 @@ export function permissionGroups(): PermissionGroup[] {
 					flag: PERM.MANAGE_SHIFTS,
 					label: m.permission_manage_shifts(),
 					description: m.permission_manage_shifts_hint()
+				}
+			]
+		},
+		{
+			// Its own group rather than three more rows under Dispatch: the
+			// three answer one question between them — who staffs a shift —
+			// and a rank given only the sheets should read as exactly that.
+			id: 'signups',
+			label: m.permissions_group_signups(),
+			permissions: [
+				{
+					flag: PERM.MANAGE_SIGNUPS,
+					label: m.permission_manage_signups(),
+					description: m.permission_manage_signups_hint()
+				},
+				{
+					flag: PERM.OVERRIDE_SIGNUPS,
+					label: m.permission_override_signups(),
+					description: m.permission_override_signups_hint()
+				},
+				{
+					flag: PERM.EDIT_SIGNUPS,
+					label: m.permission_edit_signups(),
+					description: m.permission_edit_signups_hint()
 				}
 			]
 		},

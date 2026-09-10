@@ -44,7 +44,16 @@
 				href: `/dashboard/${group.slug}/shifts`,
 				label: m.common_shifts(),
 				icon: IconCalendarTime,
-				permissions: [PERM.DISPATCH, PERM.MANAGE_SHIFTS]
+				// Only whoever schedules them: the page stopped being where a
+				// dispatcher signs up, and a dispatcher offered this link is
+				// offered a 403 — which is the whole point of this list.
+				permissions: [PERM.MANAGE_SHIFTS]
+			},
+			{
+				href: `/dashboard/${group.slug}/signups`,
+				label: m.common_signups(),
+				icon: IconClipboardList,
+				permissions: [PERM.MANAGE_SIGNUPS]
 			},
 			{
 				href: `/dashboard/${group.slug}/applications`,

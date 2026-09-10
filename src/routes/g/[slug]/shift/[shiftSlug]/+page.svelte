@@ -136,6 +136,7 @@
 								discordId={data.user?.discord?.id}
 								discordRequired={occurrence.discordRequired}
 								discordLinked={Boolean(data.user?.discord)}
+								canEdit={occurrence.canEditSignups}
 							/>
 						</div>
 					</li>

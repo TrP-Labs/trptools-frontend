@@ -73,8 +73,16 @@
 						{#each occurrences as occurrence (occurrence.eventId + occurrence.start)}
 							{@const { filled, capacity } = signupTotals(occurrence.sheets)}
 							<li>
+								<!--
+									The shift's own public page, which is where its
+									sign-up sheets are. It used to point at the group
+									dashboard's shifts page, and that page is now for
+									whoever schedules shifts rather than for whoever
+									turns up to one — most readers of this list would
+									land on a 403.
+								-->
 								<a
-									href="/dashboard/{occurrence.groupId}/shifts"
+									href="/g/{occurrence.groupSlug}/shift/{occurrence.slug}"
 									class="card flex items-center gap-3 p-4 transition-colors hover:border-border-strong"
 								>
 									<span

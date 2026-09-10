@@ -1,18 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { refreshData } from '$lib/utils/refresh';
-	import {
-		IconBrandDiscord,
-		IconClipboardList,
-		IconRefresh,
-		IconSettings,
-		IconShieldLock,
-		IconTrash
-	} from '@tabler/icons-svelte';
+	import { IconRefresh, IconSettings, IconShieldLock, IconTrash } from '@tabler/icons-svelte';
 	import ObjectPage, { type ObjectSection } from '$lib/components/layout/ObjectPage.svelte';
 	import PermissionEditor from '$lib/components/ranks/PermissionEditor.svelte';
-	import RankSignupEditor from '$lib/components/shifts/RankSignupEditor.svelte';
-	import RankSignupDiscord from '$lib/components/shifts/RankSignupDiscord.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -38,11 +29,17 @@
 
 	let busy = $state(false);
 
+	/**
+	 * A rank's sections are about the rank.
+	 *
+	 * Sign-ups and their Discord settings used to be two of them, from when a
+	 * sheet hung off a rank. They are their own objects now, under Sign-ups,
+	 * and a rank appears on the lists that say which sheets it may fill —
+	 * which is a fact about the sheet, edited there.
+	 */
 	let sections = $derived<ObjectSection[]>([
 		{ id: 'permissions', label: m.dashboard_ranks_permissions(), icon: IconShieldLock },
-		{ id: 'settings', label: m.dashboard_ranks_rank_settings(), icon: IconSettings },
-		{ id: 'signups', label: m.dashboard_ranks_sign_ups(), icon: IconClipboardList },
-		{ id: 'discord', label: m.dashboard_ranks_discord(), icon: IconBrandDiscord }
+		{ id: 'settings', label: m.dashboard_ranks_rank_settings(), icon: IconSettings }
 	]);
 
 	async function patch(body: Record<string, unknown>, success?: string) {
@@ -164,31 +161,6 @@
 						</Field>
 					</div>
 				</div>
-			</Card>
-		{:else if section === 'signups'}
-			<Card
-				title={m.dashboard_ranks_sign_up_sheet()}
-				description={m.dashboard_ranks_slots_people_at_rank_above_can()}
-			>
-				<RankSignupEditor
-					sourceLocale={data.group.sourceLocale}
-					rankId={rank.id}
-					rankName={rank.cachedName}
-					rankColor={rank.color}
-					signup={data.signup}
-				/>
-			</Card>
-		{:else if section === 'discord'}
-			<Card title={m.dashboard_ranks_discord()} description={m.dashboard_ranks_where_rank_s_sheet_posted_if()}>
-				<RankSignupDiscord
-					groupId={group.id}
-					groupSlug={group.slug}
-					rankId={rank.id}
-					signup={data.signup}
-					botConnected={data.botConnected}
-					channelNames={data.channelNames}
-					roleNames={data.roleNames}
-				/>
 			</Card>
 		{/if}
 	{/snippet}

@@ -117,7 +117,16 @@
 			description={m.dashboard_next_occurrences_across_every_schedule()}
 		>
 			{#snippet actions()}
-				<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/shifts">{m.common_manage()}</Button>
+				<!--
+					Gated for the reason the sidebar's entries are: the shifts
+					page asks for this grant now, so an ungated button here is a
+					link to a 403 for every dispatcher who reads this card.
+				-->
+				{#if can(group.permissions, PERM.MANAGE_SHIFTS)}
+					<Button size="sm" variant="secondary" href="/dashboard/{group.slug}/shifts">
+						{m.common_manage()}
+					</Button>
+				{/if}
 			{/snippet}
 
 			{#if data.upcoming.length === 0}

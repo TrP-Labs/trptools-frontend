@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { refreshData } from '$lib/utils/refresh';
-	import { IconBrandDiscord, IconMinus, IconPlus } from '@tabler/icons-svelte';
+	import {
+		IconArrowsExchange,
+		IconBrandDiscord,
+		IconLock,
+		IconMinus,
+		IconPlus,
+		IconUserMinus
+	} from '@tabler/icons-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import MenuItem from '$lib/components/ui/MenuItem.svelte';
+	import OverflowMenu from '$lib/components/ui/OverflowMenu.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
@@ -17,9 +26,13 @@
 	/**
 	 * The sign-up sheets for one occurrence of a shift.
 	 *
-	 * Only sheets the viewer's rank reaches ever arrive here — the API does the
-	 * gating, so there is nothing to hide client-side. Someone at driver rank
-	 * simply never learns the dispatcher sheet exists.
+	 * Only slots the viewer may see ever arrive here — the API does the
+	 * gating, per slot, so there is nothing to hide client-side. Someone at
+	 * driver rank simply never learns the dispatcher slot exists.
+	 *
+	 * A slot that arrives is not always one they may *fill*: whoever holds the
+	 * grant to move other people's sign-ups is shown every slot so they have
+	 * somewhere to move them to. `canFill` is what the button asks.
 	 */
 	interface Props {
 		sheets: SignupSheet[];
@@ -39,6 +52,8 @@
 		discordRequired?: boolean;
 		/** Whether this viewer has one. */
 		discordLinked?: boolean;
+		/** Whether they may move or remove other people's sign-ups. */
+		canEdit?: boolean;
 	}
 
 	let {
@@ -48,7 +63,8 @@
 		userId,
 		discordId = null,
 		discordRequired = false,
-		discordLinked = false
+		discordLinked = false,
+		canEdit = false
 	}: Props = $props();
 
 	let busy = $state<string | null>(null);
@@ -66,6 +82,17 @@
 	let blocked = $derived(Boolean(userId) && discordRequired && !discordLinked);
 
 	let linking = $state(false);
+
+	/** Every slot on this occurrence, for the "move to" menu. */
+	let allSlots = $derived(
+		sheets.flatMap((sheet) =>
+			sheet.slots.map((slot) => ({
+				id: slot.id,
+				label: sheets.length > 1 ? `${sheet.name} · ${slot.name}` : slot.name,
+				full: slot.signups.length >= slot.capacity
+			}))
+		)
+	);
 
 	/**
 	 * Back to this same page afterwards, rather than to settings: somebody who
@@ -105,17 +132,48 @@
 			busy = null;
 		}
 	}
+
+	/**
+	 * A host acting on somebody else's row.
+	 *
+	 * Addressed by the row's own id rather than by slot and identity: a signup
+	 * made from Discord by somebody with no account has no user id to name,
+	 * and reconstructing one here would put the rule in two places.
+	 */
+	async function manage(signupId: string, to: string | null) {
+		busy = signupId;
+		try {
+			const { error } = to
+				? await api.schedule.signup({ signupId }).patch({ slotId: to })
+				: await api.schedule.signup({ signupId }).delete();
+
+			if (error) throw error;
+
+			toasts.success(to ? m.signups_moved() : m.signups_removed());
+			await refreshData();
+		} catch (error) {
+			toasts.error(errorMessage(error, to ? m.signups_could_not_move() : m.signups_could_not_remove()));
+		} finally {
+			busy = null;
+		}
+	}
 </script>
 
 {#if sheets.length > 0}
 	<div class="space-y-4">
-		{#each sheets as sheet (sheet.signupId)}
+		{#each sheets as sheet (sheet.sheetId)}
+			<!--
+				Deliberately not `overflow-hidden`, though the rounded corner
+				asks for it: the host's menu is a popover inside this box, and
+				clipping the box clips the menu to a few visible characters.
+				The header rounds its own top corners instead.
+			-->
 			<section
-				class="overflow-hidden rounded-xl border border-border-base"
+				class="rounded-xl border border-border-base"
 				style="border-left: 3px solid {sheet.color};"
 			>
 				<header
-					class="flex flex-wrap items-center gap-2 border-b border-border-base px-4 py-3"
+					class="flex flex-wrap items-center gap-2 rounded-t-[0.6875rem] border-b border-border-base px-4 py-3"
 					style="background: {withAlpha(sheet.color, 0.08)};"
 				>
 					<div class="min-w-0 flex-1">
@@ -124,12 +182,10 @@
 							<p class="mt-0.5 text-xs text-text-muted">{localized(sheet, 'description')}</p>
 						{/if}
 					</div>
-					<Badge>{m.shifts_signup_sheets_rank_and_above({ rank: sheet.rankName })}</Badge>
 				</header>
 
 				<ul class="divide-y divide-border-base">
 					{#each sheet.slots as slot (slot.id)}
-						{@const mine = slot.signups.some((signup) => isMine(signup, userId, discordId))}
 						{@const full = slot.signups.length >= slot.capacity}
 						<li class="flex flex-wrap items-center gap-3 px-4 py-3">
 							<div class="min-w-0 flex-1">
@@ -138,6 +194,15 @@
 									<Badge tone={full ? 'success' : 'neutral'}>
 										{slot.signups.length}/{slot.capacity}
 									</Badge>
+									<!--
+										Named only where it narrows something. A slot
+										open to the whole group says nothing, because
+										"anyone may take this" is what an unlabelled
+										slot already looks like.
+									-->
+									{#if slot.rankNames.length > 0}
+										<span class="text-xs text-text-subtle">{slot.rankNames.join(', ')}</span>
+									{/if}
 								</div>
 
 								{#if localized(slot, 'description')}
@@ -146,7 +211,7 @@
 
 								{#if slot.signups.length > 0}
 									<ul class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-										{#each slot.signups as signup (signup.userId || signup.discordId)}
+										{#each slot.signups as signup (signup.id)}
 											<li class="flex items-center gap-1.5">
 												{#if signup.userId}
 													<Avatar src={signup.avatar} name={signupName(signup)} size={18} />
@@ -154,6 +219,50 @@
 													<span class="text-text-subtle"><IconBrandDiscord size={14} /></span>
 												{/if}
 												<span class="text-xs text-text-muted">{signupName(signup)}</span>
+
+												<!--
+													The host's controls sit on the person
+													rather than on the slot, because that
+													is what they act on — and behind a
+													menu, so a sheet of twelve drivers is
+													still a list of names rather than a
+													wall of buttons.
+												-->
+												{#if canEdit}
+													<OverflowMenu
+														align="left"
+														label={m.signups_manage_signup({ name: signupName(signup) })}
+													>
+														{#snippet children(close)}
+															{#each allSlots as target (target.id)}
+																{#if target.id !== slot.id}
+																	<MenuItem
+																		disabled={target.full || busy !== null}
+																		title={target.full ? m.shifts_signup_sheets_full() : undefined}
+																		onclick={() => {
+																			close();
+																			void manage(signup.id, target.id);
+																		}}
+																	>
+																		<IconArrowsExchange size={15} />
+																		{m.signups_move_to({ slot: target.label })}
+																	</MenuItem>
+																{/if}
+															{/each}
+
+															<MenuItem
+																tone="danger"
+																disabled={busy !== null}
+																onclick={() => {
+																	close();
+																	void manage(signup.id, null);
+																}}
+															>
+																<IconUserMinus size={15} /> {m.signups_take_off_shift()}
+															</MenuItem>
+														{/snippet}
+													</OverflowMenu>
+												{/if}
 											</li>
 										{/each}
 									</ul>
@@ -164,7 +273,7 @@
 
 							{#if userId}
 								<div class="shrink-0">
-									{#if mine}
+									{#if slot.signups.some((signup) => isMine(signup, userId, discordId))}
 										<Button
 											size="sm"
 											variant="secondary"
@@ -173,6 +282,19 @@
 										>
 											<IconMinus size={14} /> {m.shifts_signup_sheets_withdraw()}
 										</Button>
+									{:else if !slot.canFill}
+										<!--
+											Only reachable by somebody who may move other
+											people between slots: everybody else was never
+											sent this slot. Saying why is the point — the
+											row is there to be a destination, not an offer.
+										-->
+										<span
+											class="flex items-center gap-1.5 text-xs text-text-subtle"
+											title={m.signups_not_for_your_rank_hint()}
+										>
+											<IconLock size={13} /> {m.signups_not_for_your_rank()}
+										</span>
 									{:else}
 										<Button
 											size="sm"
@@ -224,4 +346,3 @@
 	occurrence, that a thing they cannot use is unavailable is noise about
 	somebody else's job.
 -->
-

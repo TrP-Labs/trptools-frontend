@@ -14,7 +14,12 @@
 		leadMinutes: number;
 		canHost: boolean;
 		opening: boolean;
-		manageHref: string;
+		/**
+		 * Where to go to add a shift, or null for somebody who may open a room
+		 * but not schedule one. The two are separate grants, so offering the
+		 * link to every host would offer some of them a 403.
+		 */
+		manageHref: string | null;
 		onopen: (eventId: string) => void;
 	}
 
@@ -70,7 +75,7 @@
 	>
 		{#snippet icon()}<IconRadio size={28} stroke={1.5} />{/snippet}
 		{#snippet action()}
-			{#if canHost}
+			{#if manageHref}
 				<Button href={manageHref}><IconCalendarPlus size={16} /> {m.dispatch_shift_countdown_manage_shifts()}</Button>
 			{/if}
 		{/snippet}
