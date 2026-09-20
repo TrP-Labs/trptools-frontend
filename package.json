@@ -6,7 +6,11 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"preview": "vite preview",
+		"build:node": "TRPTOOLS_ADAPTER=node vite build",
+		"preview": "wrangler dev",
+		"worker:build": "bun run build && WRANGLER_LOG_PATH=/tmp/trptools-frontend-wrangler.log wrangler deploy --dry-run --outdir dist-worker",
+		"worker:deploy": "bun run test && bun run check && bun run build && wrangler deploy",
+		"worker:types": "wrangler types worker-configuration.d.ts",
 		"prepare": "svelte-kit sync && bun run messages || echo ''",
 		"check": "svelte-kit sync && bun run messages && node scripts/check-api-errors.mjs && node scripts/check-spelling.mjs && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && bun run messages && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -17,21 +21,22 @@
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",
 		"@inlang/paraglide-js": "^2.25.0",
-		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@tabler/icons-svelte": "^3.46.0",
 		"@tailwindcss/vite": "^4.3.3",
+		"marked": "^18.0.9",
 		"playwright-core": "^1.62.1",
+		"rrule": "^2.8.1",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.3",
 		"trptools-backend": "file:../trptools-backend",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.16",
-		"@tabler/icons-svelte": "^3.46.0",
-		"marked": "^18.0.9",
-		"rrule": "^2.8.1",
-		"wavesurfer.js": "^7.12.11"
+		"wavesurfer.js": "^7.12.11",
+		"wrangler": "^4.135.0"
 	}
 }

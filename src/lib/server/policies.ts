@@ -13,10 +13,7 @@ const DEFAULT_REPOSITORY = 'TrP-Labs/Policies';
 const DEFAULT_REF = 'main';
 const DEFAULT_CACHE_SECONDS = 300;
 
-type PolicyCache = {
-	match(request: Request): Promise<Response | undefined>;
-	put(request: Request, response: Response): Promise<void>;
-};
+type PolicyCache = App.Platform['caches']['default'];
 
 const bundled = import.meta.glob('../../../policies/*.{md,txt}', {
 	query: '?raw',
@@ -54,12 +51,12 @@ function repositoryConfig() {
 }
 
 function cacheRequest(repository: string, ref: string) {
-	return new Request(
+	return new URL(
 		`https://policies.trptools.internal/${encodeURIComponent(repository)}/${encodeURIComponent(ref)}.json`
 	);
 }
 
-async function fromCache(cache: PolicyCache | undefined, request: Request) {
+async function fromCache(cache: PolicyCache | undefined, request: URL) {
 	if (!cache) return undefined;
 	try {
 		const response = await cache.match(request);
@@ -90,9 +87,15 @@ async function refresh(fetcher: typeof fetch, cache?: PolicyCache) {
 	memory = { key, expiresAt: Date.now() + ttl * 1000, entries };
 	if (cache) {
 		try {
+			const snapshot = Response.json(entries, {
+				headers: { 'cache-control': `public, max-age=${ttl}` }
+			});
+			// SvelteKit exposes the runtime Cache type from workerd while application
+			// code sees the DOM Response type. They are the same Web API object at
+			// runtime; workerd's declaration merely includes an extra `webSocket` field.
 			await cache.put(
 				request,
-				Response.json(entries, { headers: { 'cache-control': `public, max-age=${ttl}` } })
+				snapshot as unknown as Parameters<PolicyCache['put']>[1]
 			);
 		} catch {
 			// A working repository response is still useful when the platform cache is unavailable.

@@ -18,12 +18,14 @@ FROM deps AS build
 COPY src ./src
 COPY static ./static
 COPY messages ./messages
+COPY policies ./policies
 COPY project.inlang ./project.inlang
 COPY vite.config.ts paraglide.config.js tsconfig.json .npmrc ./
 
 # Origins come from dynamic environment variables at runtime, so deployments
-# reuse one artifact. Documentation and test changes do not invalidate this step.
-RUN bun run build && mkdir -p /app/policies
+# reuse one artifact. The Node adapter is an explicit compatibility target;
+# normal builds produce the Cloudflare Worker instead.
+RUN bun run build:node
 
 FROM oven/bun:${BUN_VERSION}-alpine AS runtime
 WORKDIR /app
@@ -34,12 +36,6 @@ ENV PORT=3000
 # neither the compilers nor the original icon/translation catalogues.
 COPY --from=build /app/build ./build
 COPY --from=build /app/package.json ./package.json
-
-# The footer's links are read from here at startup, not baked into the image —
-# mount a volume over it to publish documents, or leave it empty to ship with a
-# footer that has no links. See POLICIES_DIR to point elsewhere.
-COPY --from=build --chown=bun:bun /app/policies ./policies
-VOLUME /app/policies
 
 USER bun
 
