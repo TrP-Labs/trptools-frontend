@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # trptools-backend is checked out as a sibling directory because the
-      # frontend's devDependency on it (file:../trptools-backend) is how
-      # Eden Treaty gets the backend's route types for compile-time checking
-      # — the same layout local development uses.
+      # frontend aliases its sibling source so Eden Treaty gets the backend's
+      # exact route types for compile-time checking — the same layout local
+      # development uses. Cloudflare's standalone build omits this
+      # contract-only checkout.
       - uses: actions/checkout@v4
         with:
           path: trptools-frontend
@@ -50,6 +51,16 @@ jobs:
       # read the literals it compares against.
       - working-directory: trptools-frontend
         run: bun run check
+
+      # Build the actual adapter-cloudflare output, let Wrangler validate its
+      # bindings and upload shape, then execute it in workerd against an
+      # isolated API fixture. This is separate from the compatibility image
+      # below: either deployment target must be able to fail independently.
+      - working-directory: trptools-frontend
+        run: bun run worker:build
+
+      - working-directory: trptools-frontend
+        run: bun run scripts/test-worker-runtime.ts
 
       - uses: docker/setup-buildx-action@v3
         if: github.ref_type != 'tag'

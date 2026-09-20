@@ -27,19 +27,19 @@ const { data } = await api.routes.get({ query: { groupId } });
 A renamed field or a changed status code becomes a compile error in this project
 rather than a runtime surprise.
 
-**How this works across two projects.** `trptools-backend` is a type-only
-devDependency resolved from the sibling directory. Because each project installs
-its own dependencies, TypeScript would otherwise see two structurally identical
-but distinct `Elysia` types and refuse the handoff, so `kit.alias` in
-`vite.config.ts` pins `elysia` and `@sinclair/typebox` to this project's copies.
+**How this works across two projects.** When the backend is checked out beside
+the frontend, `kit.alias` resolves `trptools-backend` directly to its source.
+It also pins `elysia` and `@sinclair/typebox` to this project's copies, so
+TypeScript does not see two structurally identical but distinct Elysia types.
 
-Every reference is an `import type` and is erased before any JavaScript is
-emitted, so the backend is never bundled and the two projects remain
-independently deployable — the Dockerfile drops the dependency entirely.
+Every backend reference is an `import type` and is erased before JavaScript is
+emitted. The backend is therefore not a package dependency: a Cloudflare Git
+build can install this repository by itself, while local and GitHub release
+checks with the sibling present retain exact route inference.
 
-If you are working on the frontend without the backend checked out beside it,
-`bun install --omit=dev` or removing that one devDependency is enough; only
-editor type-checking depends on it.
+An isolated checkout can build and deploy, but the full `bun run check` contract
+gate requires the sibling backend. `bun run worker:build` is its standalone
+pre-deployment gate: unit tests, production build, and Wrangler dry-run.
 
 ## Layout
 
@@ -71,16 +71,19 @@ than markup. Anything reused twice moves into `lib/components`.
 
 ## Terms and privacy
 
-`TERMS.md` and `PRIVACY.md`, read from `POLICIES_DIR` (default `./policies`) at
-startup, are the terms of service and privacy policy pages. Each `##` heading
-becomes a card on the page; a leading `#` names it.
+The footer and policy pages are driven by the root files in
+[TrP-Labs/Policies](https://github.com/TrP-Labs/Policies). Markdown files become
+pages at `/policies/<file-name>`; text files contain a safe HTTP(S) or
+root-relative link. The default repository and branch can be changed with
+`POLICIES_REPOSITORY` and `POLICIES_REF`.
 
-Both are optional. A missing file means its page returns 404 and its footer
-link disappears; add it back and restart to bring both back. Reading happens
-once at startup, not per request, so **editing either file means restarting
-the process** — no rebuild needed. In Docker, `POLICIES_DIR` is a volume mount
-(see the root README and the setup repo), which is what lets an operator ship
-their own policy text without building a custom image.
+Workers refresh one validated snapshot every five minutes by default. The
+Cloudflare Cache API shares it within a location and an in-isolate promise
+deduplicates simultaneous cold requests. A checked-in snapshot keeps the legal
+pages available if GitHub is down or rate-limited. Set `POLICIES_GITHUB_TOKEN`
+only for a private fork or additional API quota; it is sent to the GitHub API,
+never to the raw-content host. Change the refresh interval with
+`POLICIES_CACHE_SECONDS` (minimum 30).
 
 ## Strings and languages
 
@@ -208,35 +211,68 @@ table responsive under load.
 ## Building
 
 ```bash
-bun run build     # production build
-bun run preview   # serve the build
-bun run check     # compile messages, check API error coverage, svelte-check
-bun run messages  # recompile messages/ into src/lib/paraglide
+bun run build          # production Cloudflare Worker and static assets
+bun run worker:build   # tests, build, and Wrangler deployment dry-run
+bun run preview        # serve the built Worker locally with workerd
+bun run test:worker    # build and exercise the real Worker runtime
+bun run check          # backend-aware API, Svelte, and TypeScript checks
+bun run messages       # regenerate src/lib/paraglide
 ```
 
-The build uses `adapter-node`, which runs anywhere a JS runtime does — Docker, a
-VM, Bun, or a container-based edge platform. Swap the adapter in
-`vite.config.ts` to target a specific serverless platform.
+The default build uses `adapter-cloudflare`. `wrangler.jsonc` publishes the
+adapter output as one Worker with immutable static assets, enables Smart
+Placement, and binds SSR API traffic to the `trptools-backend` Worker as
+`BACKEND`. That binding avoids public DNS, TLS, and an extra edge traversal for
+every server-rendered API request. Browser API calls and the dispatch
+`EventSource` still use `PUBLIC_API_URL`, because service bindings exist only
+inside Workers.
 
-`PUBLIC_API_URL` and `INTERNAL_API_URL` are read at runtime, so one image can be
-pointed at a different backend without rebuilding. They are not Docker build
-arguments.
+Before the first deployment, create a Worker named `trptools-backend` in the
+same Cloudflare account and set `PUBLIC_API_URL` as a Worker runtime variable to
+its public HTTPS origin. `INTERNAL_API_URL` is only a fallback for local and
+Node deployments; production SSR prefers the binding. Configure the optional
+policy variables from `.env.example`, then deploy with:
+
+```bash
+bun run worker:deploy
+```
+
+For Cloudflare's Git-connected UI, set the build command to
+`bun run worker:build` and the deploy command to
+`bunx wrangler deploy --env=""`. The guarded build must finish before
+Cloudflare runs the deploy command.
+
+`keep_vars` is enabled, so a code deployment preserves variables configured in
+the Cloudflare dashboard. A policy token, if used, must be a Worker secret.
+The `local` Wrangler environment intentionally omits the service binding and
+uses the two URL variables, allowing the frontend and backend to run as
+separate local processes.
+
+Cookie-derived pages are marked `private, no-store`; anonymous responses vary
+on `Accept-Language` and `Cookie`. This is necessary because session, theme,
+timezone, and locale all change SSR HTML. Do not add an HTML cache rule that
+overrides those headers. Immutable `/_app/` assets remain globally cacheable.
+
+Docker remains a supported secondary target rather than the production default:
+
+```bash
+bun run build:node
+docker build -t trptools-frontend:test .
+bun run test:runtime trptools-frontend:test
+```
+
+`TRPTOOLS_ADAPTER=node` selects `adapter-node`; the Dockerfile does this through
+`bun run build:node`. `PUBLIC_API_URL` and `INTERNAL_API_URL` stay runtime
+variables, so one image can still target a different backend without rebuilding.
 
 Application libraries live in `devDependencies` because adapter-node bundles
 them into the generated server. The runtime image contains `build/` and package
 metadata, without `node_modules`. Keep this boundary when adding a dependency;
 an intentionally external runtime dependency also needs explicit packaging.
 
-Test the actual container before shipping packaging changes:
-
-```bash
-docker build -t trptools-frontend:test .
-bun run test:runtime trptools-frontend:test
-```
-
-The regression test uses an isolated API fixture and temporary policy files,
-then checks SSR, session forwarding, every shipped locale, policy rendering,
-client hydration, icons, appearance persistence, and mobile layout. It needs
+The regression test uses an isolated API fixture and the bundled policy
+snapshot, then checks SSR, session forwarding, every shipped locale, policy
+fallback, client hydration, icons, appearance persistence, and mobile layout. It needs
 Docker and Chrome/Chromium on the test host; set
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if the browser is installed elsewhere. No real
 Roblox/Discord credentials or database are used, and test containers are removed
@@ -253,7 +289,8 @@ them together. `bun run test` checks that contract and the Docker dependency
 filter: only the sibling backend's type-only declaration is removed, and the
 remaining install uses the frozen lockfile. No package versions are re-resolved.
 
-CI builds and browser-tests the production container on pull requests and main.
+CI validates the Worker bundle with Wrangler, runs it under workerd, and also
+builds and browser-tests the portable container on pull requests and main.
 Main publishes both architectures using that build cache, with `latest`, short
 SHA, and full SHA tags. Release tags promote the exact full-SHA image digest
 after its main workflow succeeds; they do not compile or export the cache again.
