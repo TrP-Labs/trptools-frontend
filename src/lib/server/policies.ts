@@ -1,201 +1,148 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { extname, join } from 'node:path';
-import { marked, type Token, type TokensList } from 'marked';
 import { env } from '$env/dynamic/private';
+import {
+	compilePolicyEntries,
+	type PolicyDocument,
+	type PolicyEntry,
+	type PolicyLink
+} from './policyDocuments';
+import { fetchPolicySources } from './policyRepository';
 
-/**
- * The footer's right-hand bar, driven entirely by a directory of files.
- *
- * Whatever sits in `POLICIES_DIR` is what the footer offers, so an operator
- * adds, renames or removes a link by adding, renaming or removing a file —
- * no rebuild and no code change. A file's name minus its extension is its
- * label, verbatim, which is why `Privacy Policy.md` reads as "Privacy Policy".
- *
- * Two kinds:
- *   - `.md` is a document, compiled to cards and served at `/policies/<slug>`.
- *   - `.txt` holds a single URL and the footer links straight to it. This is
- *     how a deployment points at something it hosts elsewhere without having
- *     to mirror the text here.
- *
- * The directory is read once at startup rather than baked into the build: in
- * production it is a Docker volume, so editing a file and restarting the
- * container is the whole publishing workflow.
- */
-const POLICIES_DIR = env.POLICIES_DIR || 'policies';
+export type { PolicyDocument } from './policyDocuments';
 
-/** One top-level heading and everything under it, rendered as one card. */
-export interface PolicySection {
-	title: string | null;
-	html: string;
+const DEFAULT_REPOSITORY = 'TrP-Labs/Policies';
+const DEFAULT_REF = 'main';
+const DEFAULT_CACHE_SECONDS = 300;
+
+type PolicyCache = App.Platform['caches']['default'];
+
+const bundled = import.meta.glob('../../../policies/*.{md,txt}', {
+	query: '?raw',
+	import: 'default',
+	eager: true
+}) as Record<string, string>;
+
+const fallbackEntries = compilePolicyEntries(
+	Object.entries(bundled).map(([path, contents]) => ({
+		name: path.split('/').at(-1) ?? path,
+		contents
+	}))
+);
+
+let memory: { key: string; expiresAt: number; entries: PolicyEntry[] } | undefined;
+let pending: Promise<PolicyEntry[]> | undefined;
+
+function cacheSeconds() {
+	const configured = Number(env.POLICIES_CACHE_SECONDS ?? DEFAULT_CACHE_SECONDS);
+	return Number.isFinite(configured) && configured >= 30
+		? Math.floor(configured)
+		: DEFAULT_CACHE_SECONDS;
 }
 
-export interface PolicyDocument {
-	/** The document's own `# heading`, when it has one. */
-	title: string | null;
-	sections: PolicySection[];
-}
-
-/** What the footer needs to draw one link. */
-export interface PolicyLink {
-	/** The file name without its extension, shown as-is. */
-	label: string;
-	href: string;
-	/** Whether the link leaves the site, so the markup can say so. */
-	external: boolean;
-}
-
-interface PolicyEntry extends PolicyLink {
-	slug: string;
-	document: PolicyDocument | null;
-}
-
-function compile(markdown: string): PolicyDocument {
-	const source = marked.lexer(markdown);
-
-	const render = (tokens: Token[]) => {
-		// Reference-style links are resolved against a table hanging off the
-		// full token list, which slicing it into sections would otherwise drop.
-		const slice = tokens as TokensList;
-		slice.links = source.links;
-
-		return marked.parser(slice);
-	};
-
-	let title: string | null = null;
-	const sections: PolicySection[] = [];
-	let current: { title: string | null; tokens: Token[] } = { title: null, tokens: [] };
-
-	const flush = () => {
-		if (current.title === null && current.tokens.length === 0) return;
-		sections.push({ title: current.title, html: render(current.tokens) });
-	};
-
-	for (const token of source) {
-		if (token.type !== 'heading' || token.depth > 2) {
-			current.tokens.push(token);
-			continue;
-		}
-
-		// The first `#` names the document; every heading above `###` opens a
-		// new card, and deeper ones stay as headings inside the body.
-		if (token.depth === 1 && title === null) {
-			title = token.text;
-			continue;
-		}
-
-		flush();
-		current = { title: token.text, tokens: [] };
+function repositoryConfig() {
+	const repository = env.POLICIES_REPOSITORY?.trim() || DEFAULT_REPOSITORY;
+	const ref = env.POLICIES_REF?.trim() || DEFAULT_REF;
+	if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
+		throw new Error('POLICIES_REPOSITORY must be an owner/repository name');
 	}
-
-	flush();
-
-	return { title, sections };
+	if (!/^[A-Za-z0-9._/-]+$/.test(ref) || ref.includes('..')) {
+		throw new Error('POLICIES_REF contains unsupported characters');
+	}
+	return { repository, ref };
 }
 
-export function policySlug(label: string): string {
-	return (
-		label
-			.toLowerCase()
-			.normalize('NFKD')
-			.replace(/[^\p{Letter}\p{Number}]+/gu, '-')
-			.replace(/^-+|-+$/g, '') || 'policy'
+function cacheRequest(repository: string, ref: string) {
+	return new URL(
+		`https://policies.trptools.internal/${encodeURIComponent(repository)}/${encodeURIComponent(ref)}.json`
 	);
 }
 
-/**
- * The destination named by a `.txt` file.
- *
- * Only absolute http(s) URLs and root-relative paths are honoured. The file is
- * operator-supplied rather than user-supplied, but a footer link is exactly
- * the place a stray `javascript:` would be worst, and refusing one costs
- * nothing.
- */
-function parseRedirect(contents: string): string | null {
-	const target = contents
-		.split('\n')
-		.map((line) => line.trim())
-		.find((line) => line.length > 0 && !line.startsWith('#'));
-
-	if (!target) return null;
-	if (target.startsWith('/') && !target.startsWith('//')) return target;
-
+async function fromCache(cache: PolicyCache | undefined, request: URL) {
+	if (!cache) return undefined;
 	try {
-		const url = new URL(target);
-		return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
+		const response = await cache.match(request);
+		if (!response?.ok) return undefined;
+		const entries: unknown = await response.json();
+		return Array.isArray(entries) ? (entries as PolicyEntry[]) : undefined;
 	} catch {
-		return null;
+		return undefined;
 	}
 }
 
-function read(): PolicyEntry[] {
-	let files: string[];
+async function refresh(fetcher: typeof fetch, cache?: PolicyCache) {
+	const { repository, ref } = repositoryConfig();
+	const key = `${repository}@${ref}`;
+	const ttl = cacheSeconds();
+	const request = cacheRequest(repository, ref);
 
-	try {
-		files = readdirSync(POLICIES_DIR);
-	} catch {
-		// No directory is a valid deployment: the footer simply has no links.
-		return [];
+	const cached = await fromCache(cache, request);
+	if (cached) {
+		memory = { key, expiresAt: Date.now() + ttl * 1000, entries: cached };
+		return cached;
 	}
 
-	const entries: PolicyEntry[] = [];
-	const taken = new Set<string>();
+	const sources = await fetchPolicySources(fetcher, repository, ref, env.POLICIES_GITHUB_TOKEN);
+	const entries = compilePolicyEntries(sources);
+	if (entries.length === 0) throw new Error(`${repository}@${ref} contains no usable policies`);
 
-	for (const file of files.sort((a, b) => a.localeCompare(b))) {
-		const extension = extname(file).toLowerCase();
-		if (extension !== '.md' && extension !== '.txt') continue;
-
-		const label = file.slice(0, -extension.length).trim();
-		if (!label) continue;
-
-		let contents: string;
+	memory = { key, expiresAt: Date.now() + ttl * 1000, entries };
+	if (cache) {
 		try {
-			contents = readFileSync(join(POLICIES_DIR, file), 'utf-8');
-		} catch {
-			continue;
-		}
-
-		if (extension === '.txt') {
-			const href = parseRedirect(contents);
-			if (!href) continue;
-
-			entries.push({
-				label,
-				href,
-				external: !href.startsWith('/'),
-				slug: policySlug(label),
-				document: null
+			const snapshot = Response.json(entries, {
+				headers: { 'cache-control': `public, max-age=${ttl}` }
 			});
-			continue;
+			// SvelteKit exposes the runtime Cache type from workerd while application
+			// code sees the DOM Response type. They are the same Web API object at
+			// runtime; workerd's declaration merely includes an extra `webSocket` field.
+			await cache.put(
+				request,
+				snapshot as unknown as Parameters<PolicyCache['put']>[1]
+			);
+		} catch {
+			// A working repository response is still useful when the platform cache is unavailable.
 		}
-
-		// Two files whose names differ only in punctuation would collide, and
-		// the first one alphabetically keeps the address.
-		const slug = policySlug(label);
-		if (taken.has(slug)) continue;
-		taken.add(slug);
-
-		entries.push({
-			label,
-			href: `/policies/${slug}`,
-			external: false,
-			slug,
-			document: compile(contents)
-		});
 	}
-
 	return entries;
 }
 
-const entries = read();
+/**
+ * Resolve the current policy snapshot from TrP-Labs/Policies.
+ *
+ * A Worker cache shares it within a Cloudflare location; the in-memory layer
+ * deduplicates concurrent cold requests. The bundled snapshot keeps legal
+ * pages available when GitHub is unreachable.
+ */
+export async function policies(fetcher: typeof fetch, cache?: PolicyCache): Promise<PolicyEntry[]> {
+	let key: string;
+	try {
+		const { repository, ref } = repositoryConfig();
+		key = `${repository}@${ref}`;
+	} catch (error) {
+		console.error('[policies]', error);
+		return fallbackEntries;
+	}
 
-/** What the footer draws, in file-name order. */
-export const policyLinks: PolicyLink[] = entries.map(({ label, href, external }) => ({
-	label,
-	href,
-	external
-}));
+	if (memory?.key === key && memory.expiresAt > Date.now()) return memory.entries;
+	if (pending) return pending;
 
-export function policyDocument(slug: string): { label: string; document: PolicyDocument } | null {
+	pending = refresh(fetcher, cache)
+		.catch((error) => {
+			console.error('[policies]', error);
+			return memory?.key === key ? memory.entries : fallbackEntries;
+		})
+		.finally(() => {
+			pending = undefined;
+		});
+	return pending;
+}
+
+export function policyLinks(entries: PolicyEntry[]): PolicyLink[] {
+	return entries.map(({ label, href, external }) => ({ label, href, external }));
+}
+
+export function policyDocument(
+	entries: PolicyEntry[],
+	slug: string
+): { label: string; document: PolicyDocument } | null {
 	const entry = entries.find((candidate) => candidate.slug === slug && candidate.document);
 	return entry?.document ? { label: entry.label, document: entry.document } : null;
 }

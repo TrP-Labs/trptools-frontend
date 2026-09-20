@@ -1,0 +1,11 @@
+# Browser and SSR API origin when running `bun run preview` locally without a
+# service binding. Use the backend Worker's public custom domain in production.
+PUBLIC_API_URL=http://localhost:3001
+INTERNAL_API_URL=http://localhost:3001
+
+# Runtime policy source. The optional token is only needed for private forks or
+# a higher GitHub API quota.
+POLICIES_REPOSITORY=TrP-Labs/Policies
+POLICIES_REF=main
+POLICIES_CACHE_SECONDS=300
+# POLICIES_GITHUB_TOKEN=
