@@ -6,6 +6,15 @@ declare global {
 	const __APP_VERSION__: string;
 
 	namespace App {
+		interface Platform {
+			caches?: {
+				default: {
+					match(request: Request): Promise<Response | undefined>;
+					put(request: Request, response: Response): Promise<void>;
+				};
+			};
+		}
+
 		interface Locals {
 			/** Resolved once per request in hooks.server.ts. */
 			user: SessionUser | null;
