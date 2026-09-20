@@ -3,6 +3,9 @@ import { env as privateEnv } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 import type { App } from 'trptools-backend';
 import { strip } from './client';
+import { serviceBindingFetcher } from './serviceBinding';
+
+const SERVICE_ORIGIN = 'https://backend.internal';
 
 /**
  * Server-only API access.
@@ -27,11 +30,16 @@ export function serverApiUrl(): string {
  * There is no ambient cookie jar during SSR, so the caller's cookies are
  * forwarded explicitly for the backend to see the session.
  */
-export function serverApi(event: { request: Request; fetch: typeof fetch }) {
+export function serverApi(event: {
+	request: Request;
+	fetch: typeof fetch;
+	platform?: App.Platform;
+}) {
 	const cookie = event.request.headers.get('cookie');
+	const binding = event.platform?.env.BACKEND;
 
-	return treaty<App>(serverApiUrl(), {
-		fetcher: event.fetch,
+	return treaty<App>(binding ? SERVICE_ORIGIN : serverApiUrl(), {
+		fetcher: serviceBindingFetcher(event.fetch, binding),
 		headers: cookie ? { cookie } : undefined
 	});
 }

@@ -2,6 +2,7 @@ import type { Handle } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import { paraglideMiddleware } from '$lib/paraglide/server.js';
 import { cookieName, getLocale, isLocale } from '$lib/paraglide/runtime.js';
+import { protectPersonalizedResponse } from '$lib/server/responseCache';
 
 const THEMES = new Set(['dim', 'midnight', 'light']);
 
@@ -40,6 +41,7 @@ function withLocaleCookie(request: Request, locale: string | null): Request {
  * wrong colours — or the wrong language — before hydration.
  */
 export const handle: Handle = async ({ event, resolve }) => {
+	const requestHasCookies = event.request.headers.has('cookie');
 	const cookieTheme = event.cookies.get('theme');
 	const hasCookieTheme = Boolean(cookieTheme && THEMES.has(cookieTheme));
 
@@ -131,7 +133,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// AsyncLocalStorage, so `m.*` resolves per request rather than per process
 	// — which is what keeps two concurrent renders in different languages from
 	// reading each other's.
-	return paraglideMiddleware(request, ({ request: localised, locale }) => {
+	const response = await paraglideMiddleware(request, ({ request: localised, locale }) => {
 		event.locals.locale = locale;
 
 		return resolve({ ...event, request: localised }, {
@@ -141,4 +143,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 					.replace('%trptools.lang%', getLocale())
 		});
 	});
+
+	return protectPersonalizedResponse(response, requestHasCookies);
 };

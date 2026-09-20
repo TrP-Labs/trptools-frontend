@@ -12,5 +12,11 @@
   "assets": {
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
-  }
+  },
+  "services": [
+    {
+      "binding": "BACKEND",
+      "service": "trptools-backend"
+    }
+  ]
 }

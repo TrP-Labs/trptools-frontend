@@ -6,6 +6,15 @@ declare global {
 	const __APP_VERSION__: string;
 
 	namespace App {
+		interface Platform {
+			env: {
+				/** Worker-to-Worker binding used for SSR API traffic. */
+				BACKEND?: {
+					fetch(request: Request): Promise<Response>;
+				};
+			};
+		}
+
 		interface Locals {
 			/** Resolved once per request in hooks.server.ts. */
 			user: SessionUser | null;
