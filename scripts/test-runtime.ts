@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { chromium } from 'playwright-core';
 import type { SessionUser } from '../src/lib/api/types';
-import { writeRuntimePolicies } from './runtime-policies';
 
 // Exercise the shipped image, not Vite or a server that can accidentally find
 // this checkout's node_modules. The API fixture makes packaging tests usable
@@ -12,7 +8,6 @@ import { writeRuntimePolicies } from './runtime-policies';
 const image = process.argv[2];
 assert(image, 'Usage: bun run test:runtime <image>');
 const platform = process.env.TEST_PLATFORM ? ['--platform', process.env.TEST_PLATFORM] : [];
-const directory = await mkdtemp(join(tmpdir(), 'trptools-runtime-'));
 const name = `trptools-runtime-${crypto.randomUUID()}`;
 const errors: string[] = [];
 const cookies: string[] = [];
@@ -60,14 +55,15 @@ async function docker(...args: string[]) {
 
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
 try {
-	await writeRuntimePolicies(directory);
 	await docker('run', ...platform, '--detach', '--name', name,
 		'--add-host=host.docker.internal:host-gateway',
 		'--publish', '127.0.0.1::3000',
 		'--env', 'ORIGIN=http://localhost:3000',
 		'--env', `PUBLIC_API_URL=http://127.0.0.1:${api.port}`,
 		'--env', `INTERNAL_API_URL=http://host.docker.internal:${api.port}`,
-		'--volume', `${directory}:/app/policies:ro`, image);
+		// Force the repository request to fail validation so this packaging test
+		// deterministically exercises the bundled last-known-good policy snapshot.
+		'--env', 'POLICIES_REPOSITORY=invalid', image);
 	const port = (await docker('port', name, '3000/tcp')).split(':').at(-1);
 	const origin = `http://127.0.0.1:${port}`;
 	let ready = false;
@@ -82,10 +78,9 @@ try {
 		assert.equal(response.status, 200);
 		assert.match(await response.text(), new RegExp(`<html lang="${locale}"`));
 	}
-	const policy = await fetch(`${origin}/policies/runtime-policy`);
+	const policy = await fetch(`${origin}/policies/privacy-policy`);
 	assert.equal(policy.status, 200);
-	assert.match(await policy.text(), /<strong>Runtime-only document\.<\/strong>/);
-	assert(!(await (await fetch(origin)).text()).includes('javascript:alert'));
+	assert.match(await policy.text(), /Privacy Policy/);
 	const anonymous = await fetch(`${origin}/settings`, { redirect: 'manual' });
 	assert.equal(anonymous.status, 303);
 	const signedIn = await fetch(`${origin}/settings`, {
@@ -118,7 +113,7 @@ try {
 			errors.push(`Asset ${response.status()}: ${response.url()}`);
 	});
 	for (const path of ['/', '/about', '/groups', '/shifts', '/tools', '/tools/stage',
-		'/tools/dispatch', '/settings/appearance', '/policies/runtime-policy']) {
+		'/tools/dispatch', '/settings/appearance', '/policies/privacy-policy']) {
 		assert.equal((await page.goto(`${origin}${path}`))?.status(), 200, path);
 		await page.waitForLoadState('networkidle');
 		assert((await page.locator('body').innerText()).length > 50, path);
@@ -139,23 +134,7 @@ try {
 	assert.deepEqual(errors, [], 'No hydration errors or missing client assets');
 	await browser.close();
 	browser = undefined;
-	// A mounted policy directory is optional, and each instance must read its
-	// runtime configuration instead of relying on files from the build machine.
-	await docker('rm', '--force', name);
-	await docker('run', ...platform, '--detach', '--name', name, '--publish', '127.0.0.1::3000', image);
-	const emptyPort = (await docker('port', name, '3000/tcp')).split(':').at(-1);
-	let emptyHtml = '';
-	for (let attempt = 0; attempt < 60; attempt++) {
-		try {
-			const response = await fetch(`http://127.0.0.1:${emptyPort}`, { signal: AbortSignal.timeout(1000) });
-			assert.equal(response.status, 200);
-			emptyHtml = await response.text(); break;
-		}
-		catch { await Bun.sleep(500); }
-	}
-	assert.match(emptyHtml, /<html/);
-	assert(!emptyHtml.includes('Runtime Policy'));
-	console.log('Runtime regression passed: SSR, sessions, 5 locales, policies, icons, client hydration, appearance, mobile, and empty policy volume.');
+	console.log('Container runtime regression passed: SSR, sessions, 5 locales, policy fallback, icons, client hydration, appearance, and mobile.');
 } catch (error) {
 	console.error(await docker('logs', name).catch(() => 'Container did not start.'));
 	throw error;
@@ -163,5 +142,4 @@ try {
 	await browser?.close();
 	await docker('rm', '--force', name).catch(() => undefined);
 	api.stop(true);
-	await rm(directory, { recursive: true, force: true });
 }

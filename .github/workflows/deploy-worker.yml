@@ -1,0 +1,43 @@
+name: Deploy Cloudflare Worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trptools-frontend
+      - uses: actions/checkout@v4
+        with:
+          repository: TrP-Labs/trptools-backend
+          path: trptools-backend
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: trptools-frontend/.bun-version
+
+      - working-directory: trptools-backend
+        run: bun install --frozen-lockfile
+
+      - working-directory: trptools-frontend
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      # The script repeats tests and checks deliberately: a manual production
+      # deployment may target any commit, not necessarily one just validated by
+      # the Publish workflow.
+      - working-directory: trptools-frontend
+        run: bun run worker:deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

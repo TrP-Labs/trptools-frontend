@@ -6,6 +6,9 @@
   "compatibility_flags": ["nodejs_als"],
   "minify": true,
   "keep_vars": true,
+  "placement": {
+    "mode": "smart"
+  },
   "observability": {
     "enabled": true
   },
@@ -18,5 +21,11 @@
       "binding": "BACKEND",
       "service": "trptools-backend"
     }
-  ]
+  ],
+  "env": {
+    "local": {
+      "name": "trptools-frontend-local",
+      "services": []
+    }
+  }
 }

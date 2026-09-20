@@ -1,139 +1,144 @@
-# Frontend build and deployment improvements
+# Frontend build and deployment
 
-## What changed
+## Production shape
 
-1. **Ship compiled code without `node_modules`.** All frontend libraries now
-   live in `devDependencies`, so [adapter-node bundles the server imports](https://svelte.dev/docs/kit/adapter-node#Deploying). Docker
-   ships the resulting server, browser assets, package manifest, and Bun runtime.
-   Moving a dependency to this section does not remove its used code from the
-   application: it changes how it is packaged. Runtime policy documents remain
-   optional mounted files.
-2. **Compile once on the builder's native CPU.** `BUILDPLATFORM` selects the Bun
-   installation and Vite/Paraglide compilation platform, following Docker's
-   [native build-stage approach](https://docs.docker.com/build/building/multi-platform/#cross-compilation). Both target images copy
-   the same JavaScript and static files, with their own architecture's Bun base.
-   No target-platform `RUN` remains, so these builds need no QEMU setup. This is
-   valid because the frontend output has no native addons; the runtime test
-   checks for those as well as accidentally included `node_modules`.
-3. **Install reproducibly and cache useful work.** Bun is pinned to 1.4.2. The
-   Docker dependency filter removes only the sibling backend type dependency
-   from the manifest and lockfile, preserving all registry versions and integrity
-   values before a frozen install. Ignoring install scripts avoids compiling
-   translations during installation. Explicit source copies keep documentation,
-   tests, and workflow edits from invalidating compilation.
-4. **Promote releases instead of rebuilding.** The check job builds and tests a
-   native container, exporting its BuildKit cache. Main's publish job reuses it
-   for both architectures. A release workflow waits for a successful main push
-   workflow with the exact commit SHA, resolves its full-SHA image tag to a digest,
-   verifies both architectures, and [copies that index to version aliases](https://docs.docker.com/reference/cli/docker/buildx/imagetools/create/). This
-   preserves attestations and avoids the second compilation/cache export. A cache
-   miss can still require compilation in the publish job; correctness never
-   depends on the cache being available. The gate queries GitHub's
-   [workflow-run API](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow).
+The default SvelteKit target is `@sveltejs/adapter-cloudflare`. One deployment
+contains the SSR Worker and 198 immutable static assets. Wrangler currently
+reports an approximately 1.8 MiB uncompressed / 428 KiB gzip Worker upload;
+browser downloads are route-split and are not that entire number.
 
-## Measurements
+`wrangler.jsonc` defines four important runtime decisions:
 
-Measured locally on an ARM64 Mac with Docker Desktop. These are Docker-reported
-per-platform image sizes, not browser download sizes or a guarantee of registry
-billing/unpacked disk usage.
+1. `nodejs_als` supplies the AsyncLocalStorage semantics Paraglide uses to keep
+   concurrent request locales isolated. It does not enable the full Node.js
+   compatibility layer.
+2. `ASSETS` serves SvelteKit's generated client files through Workers Static
+   Assets. Requests for immutable files do not need application SSR.
+3. `BACKEND` binds to the `trptools-backend` Worker. All server-side Eden calls
+   use that binding, while browser calls and SSE use `PUBLIC_API_URL`.
+4. Smart Placement lets Cloudflare place dynamic execution nearer the backend's
+   Neon/Upstash data path when that saves more time than running at the user's
+   nearest point of presence. Static assets remain edge-served.
 
-| Measurement | Result |
-| --- | ---: |
-| Original local ARM64 image | 188,310,956 bytes (188.3 MB) |
-| Optimized ARM64 image | 45,830,001 bytes (45.8 MB) |
-| Optimized AMD64 image | 45,100,202 bytes (45.1 MB) |
-| ARM64 image reduction | approximately 76% |
-| New frozen Docker dependency installation | 16 seconds |
-| New compilation, shared by both target images | 29.7 seconds |
-| Repeat build dependency/compilation steps | all cached |
+The binding is optional in application types so the same code works under the
+local and Node adapters. If it is absent, SSR falls back to
+`INTERNAL_API_URL`, then `PUBLIC_API_URL`, then localhost.
 
-Earlier published 2.8.0 AMD64 layers totaled approximately 184.37 MiB compressed:
-141.41 MiB of `node_modules`, 33.22 MiB of Bun, 7.1 MiB of Alpine/runtime libraries,
-and 2.63 MiB of built application. The local development install was about
-582 MiB versus 109 MiB for a production-only install: approximately 81% was
-development-only by that comparison. Most of the remaining production install
-was the approximately 98 MiB Tabler icon source catalogue. Bundling keeps the
-icons used by the app instead of shipping the entire catalogue.
+## Why the service binding matters
 
-The prior GitHub logs showed a roughly 51-second AMD64 compilation alongside a
-516-second emulated ARM64 compilation, then another main/tag build. Cache exports
-and serialized jobs extended the release further. Image size alone did not cause
-the long build. The revised pipeline has not yet run on GitHub; registry transfer,
-runner queues, network speed, and cache availability still affect end-to-end time.
+A signed-in page ordinarily has at least two server-side dependency stages:
+the request hook resolves `/auth/session`, then route/layout loads fetch their
+data. Some dashboard pages fan out further. Moving only the frontend to the
+edge would not remove that serial work; pointing each call at a public backend
+hostname would add DNS, TLS, and another edge traversal to it.
 
-## Regression coverage
+The service binding removes that public hop and keeps both Workers in the same
+Cloudflare request graph. The remaining latency is real application work:
+Roblox permission resolution on a cache miss, Neon queries, Upstash operations,
+and page-specific fan-out. Those should be measured in the backend rather than
+hidden with unsafe HTML caching.
 
-- `bun run test`: dependency-lock preservation, pinned Bun version, release
-  promotion, tag-before-main timing, failed/cancelled/timed-out main runs,
-  wrong commits/events, incomplete manifests, registry errors, and invalid tags.
-- `bun run check`: message compilation, translation/API checks, and Svelte/TS
-  diagnostics; zero Svelte errors or warnings.
-- `bun run build`: production build passes. Existing empty `chunks/env.js` and
-  Vite plugin-timing diagnostics are still emitted; these also occurred before
-  these changes and have not been hidden.
-- Both AMD64 and ARM64 images pass the HTTP and Chromium runtime suite: SSR,
-  authenticated session forwarding, five locales, Markdown policy rendering,
-  unsafe policy URL exclusion, optional empty policy volume, icons, client
-  hydration, asset loading, appearance persistence, mobile layout, non-root
-  execution, and absence of `node_modules`/native addons. The API is a fixture;
-  this does not claim live Roblox OAuth or Discord coverage.
-- Backend typecheck, 106 tests, and build; bot typecheck and 36 tests pass.
-- GitHub Actions expressions and workflow syntax pass actionlint.
-- A temporary local registry test confirms all version aliases preserve the
-  source index's exact digest, both architectures, and attestations.
-- An isolated Compose deployment rebuilt the frontend and API with Postgres,
-  Valkey, and MinIO; migrations and health checks passed, as did public SSR
-  pages and anonymous-session/protected-route responses. It used temporary
-  volumes and no real credentials. The Discord bot was not started.
+The frontend's cache rules are intentionally conservative:
 
-To reproduce container tests on a multi-platform-capable Docker installation:
+- hashed `/_app/` assets are immutable and globally cacheable;
+- anonymous HTML may retain a route's public policy and varies on
+  `Accept-Language` and `Cookie`;
+- any request carrying cookies, or any response setting a cookie, is
+  `private, no-store` because session, locale, theme, and timezone change SSR;
+- policy repository snapshots use Cache API storage for five minutes by
+  default, plus an in-isolate cache and in-flight request deduplication.
+
+Do not use a Cloudflare cache rule that overrides the personalized HTML policy.
+If public SSR traffic becomes material, cache the public backend's stable JSON
+responses with explicit surrogate keys or versioning; that yields reuse across
+locales/themes without caching a rendered user's shell.
+
+## Policies
+
+At runtime the Worker lists the root of `TrP-Labs/Policies` through GitHub's
+Contents API, validates supported `.md` and `.txt` files, and fetches raw file
+content. Limits of 32 files and 128 KiB per file bound memory and network use.
+Redirect files accept only root-relative and HTTP(S) destinations.
+
+The fetch is not on every request. Cloudflare's Cache API stores the compiled
+snapshot, an isolate-local cache avoids Cache API work while warm, and
+concurrent refreshes share one promise. The default five-minute TTL is set with
+`POLICIES_CACHE_SECONDS`. A tracked snapshot from the same repository is built
+into both Worker and Node artifacts so legal pages survive GitHub failures or a
+bad runtime configuration.
+
+`POLICIES_GITHUB_TOKEN` is optional. If supplied, it is attached only to the
+GitHub API listing request and never forwarded to `raw.githubusercontent.com`.
+
+## Commands and checks
 
 ```sh
-bun run test
-bun run check
-bun run build
-docker buildx build --platform linux/amd64,linux/arm64 --load -t trptools-frontend:test .
-TEST_PLATFORM=linux/arm64 bun run test:runtime trptools-frontend:test
-TEST_PLATFORM=linux/amd64 bun run test:runtime trptools-frontend:test
+bun run test          # pure policy, service-binding, cache and packaging tests
+bun run check         # generated messages, API catalogue, Svelte and TS
+bun run worker:build  # adapter build plus Wrangler deployment dry-run
+bun run test:worker   # workerd SSR integration test with an isolated API
+bun run worker:deploy # tests, checks, build, then production deployment
 ```
 
-Cross-architecture execution requires host emulation even though compilation
-does not. The browser test needs installed Chrome/Chromium; see the README for
-its executable override. Multi-platform `--load` needs a containerd image store.
+The workerd regression covers SSR, static assets, the bundled policy fallback,
+session forwarding, locale resolution, and private response caching. The
+service-binding unit test verifies that method, body, headers, and cookies are
+preserved when a request is redirected through the binding. A Wrangler dry-run
+validates the final upload and binding names without changing Cloudflare state.
 
-### Linux CI fixture permissions
+The `Deploy Cloudflare Worker` GitHub workflow is manual and uses the protected
+`production` environment. Add `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` as environment secrets. Configure `PUBLIC_API_URL` and
+any policy variables on the Worker before its first deployment; `keep_vars`
+preserves dashboard-managed variables on subsequent deploys. The backend Worker
+must be named `trptools-backend` in the same account.
 
-The first 2.8.2 publication exposed a test-host difference: `mkdtemp` creates
-directories with mode 0700, and GitHub's runner UID differs from the container's
-UID 1000. The mounted policy fixture was unreadable and its test page returned
-404. Docker Desktop's file sharing had masked this during local testing.
-The fixture writer now sets the public test directory to 0755 and its files to
-0644. A regression test checks those modes, including initially private files;
-the failure and fix were also reproduced with distinct UIDs inside Linux.
-Production permissions and application code are unchanged.
+## Docker compatibility
 
-Rerunning a failed release uses the code at its original commit. After a code
-fix, cut a new patch release instead of moving an existing release tag. When a
-deployment uses one shared `TAG` for all three apps, release all three at that
-new version even if only the frontend needed a fix.
+Docker remains supported for portability and disaster recovery. It is an
+explicit secondary adapter rather than an accidental second production build:
 
-## Cloud and serverless implications
+```sh
+bun run build:node
+docker build -t trptools-frontend:test .
+bun run test:runtime trptools-frontend:test
+```
 
-A large development install is normal for a compiled frontend. It is not the
-browser bundle and need not be the deployed runtime. Static frontends typically
-deploy generated files to object storage/CDNs; SSR platforms deploy a server
-bundle and required runtime dependencies to functions, often with a platform
-[adapter](https://svelte.dev/docs/kit/adapters). They generally supply the runtime rather than requiring each app to
-upload an operating system and Bun binary. Neither approach fixes unnecessarily
-large client-side JavaScript automatically.
+`TRPTOOLS_ADAPTER=node` selects adapter-node, and the Dockerfile invokes it via
+`build:node`. The runtime image contains `build/`, Bun and package metadata,
+without `node_modules`. It still builds once on `BUILDPLATFORM`, then shares the
+architecture-neutral output across AMD64 and ARM64 runtime images. Introducing
+a native addon requires revisiting that assumption.
 
-This frontend still performs SSR and reads optional policy files at runtime. A
-static export is therefore not a drop-in replacement, and a Workers/serverless
-adapter would require reviewing environment bindings and policy storage. The
-current container remains portable across Docker hosts; API origins are runtime
-environment variables and no sibling checkout is needed to build the image.
-Local type-checking deliberately retains the sibling backend for Eden types.
+Bun is pinned in `.bun-version` and the Dockerfile. The dependency-filter test
+ensures Docker removes only the sibling backend type dependency and does not
+re-resolve registry packages. Existing GHCR publication and digest-promotion
+remain intact; a Cloudflare migration does not have to remove the portable
+artifact.
 
-The remaining image size is largely Bun and its base libraries. Switching
-runtimes merely to save more space would introduce another compatibility change;
-the largest packaging and build-time savings are already addressed here.
+The Worker and Node builds both write `.svelte-kit`, so run them serially. CI
+does this deliberately. Launching both at once can race SvelteKit's generated
+modules and produce a transient syntax error in otherwise valid output.
+
+## Remaining performance work
+
+The edge runtime itself is unlikely to be the main performance blocker after
+the service binding is active. Measure these next, in order:
+
+1. Add Server-Timing spans around session lookup, membership resolution, each
+   route load, Neon, and Upstash. Cloudflare analytics alone cannot identify
+   which backend stage dominates.
+2. Collapse repeated session/membership reads inside one backend request graph,
+   and batch independent dashboard reads where the UI always needs them
+   together. A service binding makes calls cheaper, not free.
+3. Confirm Neon region and Smart Placement using production traces. If most
+   misses are database-bound, placement near Neon should win; if Upstash and
+   permission caches absorb nearly all work, user-near execution may be faster.
+4. Audit route-level browser JavaScript. The Worker bundle size does not equal
+   client cost; use per-route transferred JS, hydration time, and long tasks.
+5. Only then consider caching public API data. Never cache permission-derived
+   or signed-in HTML in a shared cache.
+
+Roblox remains a special external constraint. The backend's short permission
+cache and credential ladder protect rate limits; moving Workers cannot remove
+Roblox's own latency or quota ceilings.

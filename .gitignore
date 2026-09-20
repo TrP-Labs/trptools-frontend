@@ -9,6 +9,7 @@ node_modules
 /build
 /dist-worker
 /worker-configuration.d.ts
+/.playwright-cli
 
 # OS
 .DS_Store
