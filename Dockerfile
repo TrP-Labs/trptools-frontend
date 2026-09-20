@@ -7,10 +7,6 @@ ARG BUN_VERSION=1.4.2
 FROM --platform=$BUILDPLATFORM oven/bun:${BUN_VERSION}-alpine AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-COPY scripts/docker-dependencies.ts ./scripts/docker-dependencies.ts
-# Filter the sibling type dependency from both manifests without re-resolving
-# registry packages. Vite generates messages once source is available.
-RUN bun scripts/docker-dependencies.ts
 RUN --mount=type=cache,target=/root/.bun/install/cache \
 	bun install --frozen-lockfile --ignore-scripts
 

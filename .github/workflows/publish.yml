@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # trptools-backend is checked out as a sibling directory because the
-      # frontend's devDependency on it (file:../trptools-backend) is how
-      # Eden Treaty gets the backend's route types for compile-time checking
-      # — the same layout local development uses.
+      # frontend aliases its sibling source so Eden Treaty gets the backend's
+      # exact route types for compile-time checking — the same layout local
+      # development uses. Cloudflare's standalone build omits this
+      # contract-only checkout.
       - uses: actions/checkout@v4
         with:
           path: trptools-frontend

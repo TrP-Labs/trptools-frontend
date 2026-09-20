@@ -27,19 +27,19 @@ const { data } = await api.routes.get({ query: { groupId } });
 A renamed field or a changed status code becomes a compile error in this project
 rather than a runtime surprise.
 
-**How this works across two projects.** `trptools-backend` is a type-only
-devDependency resolved from the sibling directory. Because each project installs
-its own dependencies, TypeScript would otherwise see two structurally identical
-but distinct `Elysia` types and refuse the handoff, so `kit.alias` in
-`vite.config.ts` pins `elysia` and `@sinclair/typebox` to this project's copies.
+**How this works across two projects.** When the backend is checked out beside
+the frontend, `kit.alias` resolves `trptools-backend` directly to its source.
+It also pins `elysia` and `@sinclair/typebox` to this project's copies, so
+TypeScript does not see two structurally identical but distinct Elysia types.
 
-Every reference is an `import type` and is erased before any JavaScript is
-emitted, so the backend is never bundled and the two projects remain
-independently deployable — the Dockerfile drops the dependency entirely.
+Every backend reference is an `import type` and is erased before JavaScript is
+emitted. The backend is therefore not a package dependency: a Cloudflare Git
+build can install this repository by itself, while local and GitHub release
+checks with the sibling present retain exact route inference.
 
-If you are working on the frontend without the backend checked out beside it,
-`bun install --omit=dev` or removing that one devDependency is enough; only
-editor type-checking depends on it.
+An isolated checkout can build and deploy, but the full `bun run check` contract
+gate requires the sibling backend. `bun run worker:build` is its standalone
+pre-deployment gate: unit tests, production build, and Wrangler dry-run.
 
 ## Layout
 
@@ -212,10 +212,10 @@ table responsive under load.
 
 ```bash
 bun run build          # production Cloudflare Worker and static assets
-bun run worker:build   # build plus a Wrangler deployment dry-run
+bun run worker:build   # tests, build, and Wrangler deployment dry-run
 bun run preview        # serve the built Worker locally with workerd
 bun run test:worker    # build and exercise the real Worker runtime
-bun run check          # messages, API error coverage, and Svelte/TS checks
+bun run check          # backend-aware API, Svelte, and TypeScript checks
 bun run messages       # regenerate src/lib/paraglide
 ```
 
@@ -236,6 +236,11 @@ policy variables from `.env.example`, then deploy with:
 ```bash
 bun run worker:deploy
 ```
+
+For Cloudflare's Git-connected UI, set the build command to
+`bun run worker:build` and the deploy command to
+`bunx wrangler deploy --env=""`. The guarded build must finish before
+Cloudflare runs the deploy command.
 
 `keep_vars` is enabled, so a code deployment preserves variables configured in
 the Cloudflare dashboard. A policy token, if used, must be a Worker secret.

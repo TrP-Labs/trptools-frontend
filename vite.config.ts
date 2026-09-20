@@ -1,4 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import cloudflareAdapter from '@sveltejs/adapter-cloudflare';
 import nodeAdapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -8,6 +10,10 @@ import { defineConfig } from 'vite';
 import { version } from './package.json' with { type: 'json' };
 
 const nodeBuild = process.env.TRPTOOLS_ADAPTER === 'node';
+const backendSource = fileURLToPath(new URL('../trptools-backend/src/index.ts', import.meta.url));
+const backendContract = fileURLToPath(
+	new URL('./src/lib/api/backendContract.ts', import.meta.url)
+);
 
 export default defineConfig({
 	// The footer shows which build is running. Baked in here so it costs no
@@ -41,13 +47,12 @@ export default defineConfig({
 			// letting CI accidentally validate only the old deployment shape.
 			adapter: nodeBuild ? nodeAdapter() : cloudflareAdapter(),
 
-			// Eden Treaty imports the backend's `App` type across project
-			// boundaries. The two projects install their own dependencies, so
-			// without this TypeScript sees two structurally identical but
-			// distinct `Elysia` types and refuses the handoff. Declaring the
-			// aliases here rather than in tsconfig lets SvelteKit fold them
-			// into its generated config instead of fighting with it.
+			// A full checkout resolves Eden's App type straight from the sibling
+			// backend. Cloudflare Builds clones this repository alone, so it uses a
+			// type-only fallback instead of an uninstallable file: dependency. CI
+			// checks out both repositories and therefore retains the strong contract.
 			alias: {
+				'trptools-backend': existsSync(backendSource) ? backendSource : backendContract,
 				elysia: './node_modules/elysia',
 				'@sinclair/typebox': './node_modules/@sinclair/typebox'
 			}

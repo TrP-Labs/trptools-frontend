@@ -74,8 +74,8 @@ GitHub API listing request and never forwarded to `raw.githubusercontent.com`.
 
 ```sh
 bun run test          # pure policy, service-binding, cache and packaging tests
-bun run check         # generated messages, API catalogue, Svelte and TS
-bun run worker:build  # adapter build plus Wrangler deployment dry-run
+bun run check         # backend-aware API catalogue, Svelte and TS checks
+bun run worker:build  # tests, adapter build, and Wrangler deployment dry-run
 bun run test:worker   # workerd SSR integration test with an isolated API
 bun run worker:deploy # tests, checks, build, then production deployment
 ```
@@ -85,6 +85,14 @@ session forwarding, locale resolution, and private response caching. The
 service-binding unit test verifies that method, body, headers, and cookies are
 preserved when a request is redirected through the binding. A Wrangler dry-run
 validates the final upload and binding names without changing Cloudflare state.
+
+Cloudflare's Git build clones only the frontend repository. It therefore has no
+local package dependency on the sibling backend: the production import is
+type-only and disappears from emitted JavaScript. Local and GitHub release
+checks alias the sibling source and keep the full Eden route contract. In the
+Cloudflare UI use `bun run worker:build` as the build command and
+`bunx wrangler deploy --env=""` as the deploy command; deployment begins only
+after tests, compilation, and the dry-run succeed.
 
 The `Deploy Cloudflare Worker` GitHub workflow is manual and uses the protected
 `production` environment. Add `CLOUDFLARE_API_TOKEN` and
@@ -110,11 +118,10 @@ without `node_modules`. It still builds once on `BUILDPLATFORM`, then shares the
 architecture-neutral output across AMD64 and ARM64 runtime images. Introducing
 a native addon requires revisiting that assumption.
 
-Bun is pinned in `.bun-version` and the Dockerfile. The dependency-filter test
-ensures Docker removes only the sibling backend type dependency and does not
-re-resolve registry packages. Existing GHCR publication and digest-promotion
-remain intact; a Cloudflare migration does not have to remove the portable
-artifact.
+Bun is pinned in `.bun-version` and the Dockerfile. The standalone-install test
+ensures no local `file:` dependency can reappear and break Cloudflare or Docker
+installation. Existing GHCR publication and digest-promotion remain intact; a
+Cloudflare migration does not have to remove the portable artifact.
 
 The Worker and Node builds both write `.svelte-kit`, so run them serially. CI
 does this deliberately. Launching both at once can race SvelteKit's generated
