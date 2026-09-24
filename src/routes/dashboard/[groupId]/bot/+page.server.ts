@@ -21,10 +21,11 @@ export const load: PageServerLoad = async (event) => {
 	const groupId = event.params.groupId;
 
 	const { data: overview } = await client.bot({ groupId }).get();
+	if (!overview) error(502, m.error_could_not_reach_api());
 
-	if (!overview?.connected) {
+	if (!overview.connected) {
 		return {
-			overview: overview ?? { connected: false, available: true, config: null, guild: null },
+			overview,
 			channelNames: {} as Record<string, string>,
 			roleNames: {} as Record<string, string>,
 			cleanup: null
@@ -39,11 +40,14 @@ export const load: PageServerLoad = async (event) => {
 		// finding out hours after one when nothing was tidied up.
 		client.bot({ groupId }).cleanup.get()
 	]);
+	if (!channels.data || !roles.data || !cleanup.data) {
+		error(502, m.error_could_not_reach_api());
+	}
 
 	return {
 		overview,
-		channelNames: Object.fromEntries((channels.data ?? []).map((c) => [c.id, c.name])),
-		roleNames: Object.fromEntries((roles.data ?? []).map((r) => [r.id, r.name])),
-		cleanup: cleanup.data ?? null
+		channelNames: Object.fromEntries(channels.data.map((c) => [c.id, c.name])),
+		roleNames: Object.fromEntries(roles.data.map((r) => [r.id, r.name])),
+		cleanup: cleanup.data
 	};
 };
