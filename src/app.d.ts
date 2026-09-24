@@ -7,7 +7,7 @@ declare global {
 
 	namespace App {
 		interface Platform {
-			env: {
+			env?: {
 				/** Worker-to-Worker binding used for SSR API traffic. */
 				BACKEND?: {
 					fetch(request: Request): Promise<Response>;
