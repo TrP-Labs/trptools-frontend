@@ -7,43 +7,17 @@ import { m } from '$lib/paraglide/messages.js';
 /**
  * The bot page.
  *
- * Channels and roles are loaded here as well as inside the pickers. The page
- * needs them to name what each setting currently points at, and doing it once
- * up front stops eight setting rows each resolving separately and flickering
- * as they land. The pickers still fetch live when opened, which is what makes
- * their refresh button meaningful.
+ * The backend resolves configuration, channel names, role names and cleanup
+ * from one permission check and one concurrent set of Discord reads. The
+ * pickers still fetch live when opened for their refresh buttons.
  */
 export const load: PageServerLoad = async (event) => {
-	const parent = await event.parent();
-	if (!can(parent.group.permissions, PERM.MANAGE_BOT)) error(403, m.error_need_manage_access_bot());
-
-	const client = serverApi(event);
 	const groupId = event.params.groupId;
-
-	const { data: overview } = await client.bot({ groupId }).get();
-
-	if (!overview?.connected) {
-		return {
-			overview: overview ?? { connected: false, available: true, config: null, guild: null },
-			channelNames: {} as Record<string, string>,
-			roleNames: {} as Record<string, string>,
-			cleanup: null
-		};
-	}
-
-	const [channels, roles, cleanup] = await Promise.all([
-		client.bot({ groupId }).channels.get(),
-		client.bot({ groupId }).roles.get(),
-		// Whether the end-of-shift cleanup can actually run. Loaded with the
-		// rest so the page can say so before a shift, rather than the group
-		// finding out hours after one when nothing was tidied up.
-		client.bot({ groupId }).cleanup.get()
+	const [parent, response] = await Promise.all([
+		event.parent(),
+		serverApi(event).bot({ groupId }).page.get()
 	]);
-
-	return {
-		overview,
-		channelNames: Object.fromEntries((channels.data ?? []).map((c) => [c.id, c.name])),
-		roleNames: Object.fromEntries((roles.data ?? []).map((r) => [r.id, r.name])),
-		cleanup: cleanup.data ?? null
-	};
+	if (!can(parent.group.permissions, PERM.MANAGE_BOT)) error(403, m.error_need_manage_access_bot());
+	if (!response.data) error(502, m.error_could_not_reach_api());
+	return response.data;
 };
