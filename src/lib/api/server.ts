@@ -36,7 +36,7 @@ export function serverApi(event: {
 	platform?: App.Platform;
 }) {
 	const cookie = event.request.headers.get('cookie');
-	const binding = event.platform?.env.BACKEND;
+	const binding = event.platform?.env?.BACKEND;
 
 	return treaty<App>(binding ? SERVICE_ORIGIN : serverApiUrl(), {
 		fetcher: serviceBindingFetcher(event.fetch, binding),
