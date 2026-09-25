@@ -27,6 +27,8 @@ const API_ERRORS: Record<string, () => string> = {
 	'Too Many Requests': m.api_error_too_many_requests,
 	'Unauthorized': m.api_error_unauthorized,
 	'a depot with that number already exists': m.api_error_a_depot_with_that_number_already_exists,
+	'a group can have at most 100 shifts': m.api_error_a_group_can_have_at_most_100_shifts,
+	'a group can classify at most 100 vehicle models': m.dispatch_vehicle_types_card_limit_reached,
 	'a route with that name already exists': m.api_error_a_route_with_that_name_already_exists,
 	'a vehicle cannot tow itself': m.api_error_a_vehicle_cannot_tow_itself,
 	'already signed up for this shift': m.api_error_already_signed_up_for_this_shift,
