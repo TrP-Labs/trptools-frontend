@@ -8,6 +8,8 @@
 		IconLockOpen,
 		IconPlus,
 		IconFileImport,
+		IconBook,
+		IconExternalLink,
 		IconUsers
 	} from '@tabler/icons-svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -16,6 +18,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
+	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { api, errorMessage } from '$lib/api/client';
@@ -38,36 +41,37 @@
 	let creating = $state(false);
 	let importOpen = $state(false);
 	let importJson = $state('');
-	let importFileName = $state('');
+	let importError = $state('');
 	let importRankId = $state('');
 	let importing = $state(false);
 	let importResult = $state<{ id: string; imported: number; skipped: string[] } | null>(null);
 
 	function resetImport() {
 		importJson = '';
-		importFileName = '';
+		importError = '';
 		importRankId = '';
 		importResult = null;
 	}
 
-	async function pickGoogleFile(event: Event) {
-		const file = (event.currentTarget as HTMLInputElement).files?.[0];
-		if (!file) return;
-		if (file.size > 262144) {
-			toasts.error(m.dashboard_applications_google_too_large());
+	async function importGoogle() {
+		const json = importJson.trim();
+		if (!json) return;
+		if (new TextEncoder().encode(json).byteLength > 262144) {
+			importError = m.dashboard_applications_google_too_large();
 			return;
 		}
-		importJson = await file.text();
-		importFileName = file.name;
-	}
-
-	async function importGoogle() {
-		if (!importJson) return;
+		try {
+			JSON.parse(json);
+		} catch {
+			importError = m.dashboard_applications_google_invalid_json();
+			return;
+		}
+		importError = '';
 		importing = true;
 		try {
 			const { data: created, error } = await api.applications.import.google.post({
 				groupId: group.id,
-				formJson: importJson,
+				formJson: json,
 				...(importRankId ? { rankId: importRankId } : {})
 			});
 			if (!created) throw error;
@@ -272,6 +276,7 @@
 	onclose={resetImport}
 	title={m.dashboard_applications_import_google()}
 	description={m.dashboard_applications_import_description()}
+	size="lg"
 >
 	{#if importResult}
 		<p class="text-sm text-text">{m.dashboard_applications_imported_items({ count: importResult.imported })}</p>
@@ -283,12 +288,53 @@
 		{/if}
 	{:else}
 		<div class="space-y-4">
-			<p class="text-sm text-text-muted">
-				{m.dashboard_applications_import_instructions()} <a class="text-accent hover:underline" href="https://developers.google.com/workspace/forms/api/guides/retrieve-forms-responses" target="_blank" rel="noopener noreferrer">{m.dashboard_applications_google_docs()}</a>
-			</p>
-			<Field label={m.dashboard_applications_google_json()} hint={importFileName || m.dashboard_applications_google_json_hint()}>
-				<input type="file" accept=".json,application/json" onchange={pickGoogleFile}
-					class="w-full rounded-lg border border-border-base bg-background-secondary px-3 py-2 text-sm text-text file:mr-3 file:rounded-md file:border-0 file:bg-background-muted file:px-2 file:py-1 file:text-text" />
+			<details class="group rounded-lg border border-border-base bg-background-secondary">
+				<summary class="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium text-text marker:hidden">
+					<IconBook size={18} class="shrink-0 text-accent" />
+					<span class="flex-1">{m.dashboard_applications_google_tutorial_title()}</span>
+					<IconChevronRight size={16} class="text-text-subtle transition-transform group-open:rotate-90" />
+				</summary>
+				<div class="space-y-5 border-t border-border-base px-4 py-4">
+					<p class="text-sm text-text-muted">{m.dashboard_applications_google_tutorial_intro()}</p>
+					<a
+						href="https://developers.google.com/workspace/forms/api/reference/rest/v1/forms/get"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="flex w-fit items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+					>
+						{m.dashboard_applications_google_open_api_explorer()} <IconExternalLink size={15} />
+					</a>
+					{#each [1, 2, 3] as step}
+						<div class="space-y-2">
+							<p class="text-sm font-medium text-text">
+								<span class="mr-2 inline-flex size-6 items-center justify-center rounded-full bg-accent/15 text-xs font-semibold text-accent">{step}</span>
+								{step === 1 ? m.dashboard_applications_google_step_one() : step === 2 ? m.dashboard_applications_google_step_two() : m.dashboard_applications_google_step_three()}
+							</p>
+							<img
+								src="/tutorial/google-form-{step}.svg"
+								alt={step === 1 ? m.dashboard_applications_google_step_one_alt() : step === 2 ? m.dashboard_applications_google_step_two_alt() : m.dashboard_applications_google_step_three_alt()}
+								width="640"
+								height="280"
+								loading="lazy"
+								class="w-full rounded-lg border border-border-base"
+							/>
+						</div>
+					{/each}
+				</div>
+			</details>
+			<p class="text-sm text-text-muted">{m.dashboard_applications_import_instructions()}</p>
+			<Field label={m.dashboard_applications_google_json()} hint={m.dashboard_applications_google_json_hint()} error={importError} for="google-form-json">
+				<Textarea
+					id="google-form-json"
+					bind:value={importJson}
+					oninput={() => (importError = '')}
+					rows={9}
+					spellcheck={false}
+					aria-invalid={Boolean(importError)}
+					autocapitalize="off"
+					placeholder={m.dashboard_applications_google_json_placeholder()}
+					class="font-mono text-xs leading-5"
+				/>
 			</Field>
 			<Field label={m.dashboard_applications_rank()} hint={m.dashboard_applications_google_rank_hint()}>
 				<Select bind:value={importRankId} options={rankOptions} />
@@ -300,7 +346,7 @@
 			<Button onclick={() => goto(`${base}/${importResult?.id}?section=form`)}>{m.dashboard_applications_review_draft()}</Button>
 		{:else}
 			<Button variant="ghost" onclick={() => (importOpen = false)}>{m.common_cancel()}</Button>
-			<Button loading={importing} disabled={!importJson} onclick={importGoogle}>{m.dashboard_applications_import_draft()}</Button>
+			<Button loading={importing} disabled={!importJson.trim()} onclick={importGoogle}>{m.dashboard_applications_import_draft()}</Button>
 		{/if}
 	{/snippet}
 </Modal>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" fill="none">
+  <rect width="640" height="280" rx="16" fill="#1d1d1d"/>
+  <rect x="24" y="25" width="273" height="230" rx="11" fill="#f8fafc"/>
+  <text x="45" y="56" fill="#334155" font-family="Arial,sans-serif" font-size="15" font-weight="600">Response</text>
+  <path d="M42 69h239" stroke="#dbe2ea"/>
+  <rect x="42" y="82" width="237" height="150" rx="7" fill="#eaf2ff" stroke="#5b9dff" stroke-width="2"/>
+  <text x="55" y="105" fill="#334155" font-family="ui-monospace,monospace" font-size="12">{</text>
+  <text x="70" y="126" fill="#174ea6" font-family="ui-monospace,monospace" font-size="12">"formId": "...",</text>
+  <text x="70" y="147" fill="#174ea6" font-family="ui-monospace,monospace" font-size="12">"info": {</text>
+  <text x="85" y="168" fill="#334155" font-family="ui-monospace,monospace" font-size="12">"title": "..."</text>
+  <text x="70" y="189" fill="#174ea6" font-family="ui-monospace,monospace" font-size="12">},</text>
+  <text x="70" y="210" fill="#174ea6" font-family="ui-monospace,monospace" font-size="12">"items": [...]</text>
+  <text x="55" y="226" fill="#334155" font-family="ui-monospace,monospace" font-size="12">}</text>
+  <path d="M313 139h34m-10-9 10 9-10 9" stroke="#5b9dff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="363" y="25" width="253" height="230" rx="11" fill="#272727" stroke="#565656"/>
+  <rect x="383" y="46" width="137" height="13" rx="6" fill="#ededed"/>
+  <rect x="383" y="73" width="213" height="154" rx="7" fill="#313131" stroke="#5b9dff" stroke-width="2"/>
+  <text x="397" y="100" fill="#a0a0a0" font-family="ui-monospace,monospace" font-size="12">{</text>
+  <text x="412" y="121" fill="#7db0ff" font-family="ui-monospace,monospace" font-size="12">"formId": "...",</text>
+  <text x="412" y="142" fill="#7db0ff" font-family="ui-monospace,monospace" font-size="12">"info": { ... },</text>
+  <text x="412" y="163" fill="#7db0ff" font-family="ui-monospace,monospace" font-size="12">"items": [...]</text>
+  <text x="397" y="184" fill="#a0a0a0" font-family="ui-monospace,monospace" font-size="12">}</text>
+</svg>
