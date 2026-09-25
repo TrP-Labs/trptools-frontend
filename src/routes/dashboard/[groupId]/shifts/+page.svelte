@@ -158,7 +158,12 @@
 <PageHeader title={m.common_shifts()} description={m.dashboard_shifts_page_description()}>
 	{#snippet actions()}
 		{#if canManage}
-			<Button onclick={() => (createOpen = true)}><IconPlus size={16} /> {m.dashboard_shifts_new_shift()}</Button>
+			{#if data.shifts.length >= 100}
+				<span class="text-sm text-text-muted">{m.dashboard_shifts_limit_reached()}</span>
+			{/if}
+			<Button onclick={() => (createOpen = true)} disabled={data.shifts.length >= 100}>
+				<IconPlus size={16} /> {m.dashboard_shifts_new_shift()}
+			</Button>
 		{/if}
 	{/snippet}
 </PageHeader>

@@ -142,8 +142,11 @@
 			</p>
 		{/if}
 
-		<Button variant="secondary" onclick={add}>
+		<Button variant="secondary" onclick={add} disabled={rows.length >= 100}>
 			<IconPlus size={16} /> {m.dispatch_vehicle_types_card_add_vehicle()}
 		</Button>
+		{#if rows.length >= 100}
+			<p class="text-sm text-text-muted">{m.dispatch_vehicle_types_card_limit_reached()}</p>
+		{/if}
 	</div>
 </Card>
