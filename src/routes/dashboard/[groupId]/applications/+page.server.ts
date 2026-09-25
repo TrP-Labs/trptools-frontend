@@ -16,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
 	// every group take the same second step.
 	const [applications, ranks] = await Promise.all([
 		client.applications.get({ query: { groupId } }),
-		client.ranks.group({ groupId }).get()
+		client.applications.ranks.get({ query: { groupId } })
 	]);
 
 	return {
