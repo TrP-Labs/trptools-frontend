@@ -13,7 +13,7 @@ export const load: PageServerLoad = async (event) => {
 
 	const [application, ranks, pending, approved, denied] = await Promise.all([
 		client.applications({ applicationId }).get(),
-		client.ranks.group({ groupId: event.params.groupId }).get(),
+		client.applications.ranks.get({ query: { groupId: event.params.groupId } }),
 		client.applications({ applicationId }).submissions.get({ query: { status: 'PENDING' } }),
 		client.applications({ applicationId }).submissions.get({ query: { status: 'APPROVED' } }),
 		client.applications({ applicationId }).submissions.get({ query: { status: 'DENIED' } })

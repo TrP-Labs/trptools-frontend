@@ -10,6 +10,8 @@
 		IconUser
 	} from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { api, errorMessage } from '$lib/api/client';
@@ -22,6 +24,23 @@
 
 	let busyId = $state<string | null>(null);
 	let lightbox = $state<string | null>(null);
+	let groupId = $state('');
+	let creatingGroup = $state(false);
+
+	async function addGroup() {
+		if (!/^\d+$/.test(groupId.trim())) return;
+		creatingGroup = true;
+		try {
+			const { data: created, error } = await api.groups.post({ robloxId: groupId.trim() });
+			if (!created) throw error;
+			toasts.success(m.dashboard_group_added());
+			await goto(`/dashboard/${created.slug}`);
+		} catch (error) {
+			toasts.error(errorMessage(error, m.dashboard_could_not_add_group()));
+		} finally {
+			creatingGroup = false;
+		}
+	}
 
 	let stats = $derived([
 		{ label: m.admin_open_reports(), value: data.overview.openReports, icon: IconAlertTriangle },
@@ -69,6 +88,17 @@
 		</div>
 	{/each}
 </div>
+
+<section class="card mb-8 p-5">
+	<h2 class="font-semibold text-text">{m.admin_add_roblox_group()}</h2>
+	<p class="mt-1 text-sm text-text-muted">{m.admin_add_group_description()}</p>
+	<form class="mt-4 flex flex-wrap items-end gap-3" onsubmit={(event) => { event.preventDefault(); addGroup(); }}>
+		<Field label={m.admin_roblox_group_id()} class="min-w-52 flex-1">
+			<Input bind:value={groupId} inputmode="numeric" pattern="[0-9]+" required placeholder="12345678" />
+		</Field>
+		<Button type="submit" loading={creatingGroup} disabled={!/^\d+$/.test(groupId.trim())}>{m.admin_add_group()}</Button>
+	</form>
+</section>
 
 <div class="mb-4 flex gap-1.5">
 	{#each filters as filter (filter.value)}
