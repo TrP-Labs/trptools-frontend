@@ -6,6 +6,7 @@ import {
 	type PolicyLink
 } from './policyDocuments';
 import { fetchPolicySources } from './policyRepository';
+import { createSnapshotCache, type Snapshot, type KeepAlive } from './snapshotCache';
 
 export type { PolicyDocument } from './policyDocuments';
 
@@ -28,8 +29,7 @@ const fallbackEntries = compilePolicyEntries(
 	}))
 );
 
-let memory: { key: string; expiresAt: number; entries: PolicyEntry[] } | undefined;
-let pending: Promise<PolicyEntry[]> | undefined;
+const snapshots = createSnapshotCache<PolicyEntry[]>();
 
 function cacheSeconds() {
 	const configured = Number(env.POLICIES_CACHE_SECONDS ?? DEFAULT_CACHE_SECONDS);
@@ -56,83 +56,56 @@ function cacheRequest(repository: string, ref: string) {
 	);
 }
 
-async function fromCache(cache: PolicyCache | undefined, request: URL) {
+async function fromCache(cache: PolicyCache | undefined, request: URL): Promise<Snapshot<PolicyEntry[]> | undefined> {
 	if (!cache) return undefined;
 	try {
 		const response = await cache.match(request);
 		if (!response?.ok) return undefined;
-		const entries: unknown = await response.json();
-		return Array.isArray(entries) ? (entries as PolicyEntry[]) : undefined;
-	} catch {
-		return undefined;
-	}
-}
-
-async function refresh(fetcher: typeof fetch, cache?: PolicyCache) {
-	const { repository, ref } = repositoryConfig();
-	const key = `${repository}@${ref}`;
-	const ttl = cacheSeconds();
-	const request = cacheRequest(repository, ref);
-
-	const cached = await fromCache(cache, request);
-	if (cached) {
-		memory = { key, expiresAt: Date.now() + ttl * 1000, entries: cached };
-		return cached;
-	}
-
-	const sources = await fetchPolicySources(fetcher, repository, ref, env.POLICIES_GITHUB_TOKEN);
-	const entries = compilePolicyEntries(sources);
-	if (entries.length === 0) throw new Error(`${repository}@${ref} contains no usable policies`);
-
-	memory = { key, expiresAt: Date.now() + ttl * 1000, entries };
-	if (cache) {
-		try {
-			const snapshot = Response.json(entries, {
-				headers: { 'cache-control': `public, max-age=${ttl}` }
-			});
-			// SvelteKit exposes the runtime Cache type from workerd while application
-			// code sees the DOM Response type. They are the same Web API object at
-			// runtime; workerd's declaration merely includes an extra `webSocket` field.
-			await cache.put(
-				request,
-				snapshot as unknown as Parameters<PolicyCache['put']>[1]
-			);
-		} catch {
-			// A working repository response is still useful when the platform cache is unavailable.
+		const body: unknown = await response.json();
+		// Existing cached arrays remain useful while the new snapshot format refreshes.
+		if (Array.isArray(body)) return { value: body as PolicyEntry[], expiresAt: 0 };
+		if (body && typeof body === 'object' && 'value' in body && Array.isArray(body.value) &&
+			'expiresAt' in body && typeof body.expiresAt === 'number' && Number.isFinite(body.expiresAt)) {
+			return body as Snapshot<PolicyEntry[]>;
 		}
+	} catch {
+		// The bundled snapshot remains available if the platform cache fails.
 	}
-	return entries;
+	return undefined;
 }
 
-/**
- * Resolve the current policy snapshot from TrP-Labs/Policies.
- *
- * A Worker cache shares it within a Cloudflare location; the in-memory layer
- * deduplicates concurrent cold requests. The bundled snapshot keeps legal
- * pages available when GitHub is unreachable.
- */
-export async function policies(fetcher: typeof fetch, cache?: PolicyCache): Promise<PolicyEntry[]> {
-	let key: string;
+/** Footer links use a local snapshot; GitHub refreshes never delay page rendering. */
+export async function policies(fetcher: typeof fetch, cache?: PolicyCache, waitUntil?: KeepAlive): Promise<PolicyEntry[]> {
 	try {
 		const { repository, ref } = repositoryConfig();
-		key = `${repository}@${ref}`;
+		const ttl = cacheSeconds();
+		const request = cacheRequest(repository, ref);
+		return await snapshots({
+			key: `${repository}@${ref}`,
+			ttlMs: ttl * 1000,
+			fallback: fallbackEntries,
+			readCache: () => fromCache(cache, request),
+			refresh: async () => {
+				const sources = await fetchPolicySources(fetcher, repository, ref, env.POLICIES_GITHUB_TOKEN);
+				const entries = compilePolicyEntries(sources);
+				if (entries.length === 0) throw new Error(`${repository}@${ref} contains no usable policies`);
+				return entries;
+			},
+			writeCache: async (snapshot) => {
+				if (!cache) return;
+				// Keep a stale copy across isolate restarts while refreshing on the shorter TTL.
+				const response = Response.json(snapshot, {
+					headers: { 'cache-control': `public, max-age=${Math.max(ttl, 86400)}` }
+				});
+				await cache.put(request, response as unknown as Parameters<PolicyCache['put']>[1]);
+			},
+			waitUntil,
+			onError: (error) => console.error('[policies]', error)
+		});
 	} catch (error) {
 		console.error('[policies]', error);
 		return fallbackEntries;
 	}
-
-	if (memory?.key === key && memory.expiresAt > Date.now()) return memory.entries;
-	if (pending) return pending;
-
-	pending = refresh(fetcher, cache)
-		.catch((error) => {
-			console.error('[policies]', error);
-			return memory?.key === key ? memory.entries : fallbackEntries;
-		})
-		.finally(() => {
-			pending = undefined;
-		});
-	return pending;
 }
 
 export function policyLinks(entries: PolicyEntry[]): PolicyLink[] {

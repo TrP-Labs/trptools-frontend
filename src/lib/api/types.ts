@@ -30,6 +30,10 @@ export type DashboardData = Data<ReturnType<Api['dashboard']['get']>>;
 export type DashboardGroup = DashboardData['groups'][number];
 export type DashboardShift = DashboardData['shifts'][number];
 export type DashboardReview = DashboardData['reviews'][number];
+/** Bootstrap payloads reuse the backend's permission-filtered summary models. */
+export type GroupDashboardData = Data<ReturnType<ReturnType<Api['dashboard']['group']>['get']>>;
+export type ShiftsPageData = Data<ReturnType<Api['dashboard']['shifts']['get']>>;
+
 export type CreatableGroup = Data<ReturnType<Api['groups']['creatable']['get']>>[number];
 
 export type RouteRecord = Data<ReturnType<Api['routes']['get']>>[number];

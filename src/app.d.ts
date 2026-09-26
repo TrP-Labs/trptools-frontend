@@ -1,4 +1,4 @@
-import type { SessionUser } from '$lib/api/types';
+import type { DashboardData, GroupDashboardData, ShiftsPageData, GroupSummary, SessionUser } from '$lib/api/types';
 import type { Locale } from '$lib/paraglide/runtime';
 
 declare global {
@@ -18,6 +18,11 @@ declare global {
 		interface Locals {
 			/** Resolved once per request in hooks.server.ts. */
 			user: SessionUser | null;
+			/** Page data returned with identity by the home and groups bootstrap calls. */
+			homeDashboard: DashboardData | null;
+			dashboardGroups: GroupSummary[] | null;
+			groupDashboard: GroupDashboardData | null;
+			shiftsPage: ShiftsPageData | null;
 			theme: string;
 			/** The reader's zone, or null to follow their browser. */
 			timezone: string | null;

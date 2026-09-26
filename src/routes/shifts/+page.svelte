@@ -6,7 +6,6 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
-	import { signupTotals } from '$lib/utils/signups';
 	import { loginUrl } from '$lib/api/client';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -71,7 +70,7 @@
 
 					<ul class="space-y-2">
 						{#each occurrences as occurrence (occurrence.eventId + occurrence.start)}
-							{@const { filled, capacity } = signupTotals(occurrence.sheets)}
+							{@const { filled, capacity } = occurrence}
 							<li>
 								<!--
 									The shift's own public page, which is where its
