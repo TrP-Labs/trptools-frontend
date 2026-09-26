@@ -3,7 +3,8 @@ import type { LayoutServerLoad } from './$types';
 
 /** The session and theme are resolved in hooks.server.ts once per request. */
 export const load: LayoutServerLoad = async ({ locals, fetch, platform }) => {
-	const entries = await policies(fetch, platform?.caches?.default);
+	const entries = await policies(fetch, platform?.caches?.default,
+		platform?.context ? (task) => platform.context.waitUntil(task) : undefined);
 	return {
 		user: locals.user,
 		theme: locals.theme,

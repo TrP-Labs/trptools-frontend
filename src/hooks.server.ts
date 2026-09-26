@@ -54,6 +54,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// has chosen, and the browser's own zone stands.
 	event.locals.timezone = event.cookies.get('timezone') || null;
 	event.locals.user = null;
+	event.locals.homeDashboard = null;
+	event.locals.dashboardGroups = null;
+	event.locals.groupDashboard = null;
+	event.locals.shiftsPage = null;
 
 	// Why the page is in the language it is in, which the resolved locale
 	// cannot say on its own — "English because you chose it" and "English
@@ -70,15 +74,57 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// present, so anonymous page loads cost nothing.
 	if (event.cookies.get('access_token')) {
 		try {
-			const { data } = await serverApi(event).auth.session.get();
-			if (data?.authenticated && data.user) {
-				event.locals.user = data.user;
+			const client = serverApi(event);
+			let user = null;
+			if (event.route.id === '/') {
+				const { data } = await client.dashboard.home.get().catch(() => ({ data: null }));
+				if (data) {
+					user = data.user;
+					event.locals.homeDashboard = data.dashboard;
+				} else {
+					const session = await client.auth.session.get();
+					user = session.data?.user ?? null;
+				}
+			} else if (event.route.id === '/dashboard') {
+				const { data } = await client.dashboard.groups.get().catch(() => ({ data: null }));
+				if (data) {
+					user = data.user;
+					event.locals.dashboardGroups = data.groups;
+				} else {
+					const session = await client.auth.session.get();
+					user = session.data?.user ?? null;
+				}
+			} else if (event.route.id === '/dashboard/[groupId]') {
+				const { data } = await client.dashboard.group({ groupId: event.params.groupId! })
+					.get().catch(() => ({ data: null }));
+				if (data) {
+					user = data.user;
+					event.locals.groupDashboard = data;
+				} else {
+					const session = await client.auth.session.get();
+					user = session.data?.user ?? null;
+				}
+			} else if (event.route.id === '/shifts') {
+				const { data } = await client.dashboard.shifts.get().catch(() => ({ data: null }));
+				if (data) {
+					user = data.user;
+					event.locals.shiftsPage = data;
+				} else {
+					const session = await client.auth.session.get();
+					user = session.data?.user ?? null;
+				}
+			} else {
+				const { data } = await client.auth.session.get();
+				user = data?.authenticated ? (data.user ?? null) : null;
+			}
+			if (user) {
+				event.locals.user = user;
 
 				// The cookie reflects the most recent choice made on this
 				// device, so it wins. The account preference is what carries
 				// the theme to a device that has not chosen one yet.
-				if (!hasCookieTheme && THEMES.has(data.user.theme)) {
-					event.locals.theme = data.user.theme;
+				if (!hasCookieTheme && THEMES.has(user.theme)) {
+					event.locals.theme = user.theme;
 				}
 
 				// The zone follows the theme's precedence rather than the
@@ -87,8 +133,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 				// here a moment ago should not have it overruled by an account
 				// value from another machine. The account is what carries it to
 				// a device that has not chosen.
-				if (!event.locals.timezone && data.user.timezone) {
-					event.locals.timezone = data.user.timezone;
+				if (!event.locals.timezone && user.timezone) {
+					event.locals.timezone = user.timezone;
 				}
 
 				// Language does *not* follow the theme's precedence, and the
@@ -103,15 +149,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 				// signed in, and the cookie is a cache of it. That also makes
 				// the setting behave the way people expect a language to: chosen
 				// once, and the same on every device you sign in on.
-				if (isLocale(data.user.locale)) {
+				if (isLocale(user.locale)) {
 					event.locals.localeSource = 'account';
-					event.cookies.set(cookieName, data.user.locale, {
+					event.cookies.set(cookieName, user.locale, {
 						path: '/',
 						maxAge: YEAR,
 						sameSite: 'lax',
 						httpOnly: false
 					});
-					request = withLocaleCookie(request, data.user.locale);
+					request = withLocaleCookie(request, user.locale);
 				} else {
 					// Following the browser. The cookie is cleared on both the
 					// response and this request's own headers, so the render and

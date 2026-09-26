@@ -11,7 +11,9 @@ import { m } from '$lib/paraglide/messages.js';
 export const load: LayoutServerLoad = async (event) => {
 	if (!event.locals.user) redirect(303, `/login?next=/dashboard/${event.params.groupId}`);
 
-	const { data, error: apiError } = await serverApi(event)
+	const { data, error: apiError } = event.locals.groupDashboard
+		? { data: event.locals.groupDashboard.group, error: null }
+		: await serverApi(event)
 		.groups({ groupId: event.params.groupId })
 		.get();
 

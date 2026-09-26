@@ -15,7 +15,6 @@
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
 	import { can, PERM } from '$lib/utils/permissions';
 	import { formatDateTime, formatNumber, formatRelative } from '$lib/utils/format';
-	import { signupTotals } from '$lib/utils/signups';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized } from '$lib/utils/translations';
@@ -30,7 +29,7 @@
 	// somebody waiting is the one number on this page that is a task.
 	let stats = $derived([
 		{ label: m.common_routes(), value: formatNumber(data.routes.length), icon: IconRoute },
-		{ label: m.common_shifts(), value: formatNumber(data.shifts.length), icon: IconCalendarTime },
+		{ label: m.common_shifts(), value: formatNumber(data.shiftCount), icon: IconCalendarTime },
 		...(reviewer
 			? [
 					{
@@ -136,7 +135,7 @@
 			{:else}
 				<ul class="space-y-3">
 					{#each data.upcoming as occurrence (occurrence.eventId + occurrence.start)}
-						{@const { filled, capacity } = signupTotals(occurrence.sheets)}
+						{@const { filled, capacity } = occurrence}
 						<li class="flex items-start gap-3">
 							<span
 								class="mt-1 h-9 w-1 shrink-0 rounded-full"

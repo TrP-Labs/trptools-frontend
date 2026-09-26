@@ -11,7 +11,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatNumber } from '$lib/utils/format';
-	import { permissionLabel } from '$lib/api/types';
+	import { permissionLabel, type CreatableGroup } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized } from '$lib/utils/translations';
@@ -20,6 +20,25 @@
 
 	let addOpen = $state(false);
 	let addingId = $state<string | null>(null);
+	let creatable = $state<CreatableGroup[]>([]);
+	let creatableLoaded = $state(false);
+	let creatableLoading = $state(false);
+
+	async function openAdd() {
+		addOpen = true;
+		if (creatableLoaded || creatableLoading) return;
+		creatableLoading = true;
+		try {
+			const { data: available, error } = await api.groups.creatable.get();
+			if (!available) throw error;
+			creatable = available;
+			creatableLoaded = true;
+		} catch (error) {
+			toasts.error(errorMessage(error, m.error_could_not_reach_api()));
+		} finally {
+			creatableLoading = false;
+		}
+	}
 
 	async function addGroup(robloxId: string) {
 		addingId = robloxId;
@@ -44,7 +63,7 @@
 <div class="mx-auto max-w-7xl px-4 py-10">
 	<PageHeader title={m.common_dashboard()} description={m.dashboard_groups_can_manage_dispatch()}>
 		{#snippet actions()}
-			<Button onclick={() => (addOpen = true)}>
+			<Button onclick={openAdd}>
 				<IconPlus size={16} /> {m.dashboard_add_group_2()}
 			</Button>
 		{/snippet}
@@ -56,8 +75,8 @@
 			description={m.dashboard_add_roblox_group_own_start_managing()}
 		>
 			{#snippet icon()}<IconUsersGroup size={28} stroke={1.5} />{/snippet}
-			{#snippet action()}
-				<Button onclick={() => (addOpen = true)}><IconPlus size={16} /> {m.dashboard_add_group_2()}</Button>
+				{#snippet action()}
+					<Button onclick={openAdd}><IconPlus size={16} /> {m.dashboard_add_group_2()}</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
@@ -105,7 +124,11 @@
 	title={m.dashboard_add_group()}
 	description={m.dashboard_only_roblox_groups_own_can_added()}
 >
-	{#if data.creatable.length === 0}
+	{#if creatableLoading}
+		<p class="text-sm text-text-muted">{m.common_loading()}</p>
+	{:else if !creatableLoaded}
+		<Button onclick={openAdd}>{m.dashboard_add_group_2()}</Button>
+	{:else if creatable.length === 0}
 		<p class="text-sm text-text-muted">
 			{m.dashboard_no_eligible_groups_found_need_owner()}
 		</p>
@@ -116,7 +139,7 @@
 				written another language's name against — this is Roblox's name
 				and nothing else.
 			-->
-			{#each data.creatable as group (group.robloxId)}
+			{#each creatable as group (group.robloxId)}
 				<li
 					class="flex items-center gap-3 rounded-lg border border-border-base bg-background-secondary p-3"
 				>
