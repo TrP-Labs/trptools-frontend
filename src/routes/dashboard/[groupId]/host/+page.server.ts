@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async (event) => {
 	const { group } = await event.parent();
 	if (!can(group.permissions, PERM.START_ROOM))
-		error(403, m.host_close_permission_hint());
+		error(403, m.api_error_forbidden());
 	const client = serverApi(event);
 	const [room, upcoming] = await Promise.all([
 		client.rooms.get({ query: { groupId: group.id } }),
