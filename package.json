@@ -17,7 +17,8 @@
 		"messages": "node scripts/messages.mjs",
 		"test:runtime": "bun run scripts/test-runtime.ts",
 		"test:worker": "bun run build && bun run scripts/test-worker-runtime.ts",
-		"test": "bun test scripts/*.test.ts"
+		"test": "bun test scripts/*.test.ts",
+		"worker:dev": "wrangler dev --env local"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",

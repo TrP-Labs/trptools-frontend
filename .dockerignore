@@ -13,3 +13,7 @@ src/lib/paraglide
 *.log
 .DS_Store
 project.inlang/cache
+
+.dev.vars*
+.wrangler
+dist-worker
