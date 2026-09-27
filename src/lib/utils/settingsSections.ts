@@ -42,6 +42,7 @@ export function settingsSections(): SettingsSection[] {
 			icon: IconCalendarTime,
 			permission: PERM.MANAGE_SHIFTS
 		},
+		{ id: 'schedule', label: m.host_schedule_title(), icon: IconCalendarTime, permission: PERM.MANAGE_SHIFTS },
 		/**
 		 * Filed under the grant that already means "this group's Discord",
 		 * rather than split across shifts and applications: it is one decision

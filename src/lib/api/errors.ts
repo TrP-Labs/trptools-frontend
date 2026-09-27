@@ -17,6 +17,7 @@ import { m } from '$lib/paraglide/messages.js';
  * caller shows what the server said, which is always at least true.
  */
 const API_ERRORS: Record<string, () => string> = {
+	'This event has already been handled': () => m.host_handled_error(),
 	'Bad Request': m.api_error_bad_request,
 	'Conflict': m.api_error_conflict,
 	'Discord is not configured on this instance': m.api_error_discord_is_not_configured_on_this_instance,

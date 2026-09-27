@@ -1,5 +1,5 @@
 import { dispatchStreamUrl } from '$lib/api/client';
-import type { DispatchStreamEvent, DispatchVehicle } from '$lib/api/types';
+import type { DispatchStreamEvent, DispatchVehicle, HostSnapshot } from '$lib/api/types';
 
 export type ConnectionStatus = 'idle' | 'connecting' | 'live' | 'retrying' | 'closed';
 
@@ -11,6 +11,7 @@ export type ConnectionStatus = 'idle' | 'connecting' | 'live' | 'retrying' | 'cl
  * next SYNC simply replaces local state.
  */
 export class DispatchRoom {
+	host = $state<HostSnapshot | null>(null);
 	vehicles = $state<DispatchVehicle[]>([]);
 	presence = $state<string[]>([]);
 	status = $state<ConnectionStatus>('idle');
@@ -100,6 +101,10 @@ export class DispatchRoom {
 			case 'CLOSED':
 				this.status = 'closed';
 				this.disconnect();
+				break;
+
+			case 'HOST':
+				this.host = event.data;
 				break;
 
 			case 'HEARTBEAT':

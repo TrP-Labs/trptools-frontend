@@ -33,6 +33,7 @@
 	// job sees exactly that page rather than a rail of links to 403s.
 	let items = $derived<SidebarItem[]>([
 		{ href: base, label: m.dashboard_overview(), icon: IconHome, exact: true },
+		{ href: `${base}/host`, label: m.host_title(), icon: IconCalendarTime, permissions: [PERM.START_ROOM] },
 		{ href: `${base}/dispatch`, label: m.common_dispatch(), icon: IconRadio, permissions: [PERM.DISPATCH, PERM.START_ROOM] },
 		// Shifts is the scheduling page and nothing else now, so it names the
 		// grant that opens it rather than also admitting dispatchers, who used
