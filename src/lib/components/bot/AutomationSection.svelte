@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { can, PERM } from '$lib/utils/permissions';
 	import AutomationRow from '$lib/components/bot/AutomationRow.svelte';
 	import type { BotConfig } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -21,8 +23,12 @@
 </script>
 
 <section class="card p-4">
-	<h2 class="text-sm font-semibold text-text">{m.dashboard_bot_automation()}</h2>
-	<p class="mt-1 text-xs text-text-muted">{m.dashboard_bot_let_bot_run_these_itself_slash()}</p>
+	<h2 class="text-sm font-semibold text-text">
+		{m.dashboard_bot_automation()}
+	</h2>
+	<p class="mt-1 text-xs text-text-muted">
+		{m.dashboard_bot_let_bot_run_these_itself_slash()}
+	</p>
 
 	<div class="mt-4 space-y-2">
 		<AutomationRow
@@ -34,7 +40,7 @@
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoAnnounce: enabled } : {}),
-					...(lead !== undefined ? { autoAnnounceLead: lead } : {})
+					...(lead !== undefined ? { autoAnnounceLead: lead } : {}),
 				})}
 		/>
 
@@ -47,7 +53,7 @@
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoSignups: enabled } : {}),
-					...(lead !== undefined ? { autoSignupsLead: lead } : {})
+					...(lead !== undefined ? { autoSignupsLead: lead } : {}),
 				})}
 		/>
 
@@ -60,7 +66,7 @@
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoHostReminder: enabled } : {}),
-					...(lead !== undefined ? { autoHostReminderLead: lead } : {})
+					...(lead !== undefined ? { autoHostReminderLead: lead } : {}),
 				})}
 		/>
 
@@ -69,11 +75,12 @@
 			description={m.dashboard_bot_give_staff_who_signed_up_join()}
 			enabled={config.autoStaffStart}
 			lead={config.autoStaffStartLead}
+			scheduleTiming
 			disabled={busy}
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoStaffStart: enabled } : {}),
-					...(lead !== undefined ? { autoStaffStartLead: lead } : {})
+					...(lead !== undefined ? { autoStaffStartLead: lead } : {}),
 				})}
 		/>
 
@@ -82,11 +89,12 @@
 			description={m.dashboard_bot_post_join_link_publicly_when_shift()}
 			enabled={config.autoBegin}
 			lead={config.autoBeginLead}
+			scheduleTiming
 			disabled={busy}
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoBegin: enabled } : {}),
-					...(lead !== undefined ? { autoBeginLead: lead } : {})
+					...(lead !== undefined ? { autoBeginLead: lead } : {}),
 				})}
 		/>
 
@@ -95,13 +103,22 @@
 			description={m.dashboard_bot_clear_sign_up_messages_post_satisfaction()}
 			enabled={config.autoComplete}
 			lead={config.autoCompleteDelay}
+			scheduleTiming
 			leadLabel="minutes after the shift ends"
 			disabled={busy}
 			onchange={({ enabled, lead }) =>
 				patch({
 					...(enabled !== undefined ? { autoComplete: enabled } : {}),
-					...(lead !== undefined ? { autoCompleteDelay: lead } : {})
+					...(lead !== undefined ? { autoCompleteDelay: lead } : {}),
 				})}
 		/>
 	</div>
+	<p class="mt-4 text-xs text-text-muted">
+		{m.host_auto_hint()}
+		{#if can(page.data.group?.permissions ?? 0, PERM.MANAGE_SHIFTS)}<a
+				class="text-accent hover:underline"
+				href="/dashboard/{page.params.groupId}/settings?section=schedule"
+				>{m.host_schedule_link()}</a
+			>{/if}
+	</p>
 </section>

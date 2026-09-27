@@ -17,6 +17,8 @@ import { m } from '$lib/paraglide/messages.js';
  * caller shows what the server said, which is always at least true.
  */
 const API_ERRORS: Record<string, () => string> = {
+	'Discord is not connected for this group': () => m.host_bot_unavailable(),
+	'This bot feature is disabled': () => m.host_auto_hint(),
 	'This event has already been handled': () => m.host_handled_error(),
 	'Bad Request': m.api_error_bad_request,
 	'Conflict': m.api_error_conflict,

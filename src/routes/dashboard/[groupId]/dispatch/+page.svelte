@@ -261,7 +261,7 @@
 		onopen={openRoom}
 	/>
 {:else}
-	{#each (room.host?.timeline ?? []).filter(item => item.status === 'READY' && item.audience !== 'HOST') as item (item.id)}
+	{#each (room.host?.timeline ?? []).filter(item => (item.status === 'READY' || item.awaitingAck) && item.audience !== 'HOST') as item (item.id)}
         <div class="mb-4 flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center" role="status"><p class="flex-1 text-sm text-text">{item.id === 'return-depot' ? m.host_depot_label() : item.label}</p><Button size="sm" variant="secondary" onclick={async()=>{const {error}=await api.host({roomId:roomId!}).events({id:item.id}).post({operation:'ACKNOWLEDGE'});if(error)toasts.error(errorMessage(error,m.host_error()));}}>{m.host_acknowledge()}</Button></div>
     {/each}
     <DispatchBoard
