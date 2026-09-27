@@ -1,7 +1,7 @@
 {
 	"name": "trptools-frontend",
 	"private": true,
-	"version": "2.11.1",
+	"version": "3.0.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -17,7 +17,8 @@
 		"messages": "node scripts/messages.mjs",
 		"test:runtime": "bun run scripts/test-runtime.ts",
 		"test:worker": "bun run build && bun run scripts/test-worker-runtime.ts",
-		"test": "bun test scripts/*.test.ts"
+		"test": "bun test scripts/*.test.ts",
+		"worker:dev": "wrangler dev --env local"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",

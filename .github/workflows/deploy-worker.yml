@@ -2,6 +2,12 @@ name: Deploy Cloudflare Worker
 
 on:
   workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: Backend branch, tag, or commit for API type checks
+        default: main
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -12,7 +18,8 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: TrP-Labs/trptools-backend
+          ref: ${{ inputs.backend_ref }}
           path: trptools-backend
 
       - uses: oven-sh/setup-bun@v2
