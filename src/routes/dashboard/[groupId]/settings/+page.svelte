@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ScheduleSection from '$lib/components/host/ScheduleSection.svelte';
 	import ObjectPage, { type ObjectSection } from '$lib/components/layout/ObjectPage.svelte';
 	import PageSection from '$lib/components/settings/PageSection.svelte';
 	import VisibilitySection from '$lib/components/settings/VisibilitySection.svelte';
@@ -43,6 +44,8 @@
 			<VisibilitySection {group} />
 		{:else if section === 'shifts'}
 			<ShiftsSection {group} />
+		{:else if section === 'schedule' && data.hostSchedule}
+			<ScheduleSection groupId={group.id} schedule={data.hostSchedule} />
 		{:else if section === 'discord'}
 			<DiscordSection {group} />
 		{:else if section === 'vehicles'}

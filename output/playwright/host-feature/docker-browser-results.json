@@ -1,0 +1,15 @@
+[
+  {
+    "runtime": "docker",
+    "errors": [],
+    "import": true,
+    "imageUpload": true,
+    "extension": true,
+    "closePermission": true,
+    "reschedule": true,
+    "dispatcherAcknowledgment": true,
+    "scheduleSave": true,
+    "overflow320": 0,
+    "overflow375": 0
+  }
+]

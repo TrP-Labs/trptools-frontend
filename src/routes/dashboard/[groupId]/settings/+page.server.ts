@@ -17,14 +17,15 @@ export const load: PageServerLoad = async (event) => {
 	// Only what the viewer's own sections need. Asking for the audit log
 	// without the grant to read it answers 403, which would take the whole
 	// page down for somebody who came to edit the vehicle table.
-	const [audit, vehicleTypes] = await Promise.all([
+	const [audit, vehicleTypes, schedule] = await Promise.all([
 		can(permissions, PERM.VIEW_AUDIT_LOG)
 			? client.groups({ groupId }).audit.get()
 			: Promise.resolve({ data: [] }),
 		can(permissions, PERM.MANAGE_VEHICLES)
 			? client.groups({ groupId })['vehicle-types'].get()
-			: Promise.resolve({ data: [] })
+			: Promise.resolve({ data: [] }),
+		can(permissions, PERM.MANAGE_SHIFTS) ? client.host.schedule({groupId}).get() : Promise.resolve({data:null})
 	]);
 
-	return { audit: audit.data ?? [], vehicleTypes: vehicleTypes.data ?? [] };
+	return { audit: audit.data ?? [], vehicleTypes: vehicleTypes.data ?? [], hostSchedule: schedule.data ?? null };
 };

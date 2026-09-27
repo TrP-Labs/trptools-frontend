@@ -34,7 +34,8 @@ export const PERM = {
 
 	MANAGE_SIGNUPS: 1 << 16,
 	OVERRIDE_SIGNUPS: 1 << 17,
-	EDIT_SIGNUPS: 1 << 18
+	EDIT_SIGNUPS: 1 << 18,
+	CLOSE_ROOM: 1 << 19
 } as const;
 
 export type PermissionFlag = (typeof PERM)[keyof typeof PERM];
@@ -123,6 +124,7 @@ export function permissionGroups(): PermissionGroup[] {
 					label: m.permission_start_room(),
 					description: m.permission_start_room_hint()
 				},
+				{ flag: PERM.CLOSE_ROOM, label: m.host_close_permission(), description: m.host_close_permission_hint() },
 				{
 					flag: PERM.MANAGE_SHIFTS,
 					label: m.permission_manage_shifts(),

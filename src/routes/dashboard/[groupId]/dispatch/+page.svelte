@@ -31,6 +31,7 @@
 
 	let group = $derived(data.group);
 	let canHost = $derived(can(group.permissions, PERM.START_ROOM));
+	let canClose = $derived(can(group.permissions, PERM.CLOSE_ROOM));
 
 	const room = new DispatchRoom();
 
@@ -229,7 +230,7 @@
 		{#if roomId}
 			<RoomStatus
 				status={room.status}
-				endsAt={data.roomEndsAt}
+				endsAt={room.host ? new Date(room.host.endsAt) : data.roomEndsAt}
 				presence={room.presence.length}
 				onpresence={() => (presenceOpen = true)}
 			/>
@@ -237,7 +238,7 @@
 	{/snippet}
 
 	{#snippet actions()}
-		{#if roomId && canHost}
+		{#if roomId && canClose}
 			<Button variant="secondary" onclick={closeRoom}>
 				<IconPlayerStop size={16} /> {m.dashboard_dispatch_close_room()}
 			</Button>
@@ -260,7 +261,10 @@
 		onopen={openRoom}
 	/>
 {:else}
-	<DispatchBoard
+	{#each (room.host?.timeline ?? []).filter(item => (item.status === 'READY' || item.awaitingAck) && item.audience !== 'HOST') as item (item.id)}
+        <div class="mb-4 flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center" role="status"><p class="flex-1 text-sm text-text">{item.id === 'return-depot' ? m.host_depot_label() : item.label}</p><Button size="sm" variant="secondary" onclick={async()=>{const {error}=await api.host({roomId:roomId!}).events({id:item.id}).post({operation:'ACKNOWLEDGE'});if(error)toasts.error(errorMessage(error,m.host_error()));}}>{m.host_acknowledge()}</Button></div>
+    {/each}
+    <DispatchBoard
 		vehicles={room.vehicles}
 		routes={data.routes}
 		owners={owners.profiles}

@@ -15,6 +15,10 @@ type Api = Treaty.Create<App>;
 /** Unwraps `{ data, error }` down to the success payload. */
 type Data<T> = T extends Promise<infer R> ? (R extends { data: infer D } ? NonNullable<D> : never) : never;
 
+export type HostSnapshot = Data<ReturnType<ReturnType<Api['host']>['get']>>;
+export type HostEvent = HostSnapshot['timeline'][number];
+export type HostSchedule = Data<ReturnType<ReturnType<Api['host']['schedule']>['get']>>;
+
 export type SessionResponse = Data<ReturnType<Api['auth']['session']['get']>>;
 export type SessionUser = NonNullable<SessionResponse['user']>;
 /** A connected Discord account, as the session and the settings card read it. */
@@ -286,6 +290,7 @@ export type DispatchStreamEvent =
 	| { event: 'DELETE'; data: string }
 	| { event: 'PRESENCE'; data: string[] }
 	| { event: 'CLOSED' }
+	| { event: 'HOST'; data: HostSnapshot }
 	| { event: 'HEARTBEAT' };
 
 /** How a manager labels a vehicle in group settings. */

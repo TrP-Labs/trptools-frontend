@@ -18,6 +18,7 @@
 		lead: number;
 		/** Wording for the offset, since one action runs after the shift. */
 		leadLabel?: string;
+		scheduleTiming?: boolean;
 		disabled?: boolean;
 		onchange: (patch: { enabled?: boolean; lead?: number }) => void;
 	}
@@ -29,7 +30,8 @@
 		lead,
 		leadLabel = m.bot_automation_row_minutes_before_shift_starts(),
 		disabled = false,
-		onchange
+		scheduleTiming = false,
+		onchange,
 	}: Props = $props();
 
 	function commitLead(event: Event) {
@@ -48,7 +50,7 @@
 		onchange={(value) => onchange({ enabled: value })}
 	/>
 
-	{#if enabled}
+	{#if enabled && !scheduleTiming}
 		<div class="mt-3 flex items-center gap-2 border-t border-border-base pt-3">
 			<input
 				type="number"
