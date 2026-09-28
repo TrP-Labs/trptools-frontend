@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { can, PERM } from '$lib/utils/permissions';
 	import { goto } from '$app/navigation';
 	import { refreshData } from '$lib/utils/refresh';
 	import { IconPlus, IconUsersGroup } from '@tabler/icons-svelte';
@@ -17,6 +19,9 @@
 	import { localized } from '$lib/utils/translations';
 
 	let { data }: PageProps = $props();
+
+	let botSetup = $derived(page.url.searchParams.get('setup') === 'bot');
+	let visibleGroups = $derived(botSetup ? data.groups.filter(group => can(group.permissions, PERM.MANAGE_BOT)) : data.groups);
 
 	let addOpen = $state(false);
 	let addingId = $state<string | null>(null);
@@ -49,7 +54,7 @@
 			toasts.success(m.dashboard_group_added());
 			addOpen = false;
 			await refreshData();
-			await goto(`/dashboard/${created.slug}`);
+			await goto(`/dashboard/${created.slug}${botSetup ? '/bot' : ''}`);
 		} catch (error) {
 			toasts.error(errorMessage(error, m.dashboard_could_not_add_group()));
 		} finally {
@@ -61,7 +66,7 @@
 <svelte:head><title>{m.dashboard_dashboard_trp_tools()}</title></svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-10">
-	<PageHeader title={m.common_dashboard()} description={m.dashboard_groups_can_manage_dispatch()}>
+	<PageHeader title={botSetup ? m.marketing_setup_title() : m.common_dashboard()} description={botSetup ? m.marketing_setup_body() : m.dashboard_groups_can_manage_dispatch()}>
 		{#snippet actions()}
 			<Button onclick={openAdd}>
 				<IconPlus size={16} /> {m.dashboard_add_group_2()}
@@ -69,10 +74,10 @@
 		{/snippet}
 	</PageHeader>
 
-	{#if data.groups.length === 0}
+	{#if visibleGroups.length === 0}
 		<EmptyState
-			title={m.dashboard_no_groups_yet()}
-			description={m.dashboard_add_roblox_group_own_start_managing()}
+			title={botSetup ? m.marketing_setup_empty() : m.dashboard_no_groups_yet()}
+			description={botSetup ? m.marketing_setup_empty_body() : m.dashboard_add_roblox_group_own_start_managing()}
 		>
 			{#snippet icon()}<IconUsersGroup size={28} stroke={1.5} />{/snippet}
 				{#snippet action()}
@@ -82,10 +87,10 @@
 	{:else}
 		<!-- A grid item sizes its track to its own content unless given a minimum. -->
 		<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each data.groups as group (group.id)}
+			{#each visibleGroups as group (group.id)}
 				<li class="min-w-0">
 					<a
-						href="/dashboard/{group.slug}"
+						href="/dashboard/{group.slug}{botSetup ? '/bot' : ''}"
 						class="card flex h-full flex-col p-5 transition-colors hover:border-border-strong"
 					>
 						<div class="flex items-center gap-3">

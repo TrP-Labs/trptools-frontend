@@ -34,8 +34,8 @@ export function dispatchStreamUrl(roomId: string) {
 	return `${API_URL}/dispatch/${encodeURIComponent(roomId)}/connect`;
 }
 
-export function loginUrl() {
-	return `${API_URL}/auth/login`;
+export function loginUrl(next?: string) {
+	return `${API_URL}/auth/login${next ? `?next=${encodeURIComponent(next)}` : ''}`;
 }
 
 /**
