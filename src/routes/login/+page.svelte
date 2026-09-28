@@ -47,7 +47,7 @@
 			</div>
 		{/if}
 
-		<Button href={loginUrl()} data-sveltekit-reload size="lg" full class="mt-6">
+		<Button href={loginUrl(next)} data-sveltekit-reload size="lg" full class="mt-6">
 			{m.login_continue_with_roblox()}
 		</Button>
 

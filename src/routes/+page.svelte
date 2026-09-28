@@ -1,15 +1,11 @@
 <script lang="ts">
 	import {
 		IconCalendarTime,
-		IconRadio,
-		IconRoute,
-		IconUsers,
 		IconArrowRight,
-		IconBulb,
 		IconClipboardList,
-		IconPlus,
 		IconUsersGroup
 	} from '@tabler/icons-svelte';
+	import Home from '$lib/components/marketing/Home.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -18,7 +14,7 @@
 	import NextShiftCard from '$lib/components/dashboard/NextShiftCard.svelte';
 	import ReviewQueue from '$lib/components/dashboard/ReviewQueue.svelte';
 	import ShiftList from '$lib/components/dashboard/ShiftList.svelte';
-	import { api, errorMessage, loginUrl } from '$lib/api/client';
+	import { api, errorMessage } from '$lib/api/client';
 	import { refreshData } from '$lib/utils/refresh';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import type { PageProps } from './$types';
@@ -84,33 +80,6 @@
 		return m.home_greeting_good_evening();
 	});
 
-	const features = [
-		{
-			icon: IconRadio,
-			title: m.home_multi_user_dispatch(),
-			body: m.home_multi_user_dispatch_body()
-		},
-		{
-			icon: IconRoute,
-			title: m.home_custom_routes_properly(),
-			body: m.home_custom_routes_properly_body()
-		},
-		{
-			icon: IconCalendarTime,
-			title: m.home_shift_scheduling(),
-			body: m.home_shift_scheduling_body()
-		},
-		{
-			icon: IconUsers,
-			title: m.home_rank_based_access(),
-			body: m.home_rank_based_access_body()
-		},
-		{
-			icon: IconBulb,
-			title: m.common_stage_programmer(),
-			body: m.home_stage_programmer_body()
-		}
-	];
 </script>
 
 <svelte:head>
@@ -266,47 +235,5 @@
 		</div>
 	</div>
 {:else}
-	<!-- Hero -->
-	<section class="border-b border-border-base">
-		<div class="mx-auto max-w-7xl px-4 py-16 sm:py-24">
-			<div class="max-w-2xl">
-				<h1 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-					{m.home_run_group_without_spreadsheet()}
-				</h1>
-				<p class="mt-4 text-lg text-pretty text-text-muted">
-					{m.home_dispatch_together_real_time_schedule_shifts()}
-				</p>
-
-				<div class="mt-8 flex flex-wrap gap-3">
-					{#if data.user}
-						<!--
-							Signed in but in no group yet: the dashboard is
-							where a group is added, so that is the first step
-							rather than a second copy of it here.
-						-->
-						<Button href="/dashboard" size="lg">
-							<IconPlus size={17} /> {m.home_add_group()}
-						</Button>
-						<Button href="/groups" size="lg" variant="secondary">{m.home_browse_groups()}</Button>
-					{:else}
-						<Button href={loginUrl()} size="lg" data-sveltekit-reload>{m.common_sign_with_roblox()}</Button>
-						<Button href="/groups" size="lg" variant="secondary">{m.home_browse_groups()}</Button>
-					{/if}
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- Features -->
-	<section class="mx-auto max-w-7xl px-4 py-16">
-		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each features as feature (feature.title)}
-				<article class="card min-w-0 p-5">
-					<feature.icon size={22} stroke={1.6} class="text-accent" />
-					<h2 class="mt-3 font-semibold text-text">{feature.title}</h2>
-					<p class="mt-1.5 text-sm leading-relaxed text-text-muted">{feature.body}</p>
-				</article>
-			{/each}
-		</div>
-	</section>
+	<Home />
 {/if}
