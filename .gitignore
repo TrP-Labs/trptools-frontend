@@ -10,6 +10,7 @@ node_modules
 /dist-worker
 /worker-configuration.d.ts
 /.playwright-cli
+/output/playwright/*.png
 
 # OS
 .DS_Store
