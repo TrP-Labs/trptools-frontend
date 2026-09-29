@@ -77,7 +77,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			const client = serverApi(event);
 			let user = null;
 			if (event.route.id === '/') {
-				const { data } = await client.dashboard.home.get().catch(() => ({ data: null }));
+				const { data } = await client.dashboard.home.get({ query: { mode: 'host' } }).catch(() => ({ data: null }));
 				if (data) {
 					user = data.user;
 					event.locals.homeDashboard = data.dashboard;

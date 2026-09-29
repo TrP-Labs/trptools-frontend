@@ -14,6 +14,7 @@
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import RoutePreferenceButton from '$lib/components/routes/RoutePreferenceButton.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
+	import FollowButton from '$lib/components/users/FollowButton.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import RankRoster from '$lib/components/users/RankRoster.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -144,6 +145,7 @@
 						{m.g_roblox_group()} <IconExternalLink size={12} />
 					</a>
 
+					<FollowButton groupId={group.id} signedIn={Boolean(data.user)} />
 					<ReportButton targetType="GROUP" targetId={group.id} label={m.g_group()} />
 				</div>
 			</div>

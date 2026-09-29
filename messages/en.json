@@ -1692,5 +1692,11 @@
 	"marketing_preview_sync": "Linked to the website",
 	"marketing_preview_staff": "Staff access",
 	"marketing_preview_start": "Public announcement",
-	"marketing_preview_end": "Poll & cleanup"
+	"marketing_preview_end": "Poll & cleanup",
+	"follow_action": "Follow group",
+	"follow_following": "Following",
+	"follow_sign_in": "Sign in to follow",
+	"follow_save_failed": "Could not update your followed groups.",
+	"follow_shifts_description": "Upcoming shifts from the groups you follow on TrPTools.",
+	"follow_empty": "Follow a group on its TrPTools page to see its shifts here."
 }

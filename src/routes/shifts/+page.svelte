@@ -32,12 +32,12 @@
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-10">
-	<PageHeader title={m.common_shifts()} description={m.shifts_everything_scheduled_across_groups_are()} />
+	<PageHeader title={m.common_shifts()} description={m.follow_shifts_description()} />
 
 	{#if !data.signedIn}
 		<EmptyState
 			title={m.shifts_sign_see_shifts()}
-			description={m.shifts_shifts_come_from_groups_roblox_account()}
+			description={m.follow_shifts_description()}
 		>
 			{#snippet icon()}<IconCalendarTime size={28} stroke={1.5} />{/snippet}
 			{#snippet action()}
@@ -48,7 +48,7 @@
 		<EmptyState
 			title={m.common_nothing_scheduled()}
 			description={data.groups.length === 0
-				? m.shifts_are_not_member_any_group_trp()
+				? m.follow_empty()
 				: m.shifts_no_shifts_are_coming_up_next()}
 		>
 			{#snippet icon()}<IconCalendarTime size={28} stroke={1.5} />{/snippet}

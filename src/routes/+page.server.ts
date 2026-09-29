@@ -17,7 +17,7 @@ export const load: PageServerLoad = async (event) => {
 	if (event.locals.homeDashboard) return { dashboard: event.locals.homeDashboard };
 
 	try {
-		const { data } = await serverApi(event).dashboard.get();
+		const { data } = await serverApi(event).dashboard.get({ query: { mode: 'host' } });
 		return { dashboard: data ?? null };
 	} catch {
 		return { dashboard: null };
