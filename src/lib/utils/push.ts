@@ -1,4 +1,5 @@
 import { api } from '$lib/api/client';
+import { pushDeviceChanged } from '$lib/stores/engagement.svelte';
 export function pushSupported() {
     return typeof window !== 'undefined' && window.isSecureContext &&
         'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
@@ -27,6 +28,7 @@ export async function enableDevice(publicKey: string, userId: string): Promise<'
         keys: { p256dh: value.keys?.p256dh ?? '', auth: value.keys?.auth ?? '' } });
     if (error) throw error;
     try { localStorage.setItem('trptools:push-account', userId); } catch { /* Storage may be unavailable. */ }
+    pushDeviceChanged();
     return 'enabled';
 }
 
@@ -37,5 +39,6 @@ export async function disableDevice() {
     const { error } = await api.notifications.subscription.delete({ endpoint: subscription.endpoint });
     await subscription.unsubscribe();
     try { localStorage.removeItem('trptools:push-account'); } catch { /* Storage may be unavailable. */ }
+    pushDeviceChanged();
     if (error) throw error;
 }

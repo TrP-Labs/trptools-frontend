@@ -1,6 +1,9 @@
 import { api } from '$lib/api/client';
 import type { NotificationState } from '$lib/api/types';
 const states = $state<Record<string, { data: NotificationState | null; failed: boolean }>>({});
+let deviceRevision = $state(0);
+export function pushDeviceRevision() { return deviceRevision; }
+export function pushDeviceChanged() { deviceRevision++; }
 const pending = new Map<string, Promise<void>>();
 export function engagement(userId: string, groupId: string, eventId?: string) {
     const key = `${userId}:${groupId}:${eventId ?? ''}`;

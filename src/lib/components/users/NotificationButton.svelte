@@ -2,7 +2,7 @@
     import { untrack } from 'svelte';
     import { IconBell, IconBellCheck } from '@tabler/icons-svelte';
     import Button from '$lib/components/ui/Button.svelte';
-    import { engagement } from '$lib/stores/engagement.svelte';
+    import { engagement, pushDeviceRevision } from '$lib/stores/engagement.svelte';
     import { api, errorMessage, loginUrl } from '$lib/api/client';
     import { enableDevice, pushSupported } from '$lib/utils/push';
     import { toasts } from '$lib/stores/toast.svelte';
@@ -17,6 +17,8 @@
     let deviceReady = $state(false);
     $effect(() => {
         const current = choice, account = userId;
+        pushDeviceRevision();
+        let active = true;
         supported = pushSupported();
         untrack(() => { void (async () => {
             if (account) await current.load();
@@ -24,10 +26,11 @@
                 try {
                     const registration = await navigator.serviceWorker.getRegistration('/');
                     const subscription = await registration?.pushManager.getSubscription();
-                    deviceReady = Boolean(subscription) && localStorage.getItem('trptools:push-account') === account;
-                } catch { deviceReady = false; }
+                    if (active) deviceReady = Boolean(subscription) && localStorage.getItem('trptools:push-account') === account;
+                } catch { if (active) deviceReady = false; }
             }
         })(); });
+        return () => { active = false; };
     });
     async function enableThisDevice() {
         if (!choice.data?.publicKey) return;
