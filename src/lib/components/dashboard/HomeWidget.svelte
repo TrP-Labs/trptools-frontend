@@ -61,18 +61,18 @@
 
 {#snippet empty(text: string, href?: string, label?: string)}
     <p class="text-sm leading-relaxed text-text-muted">{text}</p>
-    {#if href}<a {href} class="mt-3 inline-flex text-sm font-medium text-accent hover:underline">{label}</a>{/if}
+    {#if href}<a {href} class="mt-auto inline-flex pt-3 text-sm font-medium text-accent hover:underline">{label}</a>{/if}
 {/snippet}
 
 {#if id === 'next'}
     <NextShiftCard {shifts} mode={dashboard.mode} rooms={Object.fromEntries(groups.map((group) => [group.id, can(group.permissions, PERM.DISPATCH) ? group.roomId : null]))} />
 {:else}
-    <Card {title}>
+    <Card {title} class="flex flex-1 flex-col" bodyClass="flex min-w-0 flex-1 flex-col">
         {#snippet icon()}<Icon size={18} stroke={1.7} />{/snippet}
         {#if id === 'my-shifts' || id === 'shifts' || id === 'today'}
             {#if listed.length}<ShiftList shifts={listed.slice(0, 3)} />
             {:else}{@render empty(id === 'my-shifts' ? m.widget_no_signups() : id === 'today' ? m.widget_day_empty() : dashboard.mode === 'host' ? m.widget_host_shifts_empty() : m.widget_no_shifts(), dashboard.mode === 'host' ? '/dashboard' : groups.length ? '/shifts' : '/groups', dashboard.mode === 'host' ? m.home_all_groups() : groups.length ? m.home_all_shifts() : m.shifts_browse_groups())}{/if}
-            {#if listed.length}<a href={dashboard.mode === 'host' ? '/dashboard' : id === 'my-shifts' ? '/shifts?signedUp=1' : '/shifts'} class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">{dashboard.mode === 'host' ? m.home_all_groups() : m.home_all_shifts()}<IconArrowRight size={15} /></a>{/if}
+            {#if listed.length}<a href={dashboard.mode === 'host' ? '/dashboard' : id === 'my-shifts' ? '/shifts?signedUp=1' : '/shifts'} class="mt-auto inline-flex pt-4 items-center gap-1.5 text-sm font-medium text-accent hover:underline">{dashboard.mode === 'host' ? m.home_all_groups() : m.home_all_shifts()}<IconArrowRight size={15} /></a>{/if}
         {:else if id === 'following'}
             {#if groups.length}
                 <ul class="grid gap-3 @lg:grid-cols-2">
@@ -85,9 +85,9 @@
                 </ul>
             {:else}{@render empty(m.follow_empty(), '/groups', m.shifts_browse_groups())}{/if}
             {#if dashboard.groupTotal > groups.length}<p class="mt-3 text-xs text-text-muted">{m.widget_groups_limit({ count: dashboard.groupTotal })}</p>{/if}
-            <a href="/groups" class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">{m.widget_all_groups()}<IconArrowRight size={15} /></a>
+            <a href="/groups" class="mt-auto inline-flex pt-4 items-center gap-1.5 text-sm font-medium text-accent hover:underline">{m.widget_all_groups()}<IconArrowRight size={15} /></a>
         {:else if id === 'groups'}
-            {#if groups.length}<div class="space-y-4">{#each groups.slice(0, 4) as group (group.id)}<GroupStatusCard {group} embedded primary={group.id === dashboard.primaryGroupId} {pinning} {onpin} />{/each}</div><a href="/dashboard" class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">{m.home_all_groups()}<IconArrowRight size={15} /></a>
+            {#if groups.length}<div class="space-y-4">{#each groups.slice(0, 2) as group (group.id)}<GroupStatusCard {group} embedded primary={group.id === dashboard.primaryGroupId} {pinning} {onpin} />{/each}</div><a href="/dashboard" class="mt-auto inline-flex pt-4 items-center gap-1.5 text-sm font-medium text-accent hover:underline">{m.home_all_groups()}<IconArrowRight size={15} /></a>
             {:else}{@render empty(m.widget_no_host_groups(), '/dashboard', m.home_all_groups())}{/if}
         {:else if id === 'reviews'}
             {#if dashboard.reviews.length}<ReviewQueue reviews={dashboard.reviews.slice(0, 5)} />{:else}{@render empty(m.widget_no_reviews())}{/if}
@@ -108,7 +108,7 @@
         {:else if id === 'favorites' || id === 'disliked'}
             {#if preference.length}<ul class="flex flex-wrap gap-2">{#each preference as route (route.routeId ?? route.name)}<li class="min-w-0"><RouteBadge label={localized(route, 'name')} color={route.color} size="md" /></li>{/each}</ul>
             {:else}{@render empty(m.widget_no_preferences(), '/groups', m.shifts_browse_groups())}{/if}
-            {#if preference.length}<a href="/tools/dispatch" class="mt-4 inline-flex items-center gap-1.5 text-sm text-accent hover:underline">{m.widget_routes_dispatch()}<IconArrowRight size={15} /></a>{/if}
+            {#if preference.length}<a href="/tools/dispatch" class="mt-auto inline-flex pt-4 items-center gap-1.5 text-sm text-accent hover:underline">{m.widget_routes_dispatch()}<IconArrowRight size={15} /></a>{/if}
         {:else if id === 'primary'}
             {#if primary}<GroupStatusCard group={primary} embedded primary {pinning} {onpin} />{:else}{@render empty(m.widget_pin_hint(), '/dashboard', m.home_all_groups())}{/if}
         {:else if id === 'host-tools'}
@@ -121,10 +121,10 @@
         {:else if id === 'tools'}
             <div class="grid gap-2"><Button variant="secondary" href="/tools/dispatch"><IconCalendarTime size={17} />{m.widget_solo_dispatch()}</Button><Button variant="secondary" href="/tools/stage"><IconTool size={17} />{m.widget_stage_programmer()}</Button><Button variant="ghost" href="/groups">{m.shifts_browse_groups()}</Button></div>
         {:else if id === 'account'}
-            <div class="mb-4 flex min-w-0 items-center gap-3"><Avatar src={user.avatar} name={user.displayName ?? user.username ?? ''} size={40} /><div class="min-w-0"><p class="truncate font-medium">{user.displayName ?? user.username}</p><p class="text-xs text-text-muted">{user.discord ? m.widget_discord_connected() : m.widget_discord_not_connected()}</p></div></div>
-            <div class="flex flex-wrap gap-2"><Button size="sm" variant="secondary" href="/settings">{m.common_settings()}</Button><Button size="sm" variant="secondary" href="/users/{user.userId}">{m.widget_my_profile()}</Button></div>
+            <div class="flex min-w-0 items-center gap-3"><Avatar src={user.avatar} name={user.displayName ?? user.username ?? ''} size={40} /><div class="min-w-0"><p class="truncate font-medium">{user.displayName ?? user.username}</p><p class="text-xs text-text-muted">{user.discord ? m.widget_discord_connected() : m.widget_discord_not_connected()}</p></div></div>
+            <div class="mt-auto flex flex-wrap gap-2 pt-4"><Button size="sm" variant="secondary" href="/settings">{m.common_settings()}</Button><Button size="sm" variant="secondary" href="/users/{user.userId}">{m.widget_my_profile()}</Button></div>
         {:else if id === 'clock'}
-            <p class="font-mono text-4xl font-semibold tabular-nums">{formatTime(now)}</p><p class="mt-2 text-sm text-text-muted">{formatDate(now)}</p><a href="/settings/appearance" class="mt-4 inline-flex text-xs text-accent hover:underline">{m.widget_change_timezone()}</a>
+            <p class="font-mono text-4xl font-semibold tabular-nums">{formatTime(now)}</p><p class="mt-2 text-sm text-text-muted">{formatDate(now)}</p><a href="/settings/appearance" class="mt-auto inline-flex pt-4 text-xs text-accent hover:underline">{m.widget_change_timezone()}</a>
         {:else if id === 'reminders'}
             <div class="flex items-start gap-3 rounded-lg bg-background-secondary p-3">{#if deviceActive}<IconBellCheck size={20} class="shrink-0 text-success" />{:else}<IconBell size={20} class="shrink-0 text-text-muted" />{/if}<p class="text-sm text-text-muted">{deviceActive ? m.widget_browser_active() : m.widget_browser_inactive()}</p></div>
             <Button variant="secondary" href="/settings/notifications" class="mt-4"><IconSettings size={16} />{m.widget_notification_settings()}</Button>

@@ -167,11 +167,11 @@
         </div>
     {/if}
     <p class="sr-only" aria-live="polite">{announcement}</p>
-    <div class="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-3" data-testid="home-widgets">
+    <div class="grid grid-cols-1 items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3" data-testid="home-widgets">
         {#each widgets as widget, index (widget.id)}
             {@const entry = catalog.find(item => item.id === widget.id)}
             {#if entry}
-                <section class="@container min-w-0 {widget.width === 2 ? 'md:col-span-2' : ''} {dragging === widget.id ? 'opacity-50' : ''} {dropTarget === widget.id && dragging !== widget.id ? 'rounded-xl ring-2 ring-accent ring-offset-4 ring-offset-background' : ''}"
+                <section class="@container flex min-w-0 flex-col {widget.width === 2 ? 'md:col-span-2' : ''} {dragging === widget.id ? 'opacity-50' : ''} {dropTarget === widget.id && dragging !== widget.id ? 'rounded-xl ring-2 ring-accent ring-offset-4 ring-offset-background' : ''}"
                     aria-label={entry.name} data-widget={widget.id} data-width={widget.width}>
                     {#if editing}
                         <fieldset disabled={saving} class="mb-2 min-w-0 rounded-xl border border-border-base bg-background-secondary p-2">
@@ -197,7 +197,7 @@
                             </div>
                         </fieldset>
                     {/if}
-                    <div inert={editing} class={editing ? 'select-none opacity-75' : ''}><HomeWidget id={widget.id} title={entry.name} icon={entry.icon} {dashboard} {user} {pinning} onpin={pin} /></div>
+                    <div data-widget-panel inert={editing} class="flex min-w-0 flex-1 flex-col {editing ? 'select-none opacity-75' : ''}"><HomeWidget id={widget.id} title={entry.name} icon={entry.icon} {dashboard} {user} {pinning} onpin={pin} /></div>
                 </section>
             {/if}
         {/each}
@@ -220,3 +220,8 @@
     </div>
     {#snippet footer()}<Button variant="secondary" onclick={() => { picker = false; }}>{m.home_picker_done()}</Button>{/snippet}
 </Modal>
+
+<style>
+    /* Empty next-shift states fill their row just like populated cards. */
+    [data-widget-panel] > :global(*) { flex-grow: 1; }
+</style>

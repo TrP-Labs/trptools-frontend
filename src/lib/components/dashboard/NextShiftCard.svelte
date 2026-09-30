@@ -62,7 +62,7 @@
 	</EmptyState>
 {:else}
 	<div
-		class="card relative overflow-hidden p-5 @lg:p-8"
+		class="card relative flex flex-1 flex-col overflow-hidden p-5"
 		style="background:
 			radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, {next.color} 18%, transparent), transparent 70%),
 			var(--surface);"
@@ -87,7 +87,7 @@
 
 		<a
 			href="/g/{next.groupSlug}"
-			class="mt-2 inline-flex min-w-0 max-w-full items-center gap-2 text-sm text-text-muted
+			class="mt-2 inline-flex min-w-0 self-start max-w-full items-center gap-2 text-sm text-text-muted
 				transition-colors hover:text-text"
 		>
 			<Avatar src={next.groupIcon} name={localizedGroup(next)} size={18} />
@@ -105,7 +105,7 @@
 			{live ? m.home_countdown_remaining() : m.home_countdown_until()} · {formatDateTime(next.start)}
 		</p>
 
-		<div class="mt-6 flex flex-wrap items-center gap-2">
+		<div class="mt-auto flex flex-wrap items-center gap-2 pt-6">
 			<Button href={shiftLink(next)}>
 				{m.home_view_shift()}
 			</Button>

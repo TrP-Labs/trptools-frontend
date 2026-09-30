@@ -1,5 +1,6 @@
 {
   "results": [
+    "Default user/host row sizing, empty states and editor alignment at 1440/1024/768/375/320px",
     "Search, empty results, multi-add, duplicates and focus",
     "Keyboard reorder, position select, resize, remove and cancel",
     "Whole-card desktop drag, failed save retry, pending controls, reload persistence",

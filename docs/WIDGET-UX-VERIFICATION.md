@@ -6,10 +6,13 @@ The editor now keeps a separate draft with explicit Save/Cancel, searchable mult
 
 Public group/shift/route pages separate factual badges from actions. The homepage switch names its destination and includes an icon. Product navigation no longer includes the Discord marketing page. Notifications and Behavior have their own settings pages; join confirmations link to Behavior. The selected settings tab stays visible in the mobile navigation rail.
 
+The sizing follow-up gives cards in each row matching heights, consistent padding and bottom-aligned footer actions. The next-shift card uses the same spacing as other widgets; the host group preview shows two groups with an All groups link. Single-column mobile cards keep their natural heights. This uses CSS with the existing homepage payload, adding no API/database requests or migration.
+
 ## Real browser validation
 
 `bun run test:widgets:ui` passed against the production Docker frontend, real API and isolated PostgreSQL/Valkey storage. It covers:
 
+- Default user/host card and editor alignment at 1440, 1024, 768, 375 and 320px, natural mobile heights, empty states and no horizontal overflow.
 - Search, no results, multiple additions, duplicates and focus.
 - Keyboard arrows, direct position selection, resizing, removing, cancellation and reset.
 - Desktop mouse dragging onto the body of a card and actual CDP touch gestures.

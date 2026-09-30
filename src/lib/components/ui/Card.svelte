@@ -6,6 +6,8 @@
 		description?: string;
 		class?: string;
 		padded?: boolean;
+		/** Optional body layout, for cards that fill a dashboard row. */
+		bodyClass?: string;
 		actions?: Snippet;
 		icon?: Snippet;
 		/**
@@ -22,6 +24,7 @@
 		description,
 		class: className = '',
 		padded = true,
+		bodyClass = '',
 		actions,
 		icon,
 		children
@@ -52,7 +55,7 @@
 	{/if}
 
 	{#if children}
-		<div class={padded ? 'p-5' : ''}>
+		<div class="{padded ? 'p-5' : ''} {bodyClass}">
 			{@render children()}
 		</div>
 	{/if}

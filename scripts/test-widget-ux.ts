@@ -30,6 +30,41 @@ try {
     const page = current = await context.newPage(); page.setDefaultTimeout(15000);
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(origin + '/?view=user');
+    async function checkWidgetRows(mode: string, width: number) {
+        const rows = await page.locator('[data-widget]').evaluateAll(nodes => {
+            const rows = new Map<number, { id: string; top: number; bottom: number; height: number }[]>();
+            for (const node of nodes) {
+                const panel = node.querySelector('[data-widget-panel]')!.firstElementChild!;
+                const rect = panel.getBoundingClientRect(), outer = node.getBoundingClientRect();
+                const key = Math.round(outer.top);
+                rows.set(key, [...(rows.get(key) ?? []), { id: node.getAttribute('data-widget')!, top: rect.top, bottom: rect.bottom, height: rect.height }]);
+            }
+            return [...rows.values()];
+        });
+        for (const row of rows) if (row.length > 1) {
+            assert.ok(Math.max(...row.map(card => card.top)) - Math.min(...row.map(card => card.top)) <= 1, `${mode} ${width} widget tops align`);
+            assert.ok(Math.max(...row.map(card => card.bottom)) - Math.min(...row.map(card => card.bottom)) <= 1, `${mode} ${width} widget bottoms align`);
+        }
+        const geometry = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
+        assert.equal(geometry.width, geometry.scroll, `${mode} ${width} overflow`);
+        return rows.flat();
+    }
+    for (const width of [1440, 1024, 768, 375, 320]) {
+        await page.setViewportSize({ width, height: 1000 });
+        for (const mode of ['user', 'host']) {
+            await page.goto(origin + '/?view=' + mode); await page.getByRole('button', { name: 'Customize', exact: true }).and(page.locator(':enabled')).waitFor();
+            const cards = await checkWidgetRows(mode, width);
+            if (width < 768) assert.ok(new Set(cards.map(card => Math.round(card.height))).size > 1, 'Mobile cards should keep their natural heights');
+            await capture(page, `default-${mode}-${width}`);
+            await page.getByRole('button', { name: 'Customize', exact: true }).click(); await checkWidgetRows(mode + '-editor', width);
+            await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+        }
+    }
+    for (const groupId of fixture.groupIds) { const response = await fetch(apiOrigin + '/users/me/follows/' + groupId, { method: 'PUT', headers, body: JSON.stringify({ following: false }) }); assert.equal(response.status, 200); }
+    await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin + '/?view=user'); await checkWidgetRows('user-empty', 1440); await capture(page, 'default-user-empty-1440');
+    for (const groupId of fixture.groupIds) { const response = await fetch(apiOrigin + '/users/me/follows/' + groupId, { method: 'PUT', headers, body: JSON.stringify({ following: true }) }); assert.equal(response.status, 200); }
+    results.push('Default user/host row sizing, empty states and editor alignment at 1440/1024/768/375/320px');
+    await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin + '/?view=user');
     const customize = page.getByRole('button', { name: 'Customize', exact: true });
     await customize.click();
     const original = await order(page);
@@ -92,7 +127,7 @@ try {
     const staffGroups = page.locator('[data-widget="groups"]');
     await staffGroups.getByRole('button', { name: 'Make North Island Transit your primary group', exact: true }).click();
     await staffGroups.getByRole('button', { name: 'Unpin North Island Transit', exact: true }).waitFor();
-    await page.reload(); await staffGroups.getByRole('button', { name: 'Unpin North Island Transit', exact: true }).click();
+    await page.reload(); await customize.and(page.locator(':enabled')).waitFor(); await staffGroups.getByRole('button', { name: 'Unpin North Island Transit', exact: true }).click();
     await staffGroups.getByRole('button', { name: 'Make North Island Transit your primary group', exact: true }).waitFor();
     await page.goto(origin + '/'); await page.locator('[data-widget="summary"]').waitFor();
     await page.getByRole('button', { name: 'Switch to user homepage' }).click();
@@ -120,7 +155,8 @@ try {
     await capture(page, 'behavior-desktop');
     assert.equal(await page.locator('header a[href="/bot"]').count(), 0);
     results.push('Calendar days, exact signup anchors, signed-up filter, notification and Behavior links, header navigation');
-    await page.goto(origin + '/g/' + fixture.groupSlug + '/route/15');
+    const preferencesReady = page.waitForResponse(response => response.url() === apiOrigin + '/users/me/routes' && response.status() === 200);
+    await page.goto(origin + '/g/' + fixture.groupSlug + '/route/15'); await preferencesReady;
     await page.getByRole('button', { name: 'Favorite or dislike route 15', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Favorite', exact: true }).click();
     await page.getByRole('button', { name: 'You favorited route 15 — press to clear it', exact: true }).waitFor();
