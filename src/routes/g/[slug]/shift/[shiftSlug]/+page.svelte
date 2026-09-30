@@ -6,6 +6,7 @@
 	import GroupCrumb from '$lib/components/layout/GroupCrumb.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import NotificationButton from '$lib/components/users/NotificationButton.svelte';
 	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import { signupTotals } from '$lib/utils/signups';
@@ -90,6 +91,7 @@
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge><IconRepeat size={13} /> {shift.recurrenceText}</Badge>
 					<Badge><IconClock size={13} /> {length}</Badge>
+					<NotificationButton groupId={group.id} eventId={shift.eventId} userId={data.user?.userId} />
 				</div>
 			</div>
 		</div>
@@ -128,7 +130,7 @@
 						</div>
 
 						<div class="border-t border-border-base bg-background-secondary/40 p-4">
-							<SignupSheets
+							<SignupSheets groupId={group.id}
 								sheets={occurrence.sheets}
 								eventId={shift.eventId}
 								occurrence={occurrence.start}

@@ -21,6 +21,7 @@ const API_ERRORS: Record<string, () => string> = {
 	'This bot feature is disabled': () => m.host_auto_hint(),
 	'This event has already been handled': () => m.host_handled_error(),
 	'Bad Request': m.api_error_bad_request,
+	'Service Unavailable': m.api_error_service_unavailable,
 	'Conflict': m.api_error_conflict,
 	'Discord is not configured on this instance': m.api_error_discord_is_not_configured_on_this_instance,
 	'Forbidden': m.api_error_forbidden,

@@ -9,6 +9,7 @@
 		IconPlus,
 		IconUserMinus
 	} from '@tabler/icons-svelte';
+	import NotificationButton from '$lib/components/users/NotificationButton.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import MenuItem from '$lib/components/ui/MenuItem.svelte';
@@ -36,6 +37,7 @@
 	 */
 	interface Props {
 		sheets: SignupSheet[];
+		groupId?: string;
 		eventId: string;
 		occurrence: Date | string;
 		/** The viewer, so their own rows can be marked and withdrawn. */
@@ -58,6 +60,7 @@
 
 	let {
 		sheets,
+		groupId,
 		eventId,
 		occurrence,
 		userId,
@@ -331,6 +334,7 @@
 				</Button>
 			</div>
 		{:else if mySlot}
+			{#if groupId}<NotificationButton {groupId} {eventId} {userId} gentle />{/if}
 			<p class="text-xs text-text-subtle">
 				{m.shifts_signup_sheets_can_only_hold_one_slot_per()}
 			</p>

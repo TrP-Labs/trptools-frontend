@@ -6,6 +6,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import UserChip from '$lib/components/users/UserChip.svelte';
+	import NotificationDeviceCard from '$lib/components/settings/NotificationDeviceCard.svelte';
 	import DiscordAccountCard from '$lib/components/settings/DiscordAccountCard.svelte';
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
@@ -198,6 +199,8 @@
 			</div>
 		</div>
 	</Card>
+
+	<NotificationDeviceCard />
 
 	{#if user.siteRank === 'admin'}
 		<!--
