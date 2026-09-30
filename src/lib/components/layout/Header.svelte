@@ -17,7 +17,6 @@
 		{ href: '/groups', label: m.common_groups() },
 		{ href: '/shifts', label: m.common_shifts() },
 		{ href: '/tools', label: m.layout_header_tools() },
-		{ href: '/bot', label: m.marketing_bot() },
 		{ href: '/dashboard', label: m.common_dashboard() }
 	];
 

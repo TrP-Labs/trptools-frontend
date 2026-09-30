@@ -6,7 +6,10 @@
 		description?: string;
 		class?: string;
 		padded?: boolean;
+		/** Optional body layout, for cards that fill a dashboard row. */
+		bodyClass?: string;
 		actions?: Snippet;
+		icon?: Snippet;
 		/**
 		 * Optional: a card whose whole content is one control puts it in
 		 * `actions`, beside the line of text explaining it, and has no body
@@ -21,7 +24,9 @@
 		description,
 		class: className = '',
 		padded = true,
+		bodyClass = '',
 		actions,
+		icon,
 		children
 	}: Props = $props();
 </script>
@@ -37,7 +42,7 @@
 		>
 			<div class="min-w-0">
 				{#if title}
-					<h2 class="text-base font-semibold text-text">{title}</h2>
+					<h2 class="flex items-center gap-2 text-base font-semibold text-text">{#if icon}<span class="shrink-0 text-text-muted">{@render icon()}</span>{/if}{title}</h2>
 				{/if}
 				{#if description}
 					<p class="mt-1 text-sm text-text-muted">{description}</p>
@@ -50,7 +55,7 @@
 	{/if}
 
 	{#if children}
-		<div class={padded ? 'p-5' : ''}>
+		<div class="{padded ? 'p-5' : ''} {bodyClass}">
 			{@render children()}
 		</div>
 	{/if}

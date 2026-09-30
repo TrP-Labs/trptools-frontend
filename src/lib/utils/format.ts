@@ -79,6 +79,23 @@ export function formatDateTime(value: Date | string, timezone?: string): string 
 	}).format(date);
 }
 
+const calendarFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/** Stable day identity for calendars, including the viewer's time zone. */
+export function calendarKey(value: Date | string): string {
+	const date = typeof value === 'string' ? new Date(value) : value;
+	const zone = resolveZone();
+	const key = zone ?? 'runtime';
+	let formatter = calendarFormatters.get(key);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat('en', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: zone });
+		if (calendarFormatters.size >= 32) calendarFormatters.delete(calendarFormatters.keys().next().value!);
+		calendarFormatters.set(key, formatter);
+	}
+	const parts = formatter.formatToParts(date);
+	return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)!.value).join('-');
+}
+
 export function formatTime(value: Date | string, timezone?: string): string {
 	const date = typeof value === 'string' ? new Date(value) : value;
 	if (Number.isNaN(date.getTime())) return '—';

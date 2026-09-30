@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import { IconPhoto, IconRoute } from '@tabler/icons-svelte';
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
@@ -17,6 +18,8 @@
 	let group = $derived(data.group);
 	let depot = $derived(data.depot);
 </script>
+<PageCounter groupId={group.id} kind="depot_view" targetId={depot.id} />
+
 
 <svelte:head>
 	<title>{localized(depot, 'name')} — {localized(group, 'name')} — TrP Tools</title>

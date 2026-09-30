@@ -71,6 +71,9 @@ export type AdminOverview = Data<ReturnType<Api['admin']['overview']['get']>>;
 export type AdminUser = Data<ReturnType<Api['admin']['users']['get']>>[number];
 export type AuditEntry = Data<ReturnType<ReturnType<Api['groups']>['audit']['get']>>[number];
 
+export type HomeLayout = SessionUser['homeLayout'];
+export type NotificationState = Data<ReturnType<ReturnType<Api['notifications']['groups']>['get']>>;
+
 export type ReportTarget = 'GROUP' | 'ROUTE' | 'DEPOT' | 'MEDIA';
 
 export type ShiftEvent = Data<ReturnType<Api['schedule']['get']>>[number];

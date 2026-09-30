@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { announceDiscordResult } from '$lib/utils/discordLink';
 	import { refreshData } from '$lib/utils/refresh';
@@ -6,6 +7,7 @@
 	import GroupCrumb from '$lib/components/layout/GroupCrumb.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import NotificationButton from '$lib/components/users/NotificationButton.svelte';
 	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import { signupTotals } from '$lib/utils/signups';
@@ -65,6 +67,8 @@
 		[hours > 0 ? `${hours}h` : '', minutes > 0 ? `${minutes}m` : ''].filter(Boolean).join(' ') || '0m'
 	);
 </script>
+<PageCounter groupId={group.id} kind="shift_view" targetId={shift.eventId} />
+
 
 <svelte:head>
 	<title>{localized(shift, 'name')} — {localized(group, 'name')} — TrP Tools</title>
@@ -86,13 +90,14 @@
 			<span class="h-16 w-1.5 shrink-0 rounded-full" style="background: {shift.color}"></span>
 
 			<div class="min-w-0 flex-1">
-				<h1 class="text-3xl font-semibold tracking-tight text-balance">{localized(shift, 'name')}</h1>
+				<h1 class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere">{localized(shift, 'name')}</h1>
 				<div class="mt-3 flex flex-wrap items-center gap-2">
 					<Badge><IconRepeat size={13} /> {shift.recurrenceText}</Badge>
 					<Badge><IconClock size={13} /> {length}</Badge>
 				</div>
 			</div>
 		</div>
+		<div data-page-actions class="mt-6 flex flex-wrap items-center gap-3 border-t border-border-base pt-4"><NotificationButton groupId={group.id} eventId={shift.eventId} userId={data.user?.userId} /></div>
 	</div>
 </section>
 
@@ -112,7 +117,7 @@
 			<ul class="space-y-4">
 				{#each openSignups as occurrence (occurrence.start)}
 					{@const totals = signupTotals(occurrence.sheets)}
-					<li class="card overflow-hidden">
+					<li id="occurrence-{new Date(occurrence.start).getTime()}" class="card scroll-mt-20 overflow-hidden">
 						<div class="flex flex-wrap items-center gap-3 p-4">
 							<span class="h-8 w-1 shrink-0 rounded-full" style="background: {shift.color}"></span>
 							<div class="min-w-0 flex-1">
@@ -128,7 +133,7 @@
 						</div>
 
 						<div class="border-t border-border-base bg-background-secondary/40 p-4">
-							<SignupSheets
+							<SignupSheets groupId={group.id}
 								sheets={occurrence.sheets}
 								eventId={shift.eventId}
 								occurrence={occurrence.start}
@@ -170,7 +175,7 @@
 		{:else}
 			<ul class="space-y-2">
 				{#each data.occurrences as occurrence (occurrence.start)}
-					<li class="card flex flex-wrap items-center gap-3 p-4">
+					<li id={openSignups.some(open => new Date(open.start).getTime() === new Date(occurrence.start).getTime()) ? undefined : `occurrence-${new Date(occurrence.start).getTime()}`} class="card scroll-mt-20 flex flex-wrap items-center gap-3 p-4">
 						<span class="h-8 w-1 shrink-0 rounded-full" style="background: {shift.color}"></span>
 						<div class="min-w-0 flex-1">
 							<p class="font-medium text-text">{formatDateTime(occurrence.start)}</p>

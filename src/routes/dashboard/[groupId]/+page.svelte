@@ -64,6 +64,7 @@
 		classes it emits, so a column count built from a variable produces no
 		CSS at all and the row silently collapses to one column.
 	-->
+	<div class="flex justify-end"><Button size="sm" variant="secondary" href="/dashboard/{group.slug}/statistics">{m.statistics_view()}</Button></div>
 	<div class="grid gap-4 sm:grid-cols-2 {stats.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}">
 		{#each stats as stat (stat.label)}
 			<div class="card flex items-center gap-3 p-4">

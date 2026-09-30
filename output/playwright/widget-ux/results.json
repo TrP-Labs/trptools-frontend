@@ -1,0 +1,14 @@
+{
+  "results": [
+    "Default user/host row sizing, empty states and editor alignment at 1440/1024/768/375/320px",
+    "Search, empty results, multi-add, duplicates and focus",
+    "Keyboard reorder, position select, resize, remove and cancel",
+    "Whole-card desktop drag, failed save retry, pending controls, reload persistence",
+    "Unsaved navigation guard and independent user/host layouts with persisted mode",
+    "Calendar days, exact signup anchors, signed-up filter, notification and Behavior links, header navigation",
+    "Persisted primary group pin and actionable favorite route widget",
+    "Empty homepage recovery and reset in preview",
+    "Real mobile touch drag, position select, saved width and 375/320px layouts"
+  ],
+  "errors": []
+}

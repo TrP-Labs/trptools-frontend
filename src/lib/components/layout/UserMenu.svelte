@@ -39,7 +39,11 @@
 	async function logout() {
 		open = false;
 		try {
-			await api.auth.logout.post();
+			try {
+                const { disableDevice } = await import('$lib/utils/push');
+                await disableDevice();
+            } catch { /* Signing out must still work if device cleanup fails. */ }
+            await api.auth.logout.post();
 			await refreshData();
 			await goto('/');
 			toasts.success(m.layout_user_menu_signed_out());

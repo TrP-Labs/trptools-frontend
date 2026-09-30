@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ScheduleSection from '$lib/components/host/ScheduleSection.svelte';
 	import ObjectPage, { type ObjectSection } from '$lib/components/layout/ObjectPage.svelte';
+	import JoinLinksSection from '$lib/components/settings/JoinLinksSection.svelte';
 	import PageSection from '$lib/components/settings/PageSection.svelte';
 	import VisibilitySection from '$lib/components/settings/VisibilitySection.svelte';
 	import ShiftsSection from '$lib/components/settings/ShiftsSection.svelte';
@@ -40,6 +41,8 @@
 	{#snippet children(section)}
 		{#if section === 'page'}
 			<PageSection {group} />
+		{:else if section === 'join'}
+			<JoinLinksSection {group} />
 		{:else if section === 'visibility'}
 			<VisibilitySection {group} />
 		{:else if section === 'shifts'}

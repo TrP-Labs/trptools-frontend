@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { page } from '$app/state';
 	import { ALL_PERMISSIONS, canAny } from '$lib/utils/permissions';
 	// Tabler still ships class-based Svelte 4 components, so its own `Icon`
@@ -31,6 +32,18 @@
 		items.filter((item) => !item.permissions || canAny(permissions, item.permissions))
 	);
 
+	let rail = $state<HTMLUListElement | null>(null);
+	$effect(() => {
+		// Keep the selected settings/dashboard tab visible in the mobile rail.
+		page.url.pathname;
+		void tick().then(() => {
+			if (!rail || rail.scrollWidth <= rail.clientWidth) return;
+			const active = rail.querySelector<HTMLElement>('[aria-current="page"]');
+			if (!active) return;
+			rail.scrollLeft += active.getBoundingClientRect().left - rail.getBoundingClientRect().left - (rail.clientWidth - active.offsetWidth) / 2;
+		});
+	});
+
 	function isActive(item: SidebarItem) {
 		return item.exact
 			? page.url.pathname === item.href
@@ -49,7 +62,7 @@
 		{title}
 	</p>
 
-	<ul class="flex gap-1 overflow-x-auto px-2 py-2 md:flex-col md:overflow-visible md:px-2 md:py-0">
+	<ul bind:this={rail} class="flex gap-1 overflow-x-auto px-2 py-2 md:flex-col md:overflow-visible md:px-2 md:py-0">
 		{#each visible as item (item.href)}
 			{@const active = isActive(item)}
 			<li class="shrink-0 md:shrink">

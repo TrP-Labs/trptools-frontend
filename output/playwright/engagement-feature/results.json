@@ -1,0 +1,145 @@
+{
+  "results": [
+    {
+      "label": "home-user-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "widget-picker-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "home-host-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "group-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "shift-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "join-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "join-settings-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "statistics-desktop",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "home-user-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "home-host-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "group-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "shift-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "join-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "statistics-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "account-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "widget-picker-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "home-user-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "home-host-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "group-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "shift-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "join-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "statistics-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "account-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "widget-picker-320",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "all-widgets-user-1440",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "all-widgets-host-1440",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "all-widgets-user-375",
+      "width": 375,
+      "scroll": 375
+    },
+    {
+      "label": "all-widgets-host-375",
+      "width": 375,
+      "scroll": 375
+    }
+  ],
+  "errors": []
+}

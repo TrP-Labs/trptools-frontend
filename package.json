@@ -1,7 +1,7 @@
 {
 	"name": "trptools-frontend",
 	"private": true,
-	"version": "3.1.1",
+	"version": "3.2.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -19,7 +19,10 @@
 		"test:worker": "bun run build && bun run scripts/test-worker-runtime.ts",
 		"test": "bun test scripts/*.test.ts",
 		"worker:dev": "wrangler dev --env local",
-		"test:host:ui": "bun run scripts/test-host-ui.ts"
+		"test:host:ui": "bun run scripts/test-host-ui.ts",
+		"test:engagement:ui": "bun run scripts/test-engagement-ui.ts",
+		"test:widgets:ui": "bun run scripts/test-widget-ux.ts",
+		"test:engagement:push": "bun run scripts/test-engagement-push-ui.ts"
 	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",

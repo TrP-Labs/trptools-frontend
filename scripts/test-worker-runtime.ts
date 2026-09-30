@@ -7,6 +7,7 @@ import type { GroupDashboardData, SessionUser, ShiftsPageData } from '../src/lib
 const cookies: string[] = [];
 const requests: string[] = [];
 const user = {
+	instantRedirects: false, homeMode: 'user', homeLayout: { user: [{ id: 'next', width: 2 }], host: [] },
 	userId: '00000000-0000-4000-8000-000000000001',
 	robloxId: 1,
 	createdAt: new Date('2026-01-01T00:00:00Z'),
@@ -25,6 +26,7 @@ const user = {
 const group = {
 	id: '00000000-0000-4000-8000-000000000002', slug: 'worker-test', robloxId: '123',
 	createdAt: new Date('2026-01-01T00:00:00Z'), name: 'Worker Test Group', robloxName: 'Worker Test Group',
+	discordInvite: '', robloxJoinEnabled: true,
 	nameIsCustom: false, description: '', icon: null, members: 10, visibility: 'PUBLIC',
 	tagline: '', about: '', sourceLocale: 'en', translations: {}, accentColor: '#4287f5',
 	bannerImage: null, bannerMediaId: null, showRoutes: true, showShifts: true,
@@ -86,7 +88,7 @@ const api = Bun.serve({
 			if (path === '/dashboard/shifts') return Response.json({ user, groups: [groupSummary], occurrences: [occurrence] } satisfies ShiftsPageData, { headers });
 			if (path === '/dashboard/groups') return Response.json({ user, groups: [] }, { headers });
 			if (path === '/dashboard/home') return Response.json({ user, dashboard: {
-				primaryGroupId: null, groups: [], groupTotal: 0, shifts: [], reviews: []
+				mode: 'user', routePreferences: [], signedUpShifts: [], primaryGroupId: null, groups: [], groupTotal: 0, shifts: [], reviews: []
 			} }, { headers });
 		}
 		if (path.startsWith('/dashboard')) return new Response('Unavailable', { status: 503, headers });

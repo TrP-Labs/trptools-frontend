@@ -22,9 +22,9 @@ export const load: PageServerLoad = async (event) => {
 	const occurrences = event.locals.user
 		? ((
 				await client.schedule.occurrences.get({
-					query: { groupId: data.group.id, eventId: data.shift.eventId, limit: '20' }
+					query: { groupId: data.group.id, eventId: data.shift.eventId, limit: '20', from: new Date(Date.now() - data.shift.duration * 60_000).toISOString() }
 				})
-			).data ?? [])
+			).data ?? []).filter(occurrence => new Date(occurrence.end).getTime() > Date.now())
 		: [];
 
 	if (!event.locals.user) {
@@ -33,7 +33,9 @@ export const load: PageServerLoad = async (event) => {
 
 	return {
 		...data,
-		occurrences: data.occurrences,
+		// Home widgets also link to a shift already running. Keep its personal
+		// sheet and occurrence anchor reachable without another API request.
+		occurrences: [...occurrences.filter(occurrence => !data.occurrences.some(publicOccurrence => new Date(publicOccurrence.start).getTime() === new Date(occurrence.start).getTime())), ...data.occurrences].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
 		signupOccurrences: occurrences,
 		/**
 		 * Whether this viewer's rank reaches any sheet on this shift at all.

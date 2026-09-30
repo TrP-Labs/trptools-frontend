@@ -27,6 +27,7 @@
 		builtIn?: boolean;
 		/** Draws the state's name beside the icon, as the report button does. */
 		showLabel?: boolean;
+		align?: 'left' | 'right';
 		class?: string;
 	}
 
@@ -35,6 +36,7 @@
 		routeName,
 		builtIn = false,
 		showLabel = false,
+		align = 'right',
 		class: className = ''
 	}: Props = $props();
 
@@ -91,7 +93,7 @@
 			? 'border-success/50 bg-success/15 text-success hover:bg-success/25'
 			: preference === 'DISLIKE'
 				? 'border-danger/50 bg-danger/15 text-danger hover:bg-danger/25'
-				: 'border-transparent text-text-subtle hover:bg-background-muted hover:text-text'
+				: `${showLabel ? 'border-border-base bg-background-secondary' : 'border-transparent'} text-text-muted hover:bg-background-muted hover:text-text`
 	);
 
 	/**
@@ -133,7 +135,7 @@
 		{title}
 		onclick={press}
 		class="flex items-center gap-1.5 rounded-md border transition-colors
-			{showLabel ? 'px-2 py-1 text-xs font-medium' : 'size-7 justify-center'}
+			{showLabel ? 'min-h-9 px-3 py-2 text-sm font-medium' : 'size-7 justify-center'}
 			{tone}"
 	>
 		{#if preference === 'FAVORITE'}
@@ -159,7 +161,7 @@
 		<div
 			role="menu"
 			tabindex="-1"
-			class="absolute right-0 z-30 mt-1 min-w-40 overflow-hidden rounded-lg border border-border-base
+			class="absolute {align === 'left' ? 'left-0' : 'right-0'} z-30 mt-1 min-w-40 overflow-hidden rounded-lg border border-border-base
 				bg-background-secondary py-1 shadow-lg"
 		>
 			<button

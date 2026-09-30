@@ -12,6 +12,7 @@ const name = `trptools-runtime-${crypto.randomUUID()}`;
 const errors: string[] = [];
 const cookies: string[] = [];
 const user = {
+	instantRedirects: false, homeMode: 'user', homeLayout: { user: [{ id: 'next', width: 2 }], host: [] },
 	userId: '00000000-0000-4000-8000-000000000001', robloxId: 1,
 	createdAt: new Date('2026-01-01T00:00:00Z'), siteRank: 'user', adminMode: false,
 	primaryGroupId: null, username: 'RuntimeTester', displayName: 'Runtime Tester',

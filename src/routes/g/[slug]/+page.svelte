@@ -1,6 +1,8 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import {
 		IconBuildingWarehouse,
+		IconBrandDiscord,
 		IconCalendarTime,
 		IconChevronDown,
 		IconChevronRight,
@@ -14,13 +16,15 @@
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import RoutePreferenceButton from '$lib/components/routes/RoutePreferenceButton.svelte';
 	import DepotBadge from '$lib/components/depots/DepotBadge.svelte';
+	import NotificationButton from '$lib/components/users/NotificationButton.svelte';
+	import FollowButton from '$lib/components/users/FollowButton.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import RankRoster from '$lib/components/users/RankRoster.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import OverflowMenu from '$lib/components/ui/OverflowMenu.svelte';
 	import MenuItem from '$lib/components/ui/MenuItem.svelte';
-	import ReportButton from '$lib/components/moderation/ReportButton.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { reportDialog } from '$lib/stores/report.svelte';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatDateTime, formatNumber, formatRelative } from '$lib/utils/format';
@@ -74,6 +78,8 @@
 		reportDialog.open({ targetType, targetId, label });
 	}
 </script>
+<PageCounter groupId={group.id} kind="group_view" />
+
 
 <svelte:head>
 	<title>{localized(group, 'name')} — TrP Tools</title>
@@ -111,7 +117,7 @@
 
 			<div class="min-w-0 flex-1">
 				<h1
-					class="text-3xl font-semibold tracking-tight text-balance {group.bannerImage
+					class="text-3xl font-semibold tracking-tight text-balance wrap-anywhere {group.bannerImage
 						? 'text-white'
 						: ''}"
 				>
@@ -132,20 +138,15 @@
 					{#if group.depots.length > 0}
 						<Badge><IconBuildingWarehouse size={13} /> {m.common_depots_count({ count: group.depots.length })}</Badge>
 					{/if}
-					<a
-						href="https://www.roblox.com/groups/{group.robloxId}"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5
-							text-xs transition-colors {group.bannerImage
-							? 'border-white/30 text-white/80 hover:text-white'
-							: 'text-text-muted hover:text-text'}"
-					>
-						{m.g_roblox_group()} <IconExternalLink size={12} />
-					</a>
-
-					<ReportButton targetType="GROUP" targetId={group.id} label={m.g_group()} />
 				</div>
+			</div>
+		</div>
+		<div data-page-actions class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border-base pt-4">
+			<div class="flex flex-wrap items-center gap-2"><FollowButton groupId={group.id} userId={data.user?.userId} />{#if group.showShifts}<NotificationButton groupId={group.id} userId={data.user?.userId} />{/if}</div>
+			<div class="flex flex-wrap items-center gap-2">
+				{#if group.hasDiscordInvite}<Button size="sm" variant="secondary" href="/g/{group.slug}/join/discord"><IconBrandDiscord size={16} />{m.join_on_discord()}</Button>{/if}
+				{#if group.robloxJoinEnabled}<Button size="sm" variant="secondary" href="/g/{group.slug}/join/roblox">{m.g_roblox_group()}<IconExternalLink size={15} /></Button>{/if}
+				<OverflowMenu>{#snippet children(close)}<MenuItem onclick={() => { close(); report('GROUP', group.id, m.g_group()); }}><IconFlag size={15} />{m.moderation_report()}</MenuItem>{/snippet}</OverflowMenu>
 			</div>
 		</div>
 	</div>

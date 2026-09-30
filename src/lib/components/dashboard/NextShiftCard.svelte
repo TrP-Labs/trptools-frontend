@@ -5,6 +5,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
+	import { shiftLink } from '$lib/utils/shiftLink';
 	import type { DashboardShift } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized, localizedGroup } from '$lib/utils/translations';
@@ -20,9 +21,10 @@
 		 * different group than the one on screen.
 		 */
 		rooms?: Record<string, string | null>;
+		mode?: 'user' | 'host';
 	}
 
-	let { shifts, rooms = {} }: Props = $props();
+	let { shifts, rooms = {}, mode = 'host' }: Props = $props();
 
 	// One clock for the card. It is the only thing on the page that has to
 	// re-render every second, so nothing else is allowed to depend on it.
@@ -53,13 +55,14 @@
 {#if !next}
 	<EmptyState
 		title={m.dashboard_next_shift_card_nothing_coming_up()}
-		description={m.dashboard_next_shift_card_no_shift_scheduled_next_fortnight_across()}
+		description={mode === 'host' ? m.widget_host_shifts_empty() : m.widget_no_shifts()}
 	>
 		{#snippet icon()}<IconCalendarPlus size={26} stroke={1.5} />{/snippet}
+		{#snippet action()}<Button variant="secondary" href={mode === 'host' ? '/dashboard' : '/groups'}>{mode === 'host' ? m.home_all_groups() : m.shifts_browse_groups()}</Button>{/snippet}
 	</EmptyState>
 {:else}
 	<div
-		class="card relative overflow-hidden p-6 sm:p-8"
+		class="card relative flex flex-1 flex-col overflow-hidden p-5"
 		style="background:
 			radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, {next.color} 18%, transparent), transparent 70%),
 			var(--surface);"
@@ -84,7 +87,7 @@
 
 		<a
 			href="/g/{next.groupSlug}"
-			class="mt-2 inline-flex min-w-0 max-w-full items-center gap-2 text-sm text-text-muted
+			class="mt-2 inline-flex min-w-0 self-start max-w-full items-center gap-2 text-sm text-text-muted
 				transition-colors hover:text-text"
 		>
 			<Avatar src={next.groupIcon} name={localizedGroup(next)} size={18} />
@@ -92,20 +95,19 @@
 		</a>
 
 		<p
-			class="mt-6 font-mono text-4xl font-semibold text-text tabular-nums sm:text-5xl"
-			aria-live="polite"
+			class="mt-6 font-mono text-4xl font-semibold text-text tabular-nums @lg:text-5xl"
 		>
 			{live
 				? formatCountdown(new Date(next.end).getTime() - now)
 				: formatCountdown(startsIn)}
 		</p>
 		<p class="mt-1.5 text-xs text-text-subtle">
-			{live ? 'remaining' : 'until it starts'} · {formatDateTime(next.start)}
+			{live ? m.home_countdown_remaining() : m.home_countdown_until()} · {formatDateTime(next.start)}
 		</p>
 
-		<div class="mt-6 flex flex-wrap items-center gap-2">
-			<Button href="/g/{next.groupSlug}/shift/{next.slug}">
-				{'View Shift'}
+		<div class="mt-auto flex flex-wrap items-center gap-2 pt-6">
+			<Button href={shiftLink(next)}>
+				{m.home_view_shift()}
 			</Button>
 
 			{#if roomId}
