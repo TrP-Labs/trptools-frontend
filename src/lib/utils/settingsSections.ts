@@ -30,8 +30,8 @@ export interface SettingsSection {
 
 export function settingsSections(): SettingsSection[] {
 	return [
-		{ id: 'join', label: m.join_settings_title(), icon: IconLink, permission: PERM.MANAGE_GROUP },
 		{ id: 'page', label: m.dashboard_settings_section_page(), icon: IconWorld, permission: PERM.MANAGE_GROUP },
+		{ id: 'join', label: m.join_settings_title(), icon: IconLink, permission: PERM.MANAGE_GROUP },
 		{
 			id: 'visibility',
 			label: m.dashboard_settings_section_visibility(),
