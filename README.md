@@ -43,3 +43,19 @@ Translations come from [TrP-Labs/Locales](https://github.com/TrP-Labs/Locales). 
 3. Run `bun run build:node` or build the image, then `bun run test:runtime <image>` for the Docker runtime test.
 
 Images publish for AMD64 and ARM64 on `main`; release tags promote the tested image by digest. MIT — see [LICENSE](./LICENSE).
+
+
+## Personal homepages and engagement
+
+Signed-in users can switch between user and host homepages beside the greeting.
+Each mode has an independent saved widget layout; adding widgets reuses page
+data. Personal shift feeds show explicitly followed groups. Group and shift
+pages offer optional browser reminders, and account settings can revoke this
+browser. Cosmetic join pages explain the external service before continuing;
+instant redirects are an account opt-in.
+
+The group dashboard Statistics page shows anonymous page counts, join-link CTR
+and aggregate route preferences. See [visual verification](output/playwright/engagement-feature/README.md)
+and the sibling backend verification report for API/security tests and CPU
+measurement limits. `test:engagement:ui` and `test:engagement:push` require the
+isolated fixture described there; they never use production accounts.
