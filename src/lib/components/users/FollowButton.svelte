@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { untrack } from 'svelte';
     import { IconCheck, IconPlus } from '@tabler/icons-svelte';
     import Button from '$lib/components/ui/Button.svelte';
     import { engagement } from '$lib/stores/engagement.svelte';
@@ -10,7 +10,7 @@
     let choice = $derived(engagement(userId ?? '', groupId));
     let following = $derived(choice.data?.following ?? false);
     let busy = $state(false);
-    onMount(() => { if (userId) void choice.load(); });
+    $effect(() => { if (userId) { const current = choice; untrack(() => void current.load()); } });
     async function toggle() {
         busy = true;
         try {

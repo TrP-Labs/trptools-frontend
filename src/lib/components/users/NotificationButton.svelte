@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { untrack } from 'svelte';
     import { IconBell, IconBellCheck } from '@tabler/icons-svelte';
     import Button from '$lib/components/ui/Button.svelte';
     import { engagement } from '$lib/stores/engagement.svelte';
@@ -15,13 +15,19 @@
     let supported = $state(true);
     let notice = $state('');
     let deviceReady = $state(false);
-    onMount(async () => {
+    $effect(() => {
+        const current = choice, account = userId;
         supported = pushSupported();
-        if (userId) await choice.load();
-        if (supported) {
-            const registration = await navigator.serviceWorker.getRegistration('/');
-            deviceReady = Boolean(await registration?.pushManager.getSubscription()) && localStorage.getItem('trptools:push-account') === userId;
-        }
+        untrack(() => { void (async () => {
+            if (account) await current.load();
+            if (pushSupported()) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration('/');
+                    const subscription = await registration?.pushManager.getSubscription();
+                    deviceReady = Boolean(subscription) && localStorage.getItem('trptools:push-account') === account;
+                } catch { deviceReady = false; }
+            }
+        })(); });
     });
     async function enableThisDevice() {
         if (!choice.data?.publicKey) return;

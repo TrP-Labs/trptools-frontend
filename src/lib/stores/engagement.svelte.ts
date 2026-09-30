@@ -20,6 +20,13 @@ export function engagement(userId: string, groupId: string, eventId?: string) {
         },
         update(patch: Partial<NotificationState>) {
             if (states[key]?.data) Object.assign(states[key]?.data, patch);
+            // Group-wide choices stay consistent on already visited shift pages.
+            for (const other of Object.keys(states)) {
+                if (other !== key && other.startsWith(`${userId}:${groupId}:`) && states[other]?.data) {
+                    if (patch.following !== undefined) states[other].data!.following = patch.following;
+                    if (patch.groupReminder !== undefined) states[other].data!.groupReminder = patch.groupReminder;
+                }
+            }
         }
     };
 }
