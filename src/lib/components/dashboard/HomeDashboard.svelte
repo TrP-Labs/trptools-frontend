@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { IconArrowDown, IconArrowUp, IconGripVertical, IconPlus, IconX, IconAdjustments } from '@tabler/icons-svelte';
     import Button from '$lib/components/ui/Button.svelte';
@@ -11,6 +12,8 @@
     import { m } from '$lib/paraglide/messages.js';
     import type { DashboardData, HomeLayout, SessionUser } from '$lib/api/types';
     let { dashboard, user }: { dashboard: DashboardData; user: SessionUser } = $props();
+    let ready = $state(false);
+    onMount(() => { ready = true; });
     let mode = $derived(dashboard.mode);
     let catalog = $derived(widgetCatalog(mode));
     // svelte-ignore state_referenced_locally
@@ -76,7 +79,7 @@
         <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-3">
                 <h1 class="text-2xl font-semibold tracking-tight wrap-anywhere">{m.home_greeting({ greeting, name: user.displayName ?? user.username ?? m.home_there() })}</h1>
-                <Button size="sm" variant="secondary" loading={switching} disabled={editing} onclick={switchMode} aria-label={mode === 'user' ? m.home_switch_host() : m.home_switch_user()}>{mode === 'user' ? m.home_user_mode() : m.home_host_mode()}</Button>
+                <Button size="sm" variant="secondary" loading={switching} disabled={!ready || editing} onclick={switchMode} aria-label={mode === 'user' ? m.home_switch_host() : m.home_switch_user()}>{mode === 'user' ? m.home_user_mode() : m.home_host_mode()}</Button>
             </div>
             <p class="mt-2 text-sm text-text-muted">{mode === 'user' ? m.home_user_description() : m.home_host_description()}</p>
         </div>
@@ -86,7 +89,7 @@
                 <Button size="sm" variant="secondary" onclick={() => { layout = structuredClone(user.homeLayout); editing = false; }}>{m.common_cancel()}</Button>
                 <Button size="sm" loading={saving} onclick={save}>{m.home_done_editing()}</Button>
             {:else}
-                <Button size="sm" variant="secondary" onclick={() => { editing = true; }}><IconAdjustments size={16} />{m.home_customize()}</Button>
+                <Button size="sm" variant="secondary" disabled={!ready} onclick={() => { editing = true; }}><IconAdjustments size={16} />{m.home_customize()}</Button>
             {/if}
         </div>
     </header>

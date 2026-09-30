@@ -47,7 +47,7 @@
 {:else}
     <Card {title}>
         {#if id === 'my-shifts' || id === 'shifts' || id === 'today'}
-            {#if listed.length}<ShiftList shifts={listed} />
+            {#if listed.length}<ShiftList shifts={listed.slice(0, 5)} />
             {:else}{@render empty(id === 'my-shifts' ? m.widget_no_signups() : m.widget_no_shifts(), '/groups', m.follow_action())}{/if}
             {#if listed.length}<a href="/shifts" class="mt-3 inline-flex text-sm text-accent hover:underline">{m.home_all_shifts()}</a>{/if}
         {:else if id === 'following'}
