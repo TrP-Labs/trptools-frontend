@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconKey, IconPalette, IconUser } from '@tabler/icons-svelte';
+	import { IconBell, IconExternalLink, IconKey, IconPalette, IconUser } from '@tabler/icons-svelte';
 	import Sidebar, { type SidebarItem } from '$lib/components/layout/Sidebar.svelte';
 	import type { LayoutProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -18,6 +18,8 @@
 			? [
 					{ href: '/settings', label: m.common_account(), icon: IconUser, exact: true },
 					{ href: '/settings/appearance', label: m.settings_appearance(), icon: IconPalette },
+					{ href: '/settings/notifications', label: m.settings_notifications(), icon: IconBell },
+					{ href: '/settings/behavior', label: m.settings_behavior(), icon: IconExternalLink },
 					{ href: '/settings/api-keys', label: m.settings_api_keys(), icon: IconKey }
 				]
 			: [{ href: '/settings/appearance', label: m.settings_appearance(), icon: IconPalette }]
