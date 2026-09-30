@@ -35,6 +35,7 @@ try {
     await page.getByRole('dialog').waitFor();
     await check('widget-picker-desktop');
     if (await page.getByRole('dialog').getByRole('button', { name: /Local time/ }).isEnabled()) await page.getByRole('dialog').getByRole('button', { name: /Local time/ }).click(); else await page.getByRole('button', { name: 'Close', exact: true }).click();
+    if (await page.getByRole('dialog').isVisible()) await page.getByRole('dialog').getByRole('button', { name: 'Done', exact: true }).click();
     await page.locator('[data-widget="clock"]').waitFor();
     const before = await page.locator('[data-widget]').evaluateAll(nodes => nodes.map(n => n.getAttribute('data-widget')));
     await page.locator('[data-widget="clock"]').getByRole('button', { name: /Move.*up/ }).click();
@@ -76,7 +77,7 @@ try {
         for (const [path, label] of [
             ['/?view=user', 'home-user'], ['/?view=host', 'home-host'], ['/g/' + fixture.groupSlug, 'group'],
             ['/g/' + fixture.groupSlug + '/shift/evening-service', 'shift'], ['/g/' + fixture.groupSlug + '/join/discord', 'join'],
-            ['/dashboard/' + fixture.groupSlug + '/statistics', 'statistics'], ['/settings', 'account']
+            ['/dashboard/' + fixture.groupSlug + '/statistics', 'statistics'], ['/settings', 'account'], ['/settings/notifications', 'notifications'], ['/settings/behavior', 'behavior'], ['/g/' + fixture.groupSlug + '/route/15', 'route']
         ]) {
             await page.goto(origin + path); await page.locator('main').waitFor();
             await check(`${label}-${width}`);
