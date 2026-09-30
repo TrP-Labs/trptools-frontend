@@ -10,6 +10,9 @@
     import type { RouteShape } from '$lib/api/types';
     let { data }: PageProps = $props();
     let stats = $derived(data.statistics);
+    // Eden revives ISO calendar dates as Date objects, even for a string schema.
+    // Keep chart labels in UTC instead of rendering Date.toString() in the viewer's zone.
+    function calendarDay(value: string | Date) { return value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10); }
     let maximum = $derived(Math.max(1, ...stats.daily.map(day => day.groupViews)));
     let tiles = $derived([
         { label: m.statistics_group_views(), value: stats.totals.groupViews, previous: stats.previous.groupViews, icon: IconEye },
@@ -30,8 +33,8 @@
     </div>
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{#each tiles as tile}<div class="card min-w-0 p-4"><div class="mb-3 flex items-center gap-2 text-text-muted"><tile.icon size={17} /><p class="text-xs">{tile.label}</p></div><p class="text-2xl font-semibold text-text tabular-nums">{formatNumber(tile.value)}</p>{#if tile.previous !== null}<p class="mt-1 text-xs text-text-subtle">{m.statistics_previous({ count: formatNumber(tile.previous) })}</p>{/if}</div>{/each}</div>
     <Card title={m.statistics_traffic()} description={m.statistics_traffic_description()}>
-        <div class="flex h-36 items-end gap-0.5 overflow-hidden" role="img" aria-label={m.statistics_traffic_label({ days: stats.days, count: stats.totals.groupViews })}>{#each stats.daily as day}<div class="min-w-0 flex-1 rounded-t bg-accent/70 transition-colors hover:bg-accent" style:height="{Math.max(2, day.groupViews / maximum * 100)}%" title="{day.day}: {day.groupViews}"></div>{/each}</div>
-        <div class="mt-2 flex justify-between text-xs text-text-subtle"><span>{stats.daily[0].day}</span><span>{stats.daily.at(-1)?.day}</span></div>
+        <div class="flex h-36 items-end gap-0.5 overflow-hidden" role="img" aria-label={m.statistics_traffic_label({ days: stats.days, count: stats.totals.groupViews })}>{#each stats.daily as day}<div class="min-w-0 flex-1 rounded-t bg-accent/70 transition-colors hover:bg-accent" style:height="{Math.max(2, day.groupViews / maximum * 100)}%" title="{calendarDay(day.day)}: {day.groupViews}"></div>{/each}</div>
+        <div class="mt-2 flex justify-between text-xs text-text-subtle"><span>{calendarDay(stats.daily[0].day)}</span><span>{calendarDay(stats.daily.at(-1)?.day ?? '')}</span></div>
         <div class="mt-5 grid grid-cols-3 gap-3 border-t border-border-base pt-4">{#each [{ label: m.common_routes(), count: stats.totals.routeViews }, { label: m.common_depots(), count: stats.totals.depotViews }, { label: m.common_shifts(), count: stats.totals.shiftViews }] as item}<div><p class="text-lg font-semibold text-text">{formatNumber(item.count)}</p><p class="text-xs text-text-muted">{item.label}</p></div>{/each}</div>
     </Card>
     <Card title={m.statistics_links()} description={m.statistics_links_description()}>
