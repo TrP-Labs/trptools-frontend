@@ -69,6 +69,10 @@
 					<Badge tone="accent">{m.g_route_target_share({ share: formatShare(route.targetShare) })}</Badge>
 					{#if !route.autoAssign}<Badge tone="warning">{m.g_route_assigned_by_hand()}</Badge>{/if}
 
+				</div>
+			</div>
+		</div>
+		<div data-page-actions class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border-base pt-4">
 					<!--
 						Labelled here, unlike the icon on a route card: there is
 						room for it, and this is where somebody reading about a
@@ -80,12 +84,11 @@
 							routeName={localized(route, 'name')}
 							builtIn={route.builtIn}
 							showLabel
+							align="left"
 						/>
 					{/if}
 
 					<ReportButton targetType="ROUTE" targetId={route.id} label={m.g_report_label_route({ route: localized(route, 'name') })} />
-				</div>
-			</div>
 		</div>
 	</div>
 </section>
