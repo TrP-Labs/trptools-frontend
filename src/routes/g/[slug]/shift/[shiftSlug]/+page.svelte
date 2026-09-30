@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { announceDiscordResult } from '$lib/utils/discordLink';
 	import { refreshData } from '$lib/utils/refresh';
@@ -66,6 +67,8 @@
 		[hours > 0 ? `${hours}h` : '', minutes > 0 ? `${minutes}m` : ''].filter(Boolean).join(' ') || '0m'
 	);
 </script>
+<PageCounter groupId={group.id} kind="shift_view" targetId={shift.eventId} />
+
 
 <svelte:head>
 	<title>{localized(shift, 'name')} — {localized(group, 'name')} — TrP Tools</title>

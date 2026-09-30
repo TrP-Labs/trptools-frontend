@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import {
 		IconBuildingWarehouse,
 		IconCalendarTime,
@@ -76,6 +77,8 @@
 		reportDialog.open({ targetType, targetId, label });
 	}
 </script>
+<PageCounter groupId={group.id} kind="group_view" />
+
 
 <svelte:head>
 	<title>{localized(group, 'name')} — TrP Tools</title>

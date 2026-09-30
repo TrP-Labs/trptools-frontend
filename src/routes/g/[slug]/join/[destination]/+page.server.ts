@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { serverApi } from '$lib/api/server';
 import { m } from '$lib/paraglide/messages.js';
 import type { PageServerLoad } from './$types';
@@ -9,6 +9,5 @@ export const load: PageServerLoad = async (event) => {
     if (!data) error(apiError?.status === 404 ? 404 : 502, m.join_unavailable());
     // This is a personal preference; never cache the redirect for another reader.
     event.setHeaders({ 'cache-control': 'private, no-store' });
-    if (event.locals.user?.instantRedirects) redirect(303, data.url);
-    return { join: data };
+    return { join: data, instant: event.locals.user?.instantRedirects ?? false };
 };

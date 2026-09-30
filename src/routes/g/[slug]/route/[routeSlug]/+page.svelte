@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageCounter from '$lib/components/users/PageCounter.svelte';
 	import { IconBuildingWarehouse, IconPhoto } from '@tabler/icons-svelte';
 	import RouteBadge from '$lib/components/routes/RouteBadge.svelte';
 	import RoutePreferenceButton from '$lib/components/routes/RoutePreferenceButton.svelte';
@@ -19,6 +20,8 @@
 	let group = $derived(data.group);
 	let route = $derived(data.route);
 </script>
+<PageCounter groupId={group.id} kind="route_view" targetId={route.id} />
+
 
 <svelte:head>
 	<title>
