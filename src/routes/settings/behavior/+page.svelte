@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import PageHeader from '$lib/components/ui/PageHeader.svelte';
     import Card from '$lib/components/ui/Card.svelte';
     import Button from '$lib/components/ui/Button.svelte';
@@ -12,6 +13,8 @@
     // svelte-ignore state_referenced_locally
     let instantRedirects = $state(data.user?.instantRedirects ?? false);
     let saving = $state(false);
+    let ready = $state(false);
+    onMount(() => { ready = true; });
     async function save() {
         if (saving) return;
         saving = true;
@@ -27,6 +30,6 @@
 <svelte:head><title>{m.settings_behavior()} — TrPTools</title></svelte:head>
 <PageHeader title={m.settings_behavior()} description={m.settings_behavior_description()} />
 <Card title={m.join_account_title()} description={m.join_account_description()}>
-    <Toggle bind:checked={instantRedirects} disabled={saving} label={m.join_instant_redirects()} description={m.join_instant_description()} />
-    {#snippet actions()}<Button loading={saving} onclick={save}>{m.common_save()}</Button>{/snippet}
+    <Toggle bind:checked={instantRedirects} disabled={!ready || saving} label={m.join_instant_redirects()} description={m.join_instant_description()} />
+    {#snippet actions()}<Button disabled={!ready} loading={saving} onclick={save}>{m.common_save()}</Button>{/snippet}
 </Card>

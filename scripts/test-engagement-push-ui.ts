@@ -50,7 +50,7 @@ try {
     await page.screenshot({ path: '/tmp/trptools-engagement-visual/shift-reminders-enabled-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 375, height: 812 });
     await page.screenshot({ path: '/tmp/trptools-engagement-visual/shift-reminders-enabled-375.png', fullPage: true });
-    await page.goto(`${origin}/settings`);
+    await page.goto(`${origin}/settings/notifications`);
     await page.getByRole('button', { name: 'Turn off this device', exact: true }).click();
     await page.getByText('Enable reminders on a group or shift page to set up this browser.', { exact: true }).waitFor();
     assert.equal(await page.evaluate(async () => Boolean(await (await navigator.serviceWorker.getRegistration('/'))?.pushManager.getSubscription())), false);
