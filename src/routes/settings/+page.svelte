@@ -33,6 +33,9 @@
 	// svelte-ignore state_referenced_locally
 	let discord = $state<DiscordAccount | null>(data.user?.discord ?? null);
 	let savingVisibility = $state(false);
+	// svelte-ignore state_referenced_locally
+	let instantRedirects = $state(data.user?.instantRedirects ?? false);
+	let savingRedirects = $state(false);
 	let loaded = $state(false);
 
 	// Mirrors the session rather than being seeded once, so the switch follows
@@ -199,6 +202,11 @@
 			</div>
 		</div>
 	</Card>
+
+    <Card title={m.join_account_title()} description={m.join_account_description()}>
+        <Toggle bind:checked={instantRedirects} label={m.join_instant_redirects()} description={m.join_instant_description()} />
+        {#snippet actions()}<Button loading={savingRedirects} onclick={() => save({ instantRedirects }, value => savingRedirects = value)}>{m.common_save()}</Button>{/snippet}
+    </Card>
 
 	<NotificationDeviceCard />
 

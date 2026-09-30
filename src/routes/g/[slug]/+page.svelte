@@ -134,9 +134,8 @@
 					{#if group.depots.length > 0}
 						<Badge><IconBuildingWarehouse size={13} /> {m.common_depots_count({ count: group.depots.length })}</Badge>
 					{/if}
-					<a
-						href="https://www.roblox.com/groups/{group.robloxId}"
-						target="_blank"
+					{#if group.robloxJoinEnabled}<a
+						href="/g/{group.slug}/join/roblox"
 						rel="noopener noreferrer"
 						class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5
 							text-xs transition-colors {group.bannerImage
@@ -144,7 +143,8 @@
 							: 'text-text-muted hover:text-text'}"
 					>
 						{m.g_roblox_group()} <IconExternalLink size={12} />
-					</a>
+					</a>{/if}
+					{#if group.hasDiscordInvite}<a class="inline-flex items-center gap-1.5 rounded-full border border-border-base px-2.5 py-0.5 text-xs text-accent hover:underline" href="/g/{group.slug}/join/discord">{m.join_on_discord()} <IconExternalLink size={12} /></a>{/if}
 
 					<FollowButton groupId={group.id} userId={data.user?.userId} />
 					{#if group.showShifts}<NotificationButton groupId={group.id} userId={data.user?.userId} />{/if}
