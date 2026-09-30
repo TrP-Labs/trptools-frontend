@@ -22,9 +22,10 @@
 		/** The group whose pin is saving, or null. */
 		pinning: string | null;
 		onpin: (groupId: string) => void;
+		embedded?: boolean;
 	}
 
-	let { group, primary, pinning, onpin }: Props = $props();
+	let { group, primary, pinning, onpin, embedded = false }: Props = $props();
 
 	/**
 	 * The links under a card are the pages this rank can actually open.
@@ -77,7 +78,7 @@
 	every other card off the side of the page with it.
 -->
 <article
-	class="card relative flex min-w-0 flex-col p-5 transition-colors hover:border-border-strong
+	class="relative flex min-w-0 flex-col {embedded ? 'border-b border-border-base pb-4 last:border-b-0 last:pb-0' : 'card p-5 transition-colors hover:border-border-strong'}
 		{primary ? 'border-accent/50' : ''}"
 >
 	<div class="flex items-start gap-3">

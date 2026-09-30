@@ -7,6 +7,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { localized } from '$lib/utils/translations';
 	import { localizedGroup } from '$lib/utils/translations';
+	import { shiftLink } from '$lib/utils/shiftLink';
 
 	interface Props {
 		shifts: DashboardShift[];
@@ -23,7 +24,7 @@
 	{#each visible as shift (shift.groupId + shift.eventId + shift.start)}
 		<li class="min-w-0">
 			<a
-				href="/g/{shift.groupSlug}/shift/{shift.slug}"
+				href={shiftLink(shift)}
 				class="flex items-center gap-3 rounded-lg border border-border-base bg-background-secondary p-3
 					transition-colors hover:border-accent/50"
 			>
@@ -34,16 +35,17 @@
 					<span class="mt-0.5 flex min-w-0 items-center gap-1.5">
 						<Avatar src={shift.groupIcon} name={localizedGroup(shift)} size={14} />
 						<span class="truncate text-xs text-text-muted">
-							{localizedGroup(shift)} · {formatDateTime(shift.start)}
+							{localizedGroup(shift)}
 						</span>
 					</span>
+					<span class="mt-1 block text-xs text-text-subtle">{formatDateTime(shift.start)}</span>
 				</div>
 
 				{#if shift.signedUp}
 					<Badge tone="accent"><IconCheck size={12} /> {m.dashboard_shift_list_in()}</Badge>
 				{/if}
 
-				<span class="hidden shrink-0 text-xs text-text-subtle sm:block">
+				<span class="hidden shrink-0 text-xs text-text-subtle @lg:block">
 					{formatRelative(shift.start)}
 				</span>
 			</a>

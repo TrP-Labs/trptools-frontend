@@ -5,7 +5,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/users/Avatar.svelte';
-	import { formatDateTime, formatRelative } from '$lib/utils/format';
+	import { page } from '$app/state';
+	import { formatDate, calendarKey, formatDateTime, formatRelative } from '$lib/utils/format';
 	import { loginUrl } from '$lib/api/client';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -14,11 +15,13 @@
 	let { data }: PageProps = $props();
 
 	/** Groups occurrences under a day heading. */
+	let onlySignedUp = $derived(page.url.searchParams.get('signedUp') === '1');
+	let visibleOccurrences = $derived(onlySignedUp ? data.occurrences.filter(occurrence => occurrence.signedUp) : data.occurrences);
 	let byDay = $derived.by(() => {
 		const days = new Map<string, typeof data.occurrences>();
 
-		for (const occurrence of data.occurrences) {
-			const key = new Date(occurrence.start).toDateString();
+		for (const occurrence of visibleOccurrences) {
+			const key = calendarKey(occurrence.start);
 			days.set(key, [...(days.get(key) ?? []), occurrence]);
 		}
 
@@ -32,8 +35,9 @@
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-10">
-	<PageHeader title={m.common_shifts()} description={m.follow_shifts_description()} />
+	<PageHeader title={onlySignedUp ? m.widget_my_shifts() : m.common_shifts()} description={m.follow_shifts_description()} />
 
+	{#if onlySignedUp}<Button href="/shifts" size="sm" variant="secondary" class="mb-5">{m.home_all_shifts()}</Button>{/if}
 	{#if !data.signedIn}
 		<EmptyState
 			title={m.shifts_sign_see_shifts()}
@@ -44,7 +48,7 @@
 				<Button href={loginUrl()} data-sveltekit-reload>{m.common_sign_with_roblox()}</Button>
 			{/snippet}
 		</EmptyState>
-	{:else if data.occurrences.length === 0}
+	{:else if visibleOccurrences.length === 0}
 		<EmptyState
 			title={m.common_nothing_scheduled()}
 			description={data.groups.length === 0
@@ -61,11 +65,7 @@
 			{#each byDay as [day, occurrences] (day)}
 				<section>
 					<h2 class="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">
-						{new Date(day).toLocaleDateString(undefined, {
-							weekday: 'long',
-							day: 'numeric',
-							month: 'long'
-						})}
+						{formatDate(new Date(day + 'T12:00:00Z'), 'UTC')}
 					</h2>
 
 					<ul class="space-y-2">
@@ -81,7 +81,7 @@
 									land on a 403.
 								-->
 								<a
-									href="/g/{occurrence.groupSlug}/shift/{occurrence.slug}"
+									href="/g/{occurrence.groupSlug}/shift/{occurrence.slug}#occurrence-{new Date(occurrence.start).getTime()}"
 									class="card flex items-center gap-3 p-4 transition-colors hover:border-border-strong"
 								>
 									<span
@@ -94,9 +94,10 @@
 										<div class="mt-0.5 flex items-center gap-1.5">
 											<Avatar src={occurrence.groupIcon} name={occurrence.groupName} size={14} />
 											<span class="truncate text-xs text-text-muted">
-												{occurrence.groupName} · {formatDateTime(occurrence.start)}
+												{occurrence.groupName}
 											</span>
 										</div>
+										<p class="mt-1 text-xs text-text-muted">{formatDateTime(occurrence.start)}</p>
 									</div>
 
 									<div class="flex shrink-0 items-center gap-2">

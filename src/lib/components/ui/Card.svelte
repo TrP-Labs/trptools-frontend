@@ -7,6 +7,7 @@
 		class?: string;
 		padded?: boolean;
 		actions?: Snippet;
+		icon?: Snippet;
 		/**
 		 * Optional: a card whose whole content is one control puts it in
 		 * `actions`, beside the line of text explaining it, and has no body
@@ -22,6 +23,7 @@
 		class: className = '',
 		padded = true,
 		actions,
+		icon,
 		children
 	}: Props = $props();
 </script>
@@ -37,7 +39,7 @@
 		>
 			<div class="min-w-0">
 				{#if title}
-					<h2 class="text-base font-semibold text-text">{title}</h2>
+					<h2 class="flex items-center gap-2 text-base font-semibold text-text">{#if icon}<span class="shrink-0 text-text-muted">{@render icon()}</span>{/if}{title}</h2>
 				{/if}
 				{#if description}
 					<p class="mt-1 text-sm text-text-muted">{description}</p>

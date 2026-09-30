@@ -59,7 +59,7 @@
 		{@render children()}
 	</a>
 {:else}
-	<button class={classes} disabled={loading || (rest as HTMLButtonAttributes).disabled} {...rest as HTMLButtonAttributes}>
+	<button {...rest as HTMLButtonAttributes} class={classes} disabled={loading || (rest as HTMLButtonAttributes).disabled} aria-busy={loading || undefined}>
 		{#if loading}
 			<span
 				class="size-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
