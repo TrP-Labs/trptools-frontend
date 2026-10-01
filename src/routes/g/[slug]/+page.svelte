@@ -366,12 +366,26 @@
 		to document order as the right-hand column.
 	-->
 	<aside class="order-first min-w-0 space-y-10 lg:order-none lg:col-span-1">
-		<!--
-			Applications lead the column, above the schedule, on every width —
-			they are the one thing on this page aimed at somebody who is not
-			staff yet, and a group only ever has a couple open, so they are
-			listed in full rather than behind a "show more".
-		-->
+		{#if group.claimableRanks.length > 0}
+			<section>
+				<h2 class="mb-3 text-lg font-semibold">{m.claimables_title()}</h2>
+				<ul class="space-y-3">
+					{#each group.claimableRanks as claim (claim.id)}
+						<li class="card min-w-0 overflow-hidden">
+							<a href="/g/{group.slug}/claim/{claim.slug}" class="flex items-start gap-3 p-4 transition-colors hover:bg-background-secondary/60">
+								<span class="mt-1 h-10 w-1 shrink-0 rounded-full" style="background: {claim.color}"></span>
+								<div class="min-w-0 flex-1">
+									<p class="font-medium text-text wrap-anywhere">{localized(claim, 'name')}</p>
+									<p class="mt-0.5 text-sm text-text-muted wrap-anywhere">{m.claimables_receive({ rank: claim.rankName ?? claim.name })}</p>
+									{#if localized(claim, 'description')}<p class="mt-0.5 line-clamp-2 text-xs text-text-subtle wrap-anywhere">{localized(claim, 'description')}</p>{/if}
+								</div>
+								<IconChevronRight size={16} class="mt-0.5 shrink-0 text-text-subtle" />
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
 		{#if group.openApplications.length > 0}
 			<section>
 				<h2 class="mb-3 text-lg font-semibold">{m.common_applications()}</h2>
