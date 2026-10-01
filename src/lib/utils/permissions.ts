@@ -35,7 +35,8 @@ export const PERM = {
 	MANAGE_SIGNUPS: 1 << 16,
 	OVERRIDE_SIGNUPS: 1 << 17,
 	EDIT_SIGNUPS: 1 << 18,
-	CLOSE_ROOM: 1 << 19
+	MANAGE_CLAIMABLES: 1 << 20,
+    CLOSE_ROOM: 1 << 19
 } as const;
 
 export type PermissionFlag = (typeof PERM)[keyof typeof PERM];
@@ -186,6 +187,7 @@ export function permissionGroups(): PermissionGroup[] {
 					label: m.permission_manage_ranks(),
 					description: m.permission_manage_ranks_hint()
 				},
+				{ flag: PERM.MANAGE_CLAIMABLES, label: m.claimables_permission(), description: m.claimables_permission_hint() },
 				{
 					flag: PERM.MANAGE_APPLICATIONS,
 					label: m.permission_manage_applications(),

@@ -5,6 +5,7 @@
 		IconCalendarTime,
 		IconClipboardList,
 		IconClipboardText,
+		IconAward,
 		IconExternalLink,
 		IconHome,
 		IconChartBar,
@@ -51,6 +52,7 @@
 		{ href: `${base}/routes`, label: m.common_routes(), icon: IconRoute, permissions: [PERM.MANAGE_ROUTES] },
 		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, permissions: [PERM.MANAGE_DEPOTS] },
 		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, permissions: [PERM.MANAGE_RANKS] },
+		{ href: `${base}/claimables`, label: m.claimables_title(), icon: IconAward, permissions: [PERM.MANAGE_CLAIMABLES] },
 		{
 			href: `${base}/applications`,
 			label: m.common_applications(),

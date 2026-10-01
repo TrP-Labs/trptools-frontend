@@ -17,6 +17,11 @@ import { m } from '$lib/paraglide/messages.js';
  * caller shows what the server said, which is always at least true.
  */
 const API_ERRORS: Record<string, () => string> = {
+	'This claimable rank is unavailable': m.claimables_unavailable,
+	'You do not meet the requirements for this rank': m.claimables_ineligible,
+	'The group needs to reconnect Roblox rank changes': m.claimables_connection_error,
+	'Roblox could not change your rank. Check your rank and try again': m.claimables_rank_error,
+	'You can only offer ranks and rank limits below your own Roblox rank': m.claimables_unsafe,
 	'Discord is not connected for this group': () => m.host_bot_unavailable(),
 	'This bot feature is disabled': () => m.host_auto_hint(),
 	'This event has already been handled': () => m.host_handled_error(),
