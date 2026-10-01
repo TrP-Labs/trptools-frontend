@@ -21,8 +21,23 @@
     let options = $derived([{ value: '', label: m.claimables_rank() }, ...data.ranks.map(rank => ({ value: rank.id, label: rank.name }))]);
     afterNavigate(() => consumeUrlMarkers(['roblox'], values => {
         if (values.roblox === 'verified') toasts.success(m.claimables_verified());
-        else if (values.roblox === 'wrong-account') toasts.error(m.claimables_wrong_account());
-        else if (values.roblox) toasts.error(m.claimables_oauth_failed());
+        else if (values.roblox) {
+            const messages: Record<string, string> = {
+                'wrong-account': m.claimables_wrong_account(),
+                'expired': m.claimables_oauth_expired(),
+                'state-missing': m.claimables_oauth_cookies(),
+                'state-mismatch': m.claimables_oauth_cookies(),
+                'verifier-missing': m.claimables_oauth_cookies(),
+                'scope-denied': m.claimables_oauth_scope_denied(),
+                'scope-check-failed': m.claimables_oauth_scope_check_failed(),
+                'state-store-failed': m.claimables_oauth_verification_failed(),
+                'verification-failed': m.claimables_oauth_verification_failed(),
+                'callback-incomplete': m.claimables_oauth_failed(),
+                'denied': m.claimables_oauth_failed()
+            };
+            console.warn('[claimables:oauth] callback failed', { reason: Object.hasOwn(messages, values.roblox) ? values.roblox : 'unknown' });
+            toasts.error(Object.hasOwn(messages, values.roblox) ? messages[values.roblox] : m.claimables_oauth_failed());
+        }
     }));
     async function create() {
         busy = true;
