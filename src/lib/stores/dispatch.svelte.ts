@@ -26,6 +26,9 @@ export class DispatchRoom {
 		if (this.#roomId === roomId && this.#source) return;
 
 		this.disconnect();
+		this.host = null;
+		this.vehicles = [];
+		this.presence = [];
 		this.#roomId = roomId;
 		this.#open();
 	}
@@ -104,11 +107,21 @@ export class DispatchRoom {
 				break;
 
 			case 'HOST':
-				this.host = event.data;
+				this.applyHost(event.data);
 				break;
 
 			case 'HEARTBEAT':
 				break;
+		}
+	}
+
+	applyHost(snapshot: HostSnapshot) {
+		if (this.#roomId && snapshot.roomId !== this.#roomId) return;
+		// HTTP replies and pub/sub frames can cross in flight between hosts.
+		// A later delivery must never roll the room back to an older revision.
+		if (!this.host || this.host.roomId !== snapshot.roomId ||
+			(snapshot.revision ?? 0) >= (this.host.revision ?? 0)) {
+			this.host = snapshot;
 		}
 	}
 
