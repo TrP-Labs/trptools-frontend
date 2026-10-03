@@ -16,32 +16,6 @@ export const load: PageServerLoad = async (event) => {
 		error(502, m.error_could_not_reach_api());
 	}
 
-	// Sign-up sheets are rank-gated and personal, so they come from the
-	// session-aware endpoint rather than the public page payload — which is why
-	// the caching header below only goes on when nobody is signed in.
-	const occurrences = event.locals.user
-		? ((
-				await client.schedule.occurrences.get({
-					query: { groupId: data.group.id, eventId: data.shift.eventId, limit: '20', from: new Date(Date.now() - data.shift.duration * 60_000).toISOString() }
-				})
-			).data ?? []).filter(occurrence => new Date(occurrence.end).getTime() > Date.now())
-		: [];
-
-	if (!event.locals.user) {
-		event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
-	}
-
-	return {
-		...data,
-		// Home widgets also link to a shift already running. Keep its personal
-		// sheet and occurrence anchor reachable without another API request.
-		occurrences: [...occurrences.filter(occurrence => !data.occurrences.some(publicOccurrence => new Date(publicOccurrence.start).getTime() === new Date(occurrence.start).getTime())), ...data.occurrences].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
-		signupOccurrences: occurrences,
-		/**
-		 * Whether this viewer's rank reaches any sheet on this shift at all.
-		 * Without it the page cannot tell "your sign-ups open later" apart from
-		 * "sign-ups are not for you", and would advertise a form to everybody.
-		 */
-		hasAnySheet: occurrences.some((occurrence) => occurrence.sheetsAvailable)
-	};
+	if (!event.locals.user) event.setHeaders({ 'cache-control': 'public, max-age=30, s-maxage=120' });
+	return data;
 };

@@ -10,7 +10,7 @@
 
 	interface Props {
 		groupId: string;
-		ownerType: 'GROUP' | 'ROUTE' | 'DEPOT';
+		ownerType: 'GROUP' | 'ROUTE' | 'DEPOT' | 'SHIFT';
 		ownerId?: string;
 		images: MediaItem[];
 		label: string;

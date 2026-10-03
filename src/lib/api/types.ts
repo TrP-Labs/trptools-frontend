@@ -394,3 +394,5 @@ export type ClaimableRank = Data<ReturnType<ReturnType<Api['claimables']>['get']
 export type ClaimableStanding = Data<ReturnType<ReturnType<Api['claimables']>['me']['get']>>;
 export type ClaimableConnection = Data<ReturnType<Api['claimables']['connection']['get']>>;
 export type ClaimablePickableRank = Data<ReturnType<Api['claimables']['ranks']['get']>>[number];
+
+export type ShiftInstance = Data<ReturnType<ReturnType<Api['schedule']['instances']>['get']>>;

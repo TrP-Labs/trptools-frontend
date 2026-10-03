@@ -1,5 +1,5 @@
 import type { DashboardShift } from '$lib/api/types';
-/** Recurring shifts share one page; a widget must still open the date clicked. */
+/** Open the permanent page for the particular date shown in the widget. */
 export function shiftLink(shift: DashboardShift): string {
-    return `/g/${shift.groupSlug}/shift/${shift.slug}#occurrence-${new Date(shift.start).getTime()}`;
+    return `/g/${shift.groupSlug}/shift/${shift.slug}/${new Date(shift.start).getTime()}`;
 }

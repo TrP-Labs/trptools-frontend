@@ -42,6 +42,7 @@
 		// grant that opens it rather than also admitting dispatchers, who used
 		// to come here to sign up. Signing up happens on the group's public
 		// shift page, where it is open to every member.
+		{ href: `${base}/schedule`, label: m.shifts_schedule(), icon: IconCalendarTime, permissions: [PERM.MANAGE_SHIFTS] },
 		{ href: `${base}/shifts`, label: m.common_shifts(), icon: IconCalendarTime, permissions: [PERM.MANAGE_SHIFTS] },
 		{
 			href: `${base}/signups`,

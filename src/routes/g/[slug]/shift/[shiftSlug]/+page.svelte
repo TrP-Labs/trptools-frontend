@@ -8,9 +8,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import NotificationButton from '$lib/components/users/NotificationButton.svelte';
-	import SignupSheets from '$lib/components/shifts/SignupSheets.svelte';
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
-	import { signupTotals } from '$lib/utils/signups';
 	import { withAlpha } from '$lib/utils/color';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
@@ -30,36 +28,6 @@
 	 */
 	afterNavigate(() => announceDiscordResult(() => void refreshData()));
 
-
-	/**
-	 * Occurrences whose sign-up window is open and that carry a sheet this
-	 * viewer's rank reaches. The API decides both, so an empty list means
-	 * there is genuinely nothing here for them.
-	 */
-	let openSignups = $derived(
-		data.signupOccurrences.filter(
-			(occurrence) => occurrence.signupsOpen && occurrence.sheets.length > 0
-		)
-	);
-
-	/**
-	 * When the next window opens, for somebody who has a sheet but is early.
-	 *
-	 * Null when they have no sheets at all — in which case the page says
-	 * nothing rather than advertising a form they will never be shown.
-	 */
-	let nextSignupOpening = $derived.by(() => {
-		if (openSignups.length > 0) return null;
-		if (!data.hasAnySheet) return null;
-
-		const upcoming = data.signupOccurrences
-			.filter((occurrence) => !occurrence.signupsOpen)
-			.map((occurrence) => new Date(occurrence.signupsOpenAt))
-			.filter((when) => when.getTime() > Date.now())
-			.sort((a, b) => a.getTime() - b.getTime());
-
-		return upcoming[0] ?? null;
-	});
 
 	let hours = $derived(Math.floor(shift.duration / 60));
 	let minutes = $derived(shift.duration % 60);
@@ -102,61 +70,6 @@
 </section>
 
 <div class="mx-auto max-w-4xl space-y-10 px-4 py-10">
-	<!--
-		Sign-ups come first.
-
-		They are the only thing on this page anybody has to act on, and they are
-		only here at all for the handful of people whose rank carries a sheet —
-		so burying them under the recurrence blurb made the one actionable part
-		of the page the last thing you reach.
-	-->
-	{#if openSignups.length > 0}
-		<section>
-			<h2 class="mb-3 text-lg font-semibold">{m.g_shift_sign_up()}</h2>
-
-			<ul class="space-y-4">
-				{#each openSignups as occurrence (occurrence.start)}
-					{@const totals = signupTotals(occurrence.sheets)}
-					<li id="occurrence-{new Date(occurrence.start).getTime()}" class="card scroll-mt-20 overflow-hidden">
-						<div class="flex flex-wrap items-center gap-3 p-4">
-							<span class="h-8 w-1 shrink-0 rounded-full" style="background: {shift.color}"></span>
-							<div class="min-w-0 flex-1">
-								<p class="font-medium text-text">{formatDateTime(occurrence.start)}</p>
-								<p class="text-xs text-text-subtle">{formatRelative(occurrence.start)}</p>
-							</div>
-
-							{#if totals.capacity > 0}
-								<Badge tone={totals.filled >= totals.capacity ? 'success' : 'neutral'}>
-									{m.common_signed_up_of({ filled: totals.filled, capacity: totals.capacity })}
-								</Badge>
-							{/if}
-						</div>
-
-						<div class="border-t border-border-base bg-background-secondary/40 p-4">
-							<SignupSheets groupId={group.id}
-								sheets={occurrence.sheets}
-								eventId={shift.eventId}
-								occurrence={occurrence.start}
-								userId={data.user?.userId}
-								discordId={data.user?.discord?.id}
-								discordRequired={occurrence.discordRequired}
-								discordLinked={Boolean(data.user?.discord)}
-								canEdit={occurrence.canEditSignups}
-							/>
-						</div>
-					</li>
-				{/each}
-			</ul>
-		</section>
-	{:else if nextSignupOpening}
-		<!-- Only shown to somebody who actually has a sheet coming. -->
-		<section class="card flex flex-wrap items-center gap-3 p-4">
-			<IconClock size={18} class="shrink-0 text-text-subtle" />
-			<p class="text-sm text-text-muted">
-				{m.g_shift_signups_for_next_open({ when: formatRelative(nextSignupOpening) })}
-			</p>
-		</section>
-	{/if}
 
 	{#if localized(shift, 'description')}
 		<section>
@@ -175,10 +88,10 @@
 		{:else}
 			<ul class="space-y-2">
 				{#each data.occurrences as occurrence (occurrence.start)}
-					<li id={openSignups.some(open => new Date(open.start).getTime() === new Date(occurrence.start).getTime()) ? undefined : `occurrence-${new Date(occurrence.start).getTime()}`} class="card scroll-mt-20 flex flex-wrap items-center gap-3 p-4">
+					<li id={`occurrence-${new Date(occurrence.start).getTime()}`} class="card scroll-mt-20 flex flex-wrap items-center gap-3 p-4">
 						<span class="h-8 w-1 shrink-0 rounded-full" style="background: {shift.color}"></span>
 						<div class="min-w-0 flex-1">
-							<p class="font-medium text-text">{formatDateTime(occurrence.start)}</p>
+							<a href="/g/{group.slug}/shift/{shift.slug}/{new Date(occurrence.start).getTime()}" class="font-medium text-text hover:text-accent">{formatDateTime(occurrence.start)}</a>
 							<p class="text-xs text-text-subtle">{formatRelative(occurrence.start)}</p>
 						</div>
 					</li>
