@@ -435,7 +435,7 @@
 						{#each visibleShifts as shift (shift.eventId + shift.start)}
 							<li class="card overflow-hidden">
 								<a
-									href="/g/{group.slug}/shift/{shift.slug}"
+									href="/g/{group.slug}/shift/{shift.slug}/{new Date(shift.start).getTime()}"
 									class="flex items-start gap-3 p-4 transition-colors hover:bg-background-secondary/60"
 								>
 									<span class="mt-1 h-10 w-1 shrink-0 rounded-full" style="background: {shift.color}"

@@ -81,7 +81,7 @@
 									land on a 403.
 								-->
 								<a
-									href="/g/{occurrence.groupSlug}/shift/{occurrence.slug}#occurrence-{new Date(occurrence.start).getTime()}"
+									href="/g/{occurrence.groupSlug}/shift/{occurrence.slug}/{new Date(occurrence.start).getTime()}"
 									class="card flex items-center gap-3 p-4 transition-colors hover:border-border-strong"
 								>
 									<span

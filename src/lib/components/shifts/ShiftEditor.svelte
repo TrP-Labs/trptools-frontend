@@ -34,6 +34,7 @@
 
 	interface Props {
 		draft: ShiftDraft;
+		show?: 'all' | 'general' | 'recurrence' | 'visibility';
 		busy?: boolean;
 		mode: 'create' | 'edit';
 		/** The language the group writes in, which the boxes default to. */
@@ -46,10 +47,10 @@
 
 	let {
 		draft = $bindable(),
+		show = 'all',
 		busy = false,
 		mode,
 		sourceLocale,
-		ranksHref,
 		onsave,
 		ondelete
 	}: Props = $props();
@@ -88,6 +89,7 @@
 </script>
 
 <div class="grid gap-4 sm:grid-cols-2">
+	{#if show === 'all' || show === 'general'}
 	<Field label={m.shifts_shift_editor_shift_name()} class="sm:col-span-2">
 		<TranslatableField
 			bind:value={draft.name}
@@ -112,6 +114,9 @@
 		/>
 	</Field>
 
+	<Field label={m.common_color()}><ColorInput bind:value={draft.color} /></Field>
+	{/if}
+	{#if show === 'all' || show === 'recurrence'}
 	<Field label={m.shifts_shift_editor_first_occurrence()} hint={m.shifts_shift_editor_shown_local_time()}>
 		<Input type="datetime-local" bind:value={draft.startLocal} />
 	</Field>
@@ -124,9 +129,7 @@
 		<Select bind:value={draft.repeat} options={repeats} />
 	</Field>
 
-	<Field label={m.common_color()}>
-		<ColorInput bind:value={draft.color} />
-	</Field>
+
 
 	{#if picksDays(draft.repeat)}
 		<Field
@@ -159,6 +162,8 @@
 		{m.shifts_shift_editor_repeats()} <span class="font-medium text-text">{preview}</span>
 	</p>
 
+	{/if}
+	{#if show === 'all' || show === 'visibility'}
 	<Field label={m.common_visibility()}>
 		<Select bind:value={draft.visibility} options={visibilities} />
 	</Field>
@@ -167,10 +172,7 @@
 		<Select bind:value={draft.hostLevel} options={hostLevels} />
 	</Field>
 
-	<p class="rounded-lg border border-dashed border-border-base px-3 py-3 text-sm text-text-muted sm:col-span-2">
-		{m.shifts_shift_editor_sign_up_sheets_are_set_per()}
-		<a href={ranksHref} class="text-accent hover:underline">{m.common_ranks()}</a> {m.shifts_shift_editor_page()}
-	</p>
+	{/if}
 
 	<div class="flex flex-wrap gap-2 sm:col-span-2">
 		<Button onclick={onsave} loading={busy} disabled={!draft.name.trim()}>
