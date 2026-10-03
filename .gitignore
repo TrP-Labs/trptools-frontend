@@ -11,6 +11,7 @@ node_modules
 /worker-configuration.d.ts
 /.playwright-cli
 /output/playwright/*.png
+/output/playwright/host-regression/
 
 # OS
 .DS_Store

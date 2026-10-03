@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import {
 		IconUpload,
 		IconRadio,
@@ -12,6 +12,7 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
+	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import ShiftCountdown from '$lib/components/dispatch/ShiftCountdown.svelte';
 	import PresenceModal from '$lib/components/dispatch/PresenceModal.svelte';
 	import RoomStatus from '$lib/components/dispatch/RoomStatus.svelte';
@@ -24,6 +25,7 @@
 	import { can, PERM } from '$lib/utils/permissions';
 	import { formatCountdown, formatDateTime } from '$lib/utils/format';
 	import { m } from '$lib/paraglide/messages.js';
+	import type { HostSnapshot } from '$lib/api/types';
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 	const room = new DispatchRoom();
@@ -36,6 +38,12 @@
 	let busy = $state(false);
 	let note = $state('');
 	let owner = $state('');
+	let joinCode = $state('');
+	let announceJoinCode = $state(true);
+	let baseNote = '';
+	let baseOwner = '';
+	let baseCode = '';
+	let baseVisibility = true;
 	$effect(() => {
 		if (roomId) room.connect(roomId);
 		else {
@@ -45,11 +53,23 @@
 	});
 	let savedNote = $derived(snapshot?.note ?? '');
 	let savedOwner = $derived(snapshot?.ownerRobloxId ?? '');
+	let savedCode = $derived(snapshot?.joinCode ?? '');
+	let savedVisibility = $derived(snapshot?.announceJoinCode ?? snapshot?.defaultAnnounceJoinCode ?? true);
 	$effect(() => {
-		note = savedNote;
+		const next = savedNote;
+		untrack(() => { if (note === baseNote) note = next; baseNote = next; });
 	});
 	$effect(() => {
-		owner = savedOwner;
+		const next = savedOwner;
+		untrack(() => { if (owner === baseOwner) owner = next; baseOwner = next; });
+	});
+	$effect(() => {
+		const next = savedCode;
+		untrack(() => { if (joinCode === baseCode) joinCode = next; baseCode = next; });
+	});
+	$effect(() => {
+		const next = savedVisibility;
+		untrack(() => { if (announceJoinCode === baseVisibility) announceJoinCode = next; baseVisibility = next; });
 	});
 	$effect(() => {
 		const timer = setInterval(() => (now = Date.now()), 1000);
@@ -59,14 +79,21 @@
 	$effect(() => {
 		if (room.status === 'closed' && roomId) void refreshData();
 	});
-	async function act(run: () => Promise<{ error: unknown }>) {
+	async function act(run: () => Promise<{ error: unknown; data: HostSnapshot | 'Success' | null }>) {
 		if (busy) return;
 		busy = true;
 		try {
-			const { error } = await run();
+			const { error, data: updated } = await run();
 			if (error) throw error;
+			if (updated && typeof updated === 'object') room.applyHost(updated);
 		} catch (error) {
 			toasts.error(errorMessage(error, m.host_error()));
+			// A second host may have handled the card while this request was
+			// in flight. Reconcile the board so a stale action is not offered again.
+			if (roomId) {
+				const current = await api.host({ roomId }).get().catch(() => null);
+				if (current?.data) room.applyHost(current.data);
+			}
 		} finally {
 			busy = false;
 		}
@@ -240,7 +267,7 @@
 					act(() =>
 						api
 							.host({ roomId: roomId! })
-							.note.put({ note, ownerRobloxId: owner.trim() || null }),
+							.note.put({ note, ownerRobloxId: owner.trim() || null, joinCode: joinCode.trim() || null, announceJoinCode }),
 					);
 				}}
 			>
@@ -258,6 +285,12 @@
 						maxlength={20}
 					/></Field
 				>
+				<Field label={m.host_join_code()} for="host-code">
+					<Input id="host-code" bind:value={joinCode} pattern={'[a-zA-Z0-9]{4,12}'} maxlength={12} />
+				</Field>
+				<Toggle checked={announceJoinCode} label={m.dashboard_bot_show_join_code_publicly()}
+					description={m.dashboard_bot_join_button_carries_either_way_staff()}
+					onchange={(value) => (announceJoinCode = value)} />
 				<div>
 					<p class="text-xs font-semibold text-text-muted uppercase">
 						{m.host_image()}
