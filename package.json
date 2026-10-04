@@ -24,6 +24,10 @@
 		"test:widgets:ui": "bun run scripts/test-widget-ux.ts",
 		"test:engagement:push": "bun run scripts/test-engagement-push-ui.ts"
 	},
+	"overrides": {
+		"miniflare": { "undici": "7.29.1" },
+		"@sveltejs/kit": { "cookie": "0.7.2" }
+	},
 	"devDependencies": {
 		"@elysiajs/eden": "^1.4.9",
 		"@inlang/paraglide-js": "^2.25.0",

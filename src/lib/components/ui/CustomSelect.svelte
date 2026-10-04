@@ -20,7 +20,8 @@
 	 * moves real focus between controls — never has focus pulled out from
 	 * under it by a popup opening.
 	 */
-	import { tick } from 'svelte';
+	import { getContext, tick } from 'svelte';
+	import { FIELD_CONTEXT, type FieldContext } from '$lib/utils/fieldContext';
 	import { m } from '$lib/paraglide/messages.js';
 
 	/**
@@ -84,6 +85,7 @@
 		element = $bindable(null),
 		onchange
 	}: Props = $props();
+	const field = getContext<FieldContext | undefined>(FIELD_CONTEXT);
 
 	const TONE_TEXT: Record<Tone, string> = {
 		favourite: 'text-success',
@@ -309,7 +311,9 @@
 		aria-haspopup="listbox"
 		aria-activedescendant={open && active >= 0 ? `${listId}-${active}` : undefined}
 		aria-label={ariaLabel}
-		aria-invalid={invalid}
+		aria-labelledby={ariaLabel ? undefined : field?.labelId}
+		aria-describedby={field?.descriptionId}
+		aria-invalid={invalid || field?.invalid || undefined}
 		{title}
 		{disabled}
 		{onkeydown}

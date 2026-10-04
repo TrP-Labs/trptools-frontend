@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
+	import { FIELD_CONTEXT, type FieldContext } from '$lib/utils/fieldContext';
 	import { isValidHex, normaliseHex } from '$lib/utils/color';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -11,6 +13,7 @@
 	}
 
 	let { value = $bindable('#4287f5'), id, disabled = false, oncommit }: Props = $props();
+	const field = getContext<FieldContext | undefined>(FIELD_CONTEXT);
 
 	// svelte-ignore state_referenced_locally
 	let text = $state(value);
@@ -40,6 +43,8 @@
 		<input
 			{id}
 			type="color"
+			aria-labelledby={field?.labelId}
+			aria-describedby={field?.descriptionId}
 			bind:value
 			{disabled}
 			onchange={() => oncommit?.(value)}
@@ -49,6 +54,9 @@
 
 	<input
 		type="text"
+		aria-label={field ? undefined : m.ui_color_input_pick_color()}
+		aria-labelledby={field?.labelId}
+		aria-describedby={field?.descriptionId}
 		bind:value={text}
 		onblur={commitText}
 		onkeydown={(event) => event.key === 'Enter' && commitText()}

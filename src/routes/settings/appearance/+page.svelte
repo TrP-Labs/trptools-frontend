@@ -65,7 +65,8 @@
 		if (!signedIn) return;
 
 		try {
-			await api.users.me.preferences.patch({ theme });
+			const { error } = await api.users.me.preferences.patch({ theme });
+			if (error) throw error;
 		} catch {
 			toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
 		}
@@ -73,15 +74,19 @@
 
 	async function pickLanguage(choice: Locale | 'auto') {
 		if (choice === language) return;
+		const previous = language;
 		language = choice;
 
 		// Sync to the account first. Both branches below end the document, and
 		// anything still in flight when they do is not guaranteed to finish.
 		if (signedIn) {
 			try {
-				await api.users.me.preferences.patch({ locale: choice === 'auto' ? null : choice });
+				const { error } = await api.users.me.preferences.patch({ locale: choice === 'auto' ? null : choice });
+				if (error) throw error;
 			} catch {
-				toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
+				toasts.error(m.settings_could_not_save_settings());
+				language = previous;
+				return;
 			}
 		}
 
@@ -129,6 +134,7 @@
 
 	async function saveTimezone() {
 		savingZone = true;
+		let synced = true;
 		try {
 			// The cookie is what the server render reads, so it goes first and
 			// is the whole of it without an account.
@@ -136,13 +142,15 @@
 
 			if (signedIn) {
 				try {
-					await api.users.me.preferences.patch({ timezone });
+					const { error } = await api.users.me.preferences.patch({ timezone });
+					if (error) throw error;
 				} catch {
+					synced = false;
 					toasts.error(m.settings_appearance_saved_device_but_could_not_sync());
 				}
 			}
 
-			toasts.success(m.settings_settings_saved());
+			if (synced) toasts.success(m.settings_settings_saved());
 
 			// Every date already on screen was drawn in the old zone, and the
 			// new one is only knowable to the server through the cookie above.
@@ -260,6 +268,8 @@
 	<div class="flex flex-wrap gap-2">
 		<Input
 			bind:value={timezone}
+			aria-label={m.settings_time_zone()}
+			aria-describedby="timezone-description"
 			list="timezones"
 			spellcheck="false"
 			maxlength={64}
@@ -269,6 +279,7 @@
 			{m.settings_detect()}
 		</Button>
 	</div>
+	<p id="timezone-description" class="sr-only">{m.settings_shift_times_are_shown_zone()}</p>
 
 	<datalist id="timezones">
 		{#each zones as zone (zone)}

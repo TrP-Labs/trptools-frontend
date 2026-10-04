@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconFlag, IconLink } from '@tabler/icons-svelte';
 	import OverflowMenu from '$lib/components/ui/OverflowMenu.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import MenuItem from '$lib/components/ui/MenuItem.svelte';
 	import { reportDialog } from '$lib/stores/report.svelte';
 	import { toasts } from '$lib/stores/toast.svelte';
@@ -34,7 +35,7 @@
 		: 'flex gap-2 overflow-x-auto border-t border-border-base p-3'}
 >
 	{#each images as image (image.id)}
-		<li class="group relative {layout === 'grid' ? '' : 'shrink-0'}">
+		<li class="group relative min-w-0 {layout === 'grid' ? '' : 'shrink-0'}">
 			<button
 				type="button"
 				onclick={() => (lightbox = image)}
@@ -91,11 +92,7 @@
 </ul>
 
 {#if lightbox}
-	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-		onclick={() => (lightbox = null)}
-	>
+	<Modal open={true} title={localized(lightbox, 'caption') || m.media_image_gallery_image_actions()} size="lg" onclose={() => (lightbox = null)}>
 		<figure class="max-h-full max-w-4xl">
 			<img
 				src={lightbox.url}
@@ -103,16 +100,9 @@
 				class="max-h-[80vh] w-auto rounded-lg object-contain"
 			/>
 			{#if localized(lightbox, 'caption')}
-				<figcaption class="mt-2 text-center text-sm text-white/80">{localized(lightbox, 'caption')}</figcaption>
+				<figcaption class="mt-2 text-center text-sm text-text-muted">{localized(lightbox, 'caption')}</figcaption>
 			{/if}
 		</figure>
 
-		<button
-			type="button"
-			class="absolute top-4 right-4 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white hover:bg-white/20"
-			onclick={() => (lightbox = null)}
-		>
-			{m.media_image_gallery_close()}
-		</button>
-	</div>
+	</Modal>
 {/if}

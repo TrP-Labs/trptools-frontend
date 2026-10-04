@@ -109,7 +109,8 @@
 		if (!confirm(m.settings_sign_out_every_device_confirm())) return;
 
 		try {
-			await api.auth.logout.all.post();
+			const { error } = await api.auth.logout.all.post();
+			if (error) throw error;
 			window.location.href = '/';
 		} catch (error) {
 			toasts.error(errorMessage(error, m.settings_could_not_sign_out()));
