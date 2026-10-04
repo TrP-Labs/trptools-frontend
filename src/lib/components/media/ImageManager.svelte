@@ -113,7 +113,7 @@
 				<li class="group relative overflow-hidden rounded-lg border border-border-base">
 					<img
 						src={image.url}
-						alt={localized(image, 'caption') || 'Uploaded image'}
+						alt={localized(image, 'caption') || m.media_image_manager_uploaded_image()}
 						loading="lazy"
 						decoding="async"
 						class="aspect-video w-full bg-background-muted object-cover"

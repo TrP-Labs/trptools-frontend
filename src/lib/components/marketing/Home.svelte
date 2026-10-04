@@ -4,6 +4,7 @@
 	import Network from './Network.svelte';
 	import DispatchPreview from './DispatchPreview.svelte';
 	import { m } from '$lib/paraglide/messages.js';
+	import { languageName, SITE_LOCALES } from '$lib/utils/languages';
 	import './marketing.css';
 </script>
 <div class="marketing">
@@ -33,7 +34,7 @@
 	</section>
 	<section class="section two">
 		<article id="applications" class="scroll-mt-20"><IconClipboardList size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_apps_title()}</h2><p class="body">{m.marketing_apps_body()}</p><p class="detail">{m.marketing_apps_detail()}</p></article>
-		<article id="languages" class="scroll-mt-20"><IconLanguage size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_language_title()}</h2><p class="body">{m.marketing_language_body()}</p><p class="detail">{m.marketing_language_detail()}</p><div class="mt-6 flex flex-wrap gap-2 font-mono text-xs text-text-muted" aria-hidden="true">{#each ['English','Deutsch','Français','Українська','Русский'] as language}<span class="rounded border border-border-base px-2 py-1">{language}</span>{/each}</div></article>
+		<article id="languages" class="scroll-mt-20"><IconLanguage size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_language_title()}</h2><p class="body">{m.marketing_language_body()}</p><p class="detail">{m.marketing_language_detail()}</p><div class="mt-6 flex flex-wrap gap-2 font-mono text-xs text-text-muted" aria-hidden="true">{#each SITE_LOCALES as locale}<span lang={locale} class="rounded border border-border-base px-2 py-1">{languageName(locale)}</span>{/each}</div></article>
 	</section>
 	<section class="section">
 		<p class="eyebrow"><span class="number">02</span>TrPTools</p><h2>{m.marketing_more()}</h2>

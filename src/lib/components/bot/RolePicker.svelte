@@ -158,8 +158,8 @@
 									<PickerStatus
 										ok={role.canMention}
 										label={m.bot_role_picker_mention()}
-										okText="the bot can ping this role"
-										failText="the bot cannot ping this role"
+										okText={m.bot_role_picker_can_ping_role()}
+										failText={m.bot_role_picker_cannot_ping_role()}
 									/>
 								</span>
 							</span>

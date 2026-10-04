@@ -55,7 +55,9 @@
 				.ban.post({ reason, ...(hours > 0 ? { durationHours: hours } : {}) });
 			if (error) throw error;
 
-			toasts.success(hours > 0 ? `${name} suspended` : `${name} banned`);
+			toasts.success(hours > 0
+				? m.moderation_ban_dialog_account_suspended({ name })
+				: m.moderation_ban_dialog_account_banned({ name }));
 			ondone();
 			onclose();
 		} catch (error) {

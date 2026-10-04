@@ -68,7 +68,9 @@
 <Modal
 	open={target !== null}
 	onclose={() => reportDialog.close()}
-	title={m.moderation_report_target({ target: target?.label ?? m.moderation_content() })}
+	title={target?.targetType === 'MEDIA'
+		? m.media_image_gallery_report_image()
+		: m.moderation_report_target({ target: target?.label ?? m.moderation_content() })}
 	description={m.moderation_report_dialog_reports_are_reviewed_by_trp_tools()}
 >
 	{#if !signedIn}

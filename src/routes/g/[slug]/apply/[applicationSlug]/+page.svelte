@@ -196,7 +196,7 @@
 	<title>{localized(application, 'name')} — {localized(group, 'name')} — TrP Tools</title>
 	<meta
 		name="description"
-		content={localized(application, 'description') || `Apply to ${localized(group, 'name')} on TrP Tools.`}
+		content={localized(application, 'description') || m.g_apply_meta_description({ group: localized(group, 'name') })}
 	/>
 	<meta property="og:title" content="{localized(application, 'name')} — {localized(group, 'name')}" />
 	<meta property="og:description" content={localized(application, 'description')} />

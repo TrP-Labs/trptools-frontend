@@ -40,9 +40,9 @@
 
 <svelte:head>
 	<title>{localized(shift, 'name')} — {localized(group, 'name')} — TrP Tools</title>
-	<meta name="description" content={localized(shift, 'description') || `${localized(shift, 'name')} on ${localized(group, 'name')}.`} />
+	<meta name="description" content={localized(shift, 'description') || m.g_shift_meta_description({ shift: localized(shift, 'name'), group: localized(group, 'name') })} />
 	<meta property="og:title" content="{localized(shift, 'name')} — {localized(group, 'name')}" />
-	<meta property="og:description" content={localized(shift, 'description') || `${localized(shift, 'name')} on ${localized(group, 'name')}.`} />
+	<meta property="og:description" content={localized(shift, 'description') || m.g_shift_meta_description({ shift: localized(shift, 'name'), group: localized(group, 'name') })} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={group.icon ?? ''} />
 </svelte:head>

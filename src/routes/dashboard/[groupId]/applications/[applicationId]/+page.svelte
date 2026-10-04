@@ -146,7 +146,7 @@
 
 <ObjectPage
 	backHref={base}
-	backLabel="Applications"
+	backLabel={m.common_applications()}
 	title={localized(application, 'name')}
 	description={localized(application, 'description')}
 	accent={application.color}
@@ -216,7 +216,7 @@
 			<SubmissionList
 				submissions={data.pending}
 				reviewable
-				emptyTitle="Nobody waiting"
+				emptyTitle={m.dashboard_applications_nobody_waiting()}
 				emptyDescription={application.open
 					? m.dashboard_applications_applications_people_send_appear_here_read()
 					: m.dashboard_applications_form_closed_so_nothing_new_arriving()}
@@ -261,8 +261,10 @@
 				manageRecords
 				emptyTitle={archiveFilter === 'ALL'
 					? m.dashboard_applications_nothing_decided_yet()
-					: `Nothing ${archiveFilter === 'APPROVED' ? 'approved' : 'denied'}`}
-				emptyDescription="Applications you approve or deny are kept here, with what was written and who decided."
+					: archiveFilter === 'APPROVED'
+						? m.dashboard_applications_nothing_approved()
+						: m.dashboard_applications_nothing_denied()}
+				emptyDescription={m.dashboard_applications_archive_description()}
 			/>
 		{:else if section === 'settings'}
 			<div class="space-y-6">

@@ -115,7 +115,7 @@
 				<CustomSelect
 					bind:value={rows[index]!.category}
 					{options}
-					ariaLabel="List for {row.name || 'this vehicle'}"
+					ariaLabel={m.dispatch_vehicle_types_card_list_for_vehicle({ vehicle: row.name || m.dispatch_vehicle_types_this_vehicle() })}
 					class="w-44"
 				/>
 
