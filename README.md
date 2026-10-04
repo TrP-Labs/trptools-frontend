@@ -52,6 +52,8 @@ Use `bun run worker:dev` for local development and `.dev.vars` for local variabl
 
 For Cloudflare Builds, use `bun install --frozen-lockfile --ignore-scripts` as the build command and `bun run worker:deploy` as the deploy command. The repository builds independently; runtime variables live on the Worker.
 
+Before the first build, set **`BUN_VERSION=1.4.2`** under **Settings → Build → Build Variables and Secrets** for this Worker (including preview builds if enabled), then retry the build. This is a build variable, not a Wrangler runtime variable. Cloudflare's automatic dependency install runs before the build command and does not read `.bun-version`; its default Bun 1.2.15 cannot parse this repository's version-3 lockfile. The [Cloudflare build image documentation](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/) documents the `BUN_VERSION` override. Keep this value in sync with `.bun-version`, which pins GitHub Actions and Docker builds.
+
 ## Footer and translations
 
 Set `POLICIES_REPOSITORY` to your policy repository (default `TrP-Labs/Policies`); `.md` files become pages and `.txt` files become links. Both runtimes refresh the repository and retain a bundled fallback, with no mounted policy directory.
