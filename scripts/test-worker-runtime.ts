@@ -18,7 +18,7 @@ const user = {
 	displayName: 'Worker Tester',
 	avatar: null,
 	theme: 'dim',
-	locale: null,
+	locale: null as SessionUser['locale'],
 	timezone: 'America/Phoenix',
 	discord: null
 } satisfies SessionUser;
@@ -186,7 +186,30 @@ try {
 		assert.equal(page.headers.get('cache-control'), 'private, no-store');
 	}
 
-	console.log('Worker runtime regression passed: SSR, policies, sessions, cache isolation, and one backend call per dashboard/shifts page.');
+	// Exercise SvelteKit's cookie serialization as well as session-cookie parsing:
+	// the compatible flat override must preserve account language writes/deletes.
+	user.locale = 'de';
+	const localized = await fetch(`${origin}/settings`, {
+		headers: { cookie: 'access_token=worker-test', 'accept-language': 'en' }
+	});
+	assert.equal(localized.status, 200);
+	assert.match(await localized.text(), /<html lang="de"/);
+	const localeCookie = localized.headers.getSetCookie().find(value => value.startsWith('locale='));
+	assert(localeCookie, 'The account language cookie was not serialized');
+	assert.match(localeCookie, /^locale=de;/);
+	assert.match(localeCookie, /Path=\//);
+	assert.match(localeCookie, /SameSite=Lax/i);
+	user.locale = null;
+	const automatic = await fetch(`${origin}/settings`, {
+		headers: { cookie: 'access_token=worker-test; locale=de', 'accept-language': 'en' }
+	});
+	assert.equal(automatic.status, 200);
+	assert.match(await automatic.text(), /<html lang="en"/);
+	const deletedCookie = automatic.headers.getSetCookie().find(value => value.startsWith('locale='));
+	assert(deletedCookie, 'The automatic-language preference did not clear its cookie');
+	assert.match(deletedCookie, /Max-Age=0/i);
+
+	console.log('Worker runtime regression passed: SSR, policies, sessions, language cookie writes/deletes, cache isolation, and one backend call per dashboard/shifts page.');
 } catch (error) {
 	console.error(output);
 	throw error;

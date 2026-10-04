@@ -1,7 +1,11 @@
 import { expect, test } from 'bun:test';
+import { parseConfigFileTextToJson } from 'typescript';
 
 const manifest = await Bun.file(new URL('../package.json', import.meta.url)).json();
-const lock = Bun.JSONC.parse(await Bun.file(new URL('../bun.lock', import.meta.url)).text());
+const { config: lock, error } = parseConfigFileTextToJson(
+	'bun.lock', await Bun.file(new URL('../bun.lock', import.meta.url)).text()
+);
+if (error) throw new Error('Could not parse bun.lock');
 
 test('a standalone Git checkout has no local package dependencies', () => {
 	for (const dependencies of [manifest.dependencies ?? {}, manifest.devDependencies ?? {}]) {
