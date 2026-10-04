@@ -182,7 +182,7 @@
 	<title>{m.tools_dispatch_dispatch_trp_tools()}</title>
 	<meta
 		name="description"
-		content="Assign the game's routes to a vehicle list on your own, with no group to set up."
+		content={m.tools_dispatch_meta_description()}
 	/>
 </svelte:head>
 

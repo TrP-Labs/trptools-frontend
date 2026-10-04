@@ -39,7 +39,7 @@
 		property="og:title"
 		content="{m.g_route_page_title({ route: localized(route, 'name') })} — {localized(group, 'name')}"
 	/>
-	<meta property="og:description" content={localized(route, 'description') || `Route ${localized(route, 'name')} on ${localized(group, 'name')}.`} />
+	<meta property="og:description" content={localized(route, 'description') || m.g_route_meta_description({ route: localized(route, 'name'), group: localized(group, 'name') })} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={route.icon ?? route.images[0]?.url ?? group.icon ?? ''} />
 </svelte:head>

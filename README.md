@@ -58,7 +58,10 @@ The version-1 lockfile supports Cloudflare's default Bun 1.2.15 for automatic de
 
 Set `POLICIES_REPOSITORY` to your policy repository (default `TrP-Labs/Policies`); `.md` files become pages and `.txt` files become links. Both runtimes refresh the repository and retain a bundled fallback, with no mounted policy directory.
 
-Translations come from [TrP-Labs/Locales](https://github.com/TrP-Labs/Locales). Run `./scripts/pull-locales.sh` to refresh the vendored messages.
+Translations come from [TrP-Labs/Locales](https://github.com/TrP-Labs/Locales). Edit translations directly in that repository and run `node scripts/check.mjs`
+and `node scripts/sync.mjs` there to validate and vendor both apps from the local
+checkout. `./scripts/pull-locales.sh` fetches committed catalogs when a local
+Locales checkout is unavailable. Crowdin is optional and is not used by builds.
 
 ## Checks
 

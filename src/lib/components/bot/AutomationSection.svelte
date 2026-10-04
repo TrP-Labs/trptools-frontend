@@ -104,7 +104,7 @@
 			enabled={config.autoComplete}
 			lead={config.autoCompleteDelay}
 			scheduleTiming
-			leadLabel="minutes after the shift ends"
+			leadLabel={m.dashboard_bot_minutes_after_shift_ends()}
 			disabled={busy}
 			onchange={({ enabled, lead }) =>
 				patch({

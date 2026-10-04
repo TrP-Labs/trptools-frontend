@@ -105,7 +105,9 @@
 			onclick={() => onpin(group.id)}
 			aria-busy={pinning === group.id}
 			aria-pressed={primary}
-			aria-label={primary ? `Unpin ${localized(group, 'name')}` : `Make ${localized(group, 'name')} your primary group`}
+			aria-label={primary
+				? m.dashboard_group_status_card_unpin_named_group({ group: localized(group, 'name') })
+				: m.dashboard_group_status_card_make_named_primary_group({ group: localized(group, 'name') })}
 			title={primary ? m.dashboard_group_status_card_primary_group() : m.dashboard_group_status_card_make_primary_group()}
 			class="relative z-10 shrink-0 rounded-lg p-1.5 transition-colors
 				{pinning === group.id ? 'opacity-50' : ''}

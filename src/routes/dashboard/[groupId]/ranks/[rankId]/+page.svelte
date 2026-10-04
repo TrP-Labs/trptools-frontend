@@ -78,7 +78,7 @@
 
 <ObjectPage
 	backHref={base}
-	backLabel="Ranks"
+	backLabel={m.common_ranks()}
 	title={rank.cachedName}
 	description={permissionDescription(rank.permissionLevel)}
 	accent={rank.color}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import type { GroupDashboardData, SessionUser, ShiftsPageData } from '../src/lib/api/types';
 
 // Exercise workerd and the adapter output, not Vite's Node development server.
@@ -152,6 +153,19 @@ try {
 	assert.match(html, /<html lang="de"/);
 	assert.match(anonymous.headers.get('vary') ?? '', /Accept-Language/);
 	assert.match(anonymous.headers.get('vary') ?? '', /Cookie/);
+	for (const locale of ['en', 'cs', 'de', 'fr', 'pl', 'ru', 'uk']) {
+		const response = await fetch(`${origin}/settings/appearance`, { headers: { 'accept-language': locale } });
+		assert.equal(response.status, 200, `${locale} appearance page failed`);
+		const body = await response.text();
+		const messages = JSON.parse(readFileSync(new URL(`../messages/${locale}.json`, import.meta.url), 'utf8'));
+		assert(body.includes(`<html lang="${locale}"`), `${locale} was not selected by the Worker`);
+		assert(body.includes(messages.settings_appearance_appearance), `${locale} heading fell back to English`);
+		assert(body.includes(messages.settings_appearance_language), `${locale} language label fell back to English`);
+		assert(!body.includes(messages.settings_appearance_partly_translated), `${locale} still shows a partial-translation notice`);
+		for (const offered of ['cs', 'de', 'fr', 'pl', 'ru', 'uk']) {
+			assert(body.includes(`lang="${offered}"`), `${offered} is missing from the language picker`);
+		}
+	}
 
 	const assetPath = html.match(/\/_app\/immutable\/[^"']+/)?.[0];
 	assert(assetPath, 'SSR did not reference a compiled client asset');
@@ -209,7 +223,7 @@ try {
 	assert(deletedCookie, 'The automatic-language preference did not clear its cookie');
 	assert.match(deletedCookie, /Max-Age=0/i);
 
-	console.log('Worker runtime regression passed: SSR, policies, sessions, language cookie writes/deletes, cache isolation, and one backend call per dashboard/shifts page.');
+	console.log('Worker runtime regression passed: seven translated locales, complete language picker, SSR, policies, sessions, language cookies, cache isolation, and one backend call per dashboard/shifts page.');
 } catch (error) {
 	console.error(output);
 	throw error;

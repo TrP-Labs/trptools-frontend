@@ -355,7 +355,7 @@
 						value={vehicle.note}
 						disabled={towed}
 						placeholder={m.dispatch_vehicle_row_what_have_told_them()}
-						ariaLabel="Note for vehicle {vehicle.id}"
+						ariaLabel={m.dispatch_vehicle_row_note_for_vehicle({ vehicle: vehicle.id })}
 						maxlength={200}
 						class="w-full sm:w-40"
 						onsave={onnote}
@@ -452,7 +452,7 @@
 				value={vehicle.status}
 				options={statusOptions}
 				size="sm"
-				ariaLabel="Status for vehicle {vehicle.id}"
+				ariaLabel={m.dispatch_vehicle_row_status_for_vehicle({ vehicle: vehicle.id })}
 				class="min-w-32 flex-1"
 				onchange={onstatus}
 			/>
@@ -461,7 +461,7 @@
 				bind:element={refs.location}
 				value={vehicle.location}
 				placeholder={m.dispatch_vehicle_row_location()}
-				ariaLabel="Location of vehicle {vehicle.id}"
+				ariaLabel={m.dispatch_vehicle_row_location_of_vehicle({ vehicle: vehicle.id })}
 				class="min-w-28 flex-1"
 				onsave={onlocation}
 			/>
@@ -471,7 +471,7 @@
 				type="button"
 				aria-pressed={Boolean(vehicle.towing) || selecting}
 				title={towing
-					? `Towing ${towing.id} — press to end the tow`
+					? m.dispatch_vehicle_row_towing_vehicle_press_to_end_tow({ vehicle: towing.id })
 					: selecting
 						? m.dispatch_vehicle_row_pick_vehicle_tow_press_again_cancel()
 						: m.dispatch_vehicle_row_tow_vehicle()}

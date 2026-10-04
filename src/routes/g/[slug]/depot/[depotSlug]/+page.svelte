@@ -23,9 +23,9 @@
 
 <svelte:head>
 	<title>{localized(depot, 'name')} — {localized(group, 'name')} — TrP Tools</title>
-	<meta name="description" content={localized(depot, 'description') || `Depot ${depot.number} on ${localized(group, 'name')}.`} />
+	<meta name="description" content={localized(depot, 'description') || m.g_depot_meta_description({ depot: String(depot.number), group: localized(group, 'name') })} />
 	<meta property="og:title" content="{localized(depot, 'name')} — {localized(group, 'name')}" />
-	<meta property="og:description" content={localized(depot, 'description') || `Depot ${depot.number} on ${localized(group, 'name')}.`} />
+	<meta property="og:description" content={localized(depot, 'description') || m.g_depot_meta_description({ depot: String(depot.number), group: localized(group, 'name') })} />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content={depot.icon ?? depot.images[0]?.url ?? group.icon ?? ''} />
 </svelte:head>

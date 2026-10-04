@@ -43,7 +43,7 @@
 			>
 				<img
 					src={image.url}
-					alt={localized(image, 'caption') || 'Group image'}
+					alt={localized(image, 'caption') || m.media_image_manager_uploaded_image()}
 					loading="lazy"
 					decoding="async"
 					class="bg-background-muted object-cover transition-transform group-hover:scale-105
@@ -72,7 +72,7 @@
 								reportDialog.open({
 									targetType: 'MEDIA',
 									targetId: image.id,
-									label: 'this image'
+									label: localized(image, 'caption') || m.media_image_manager_uploaded_image()
 								});
 							}}
 						>
@@ -96,7 +96,7 @@
 		<figure class="max-h-full max-w-4xl">
 			<img
 				src={lightbox.url}
-				alt={localized(lightbox, 'caption') || 'Group image'}
+				alt={localized(lightbox, 'caption') || m.media_image_manager_uploaded_image()}
 				class="max-h-[80vh] w-auto rounded-lg object-contain"
 			/>
 			{#if localized(lightbox, 'caption')}
