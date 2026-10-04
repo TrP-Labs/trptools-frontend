@@ -2,6 +2,28 @@
 
 TrPTools site, built with SvelteKit, Svelte 5, and Tailwind. Workers are the default build target; Docker uses the Node adapter on Bun.
 
+## Audit browser regression
+
+Run the backend's isolated `security-audit.ts` fixture with `AUDIT_UI=true`, then start this site with:
+
+```bash
+TRPTOOLS_ADAPTER=node PUBLIC_API_URL=http://localhost:54381 INTERNAL_API_URL=http://localhost:54381 bun run dev --host 127.0.0.1 --port 54382
+```
+
+The test fixture writes `/tmp/trptools-audit-ui.json`. From another terminal in this checkout:
+
+```bash
+bun run scripts/audit-state.ts
+npx --package @playwright/cli playwright-cli -s=trptools-audit open http://localhost:54382 --browser chrome
+npx --package @playwright/cli playwright-cli -s=trptools-audit state-load /tmp/trptools-audit-browser-state.json
+npx --package @playwright/cli playwright-cli -s=trptools-audit run-code --filename scripts/audit-browser.js
+mkdir -p src/routes/__audit
+cp scripts/fixtures/audit-components.svelte src/routes/__audit/+page.svelte
+npx --package @playwright/cli playwright-cli -s=trptools-audit run-code --filename scripts/audit-components.js
+```
+
+Always remove `src/routes/__audit/+page.svelte` and its empty directory after testing, including after a failure; the harness must not ship. The checks cover responsive pages, account-sync failures, accessible controls, keyboard selection, native lightbox focus/Escape, and profile batching/retries. Expected simulated 503 responses appear in the browser console. Screenshots go in `output/playwright/`.
+
 ## Development
 
 1. Clone `trptools-backend` beside this repository for API type checking.

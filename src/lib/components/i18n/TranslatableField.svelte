@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
+	import { FIELD_CONTEXT, type FieldContext } from '$lib/utils/fieldContext';
 	import { IconLanguage } from '@tabler/icons-svelte';
 	import Flag from '$lib/components/ui/Flag.svelte';
 	import LanguageMenu from './LanguageMenu.svelte';
@@ -67,6 +69,7 @@
 		onblur,
 		oninput
 	}: Props = $props();
+	const fieldContext = getContext<FieldContext | undefined>(FIELD_CONTEXT);
 
 	/**
 	 * Which language the box is editing.
@@ -132,6 +135,9 @@
 >
 	{#if multiline}
 		<textarea
+			aria-labelledby={fieldContext?.labelId}
+			aria-describedby={fieldContext?.descriptionId}
+			aria-invalid={fieldContext?.invalid || undefined}
 			{id}
 			{rows}
 			{maxlength}
@@ -146,6 +152,9 @@
 		></textarea>
 	{:else}
 		<input
+			aria-labelledby={fieldContext?.labelId}
+			aria-describedby={fieldContext?.descriptionId}
+			aria-invalid={fieldContext?.invalid || undefined}
 			{id}
 			{maxlength}
 			{disabled}

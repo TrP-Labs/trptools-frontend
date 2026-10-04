@@ -1,4 +1,6 @@
 <script lang="ts" generics="T extends string | number">
+	import { getContext } from 'svelte';
+	import { FIELD_CONTEXT, type FieldContext } from '$lib/utils/fieldContext';
 	interface Option {
 		value: T;
 		label: string;
@@ -22,6 +24,7 @@
 		class: className = '',
 		onchange
 	}: Props = $props();
+	const field = getContext<FieldContext | undefined>(FIELD_CONTEXT);
 
 	function handle(event: Event) {
 		const raw = (event.currentTarget as HTMLSelectElement).value;
@@ -34,6 +37,9 @@
 </script>
 
 <select
+	aria-labelledby={field?.labelId}
+	aria-describedby={field?.descriptionId}
+	aria-invalid={field?.invalid || undefined}
 	{id}
 	{disabled}
 	value={String(value)}

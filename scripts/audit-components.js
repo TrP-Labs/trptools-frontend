@@ -1,0 +1,40 @@
+async page => {
+  await page.goto('http://localhost:54382/__audit');
+  await page.locator('[data-audit-hydrated=true]').waitFor();
+  await page.getByRole('textbox', {name:'Audit driver', exact:true}).fill('Driver');
+  const note=page.getByRole('textbox', {name:'Audit note',exact:true});
+  if(await note.getAttribute('aria-invalid')!=='true') throw new Error('Missing error state');
+  const description=await note.getAttribute('aria-describedby');
+  if(await page.locator('[id="'+description+'"]').textContent()!=='Note error') throw new Error('Missing error description');
+  await page.getByRole('combobox', {name:'Audit depot',exact:true}).waitFor();
+  const route=page.getByRole('combobox', {name:'Audit route',exact:true});
+  await route.focus(); await page.keyboard.press('ArrowDown'); await page.keyboard.press('End'); await page.keyboard.press('Enter');
+  await route.getByText('Route B',{exact:true}).waitFor();
+  if(!(await route.textContent()).includes('Route B')) throw new Error('Keyboard selection failed');
+  const thumbnail=page.getByRole('button',{name:'Audit image',exact:true});
+  await thumbnail.click();
+  const dialog=page.getByRole('dialog',{name:'Audit image',exact:true});
+  await dialog.waitFor();
+  await page.keyboard.press('Tab');
+  if(!await dialog.evaluate(node => document.activeElement === document.body || node.contains(document.activeElement))) throw new Error('Focus escaped lightbox');
+  await page.keyboard.press('Escape'); await dialog.waitFor({state:'detached'});
+  if(!await thumbnail.evaluate(node=>document.activeElement===node)) throw new Error('Focus not restored');
+  const batches=[]; let fail=true;
+  await page.route('**/users/roblox/resolve', async route=> {
+    const ids=route.request().postDataJSON().robloxIds;batches.push(ids.length);
+    await route.fulfill({status:fail?503:200,contentType:'application/json',body:JSON.stringify(ids.map(id=>({robloxId:id,displayName:'Driver',username:'Driver',avatar:null}))) });
+  });
+  await page.getByRole('button',{name:'Resolve drivers',exact:true}).click();
+  await page.waitForTimeout(300);
+  if(JSON.stringify(batches)!=='[200,200,100]') throw new Error('Bad batches: '+batches);
+  await page.getByRole('button',{name:'Resolve drivers',exact:true}).click(); await page.waitForTimeout(100);
+  if(batches.length!==3) throw new Error('Immediate failure retry storm');
+  fail=false;
+  await page.evaluate(()=>{window.__auditNow=Date.now;Date.now=()=>window.__auditNow()+31000});
+  await page.getByRole('button',{name:'Resolve drivers',exact:true}).click();
+  await page.getByRole('status',{name:'Profile count'}).getByText('500',{exact:true}).waitFor();
+  await page.evaluate(()=>{Date.now=window.__auditNow;delete window.__auditNow});
+  await page.setViewportSize({width:320,height:900});
+  await page.screenshot({path:'output/playwright/audit-mobile.png'});
+  console.log('PASS: field accessibility, custom-select keyboard flow, lightbox focus/Escape, 500-profile batching and retry');
+}

@@ -86,11 +86,14 @@ function parseRedirect(contents: string): string | null {
 		.find((line) => line.length > 0 && !line.startsWith('#'));
 
 	if (!target) return null;
-	if (target.startsWith('/') && !target.startsWith('//')) return target;
+	if (target.startsWith('/')) {
+		if (target.startsWith('//') || /[\\\u0000-\u0020]/.test(target)) return null;
+		return target;
+	}
 
 	try {
 		const url = new URL(target);
-		return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
+		return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
 	} catch {
 		return null;
 	}

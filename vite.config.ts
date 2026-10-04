@@ -22,6 +22,11 @@ export default defineConfig({
 	define: {
 		__APP_VERSION__: JSON.stringify(version)
 	},
+	build: {
+		// SvelteKit performs its compilation in plugin hooks by design. The
+		// timing heuristic flags every normal build; retain all other checks.
+		rolldownOptions: { checks: { pluginTimings: false } }
+	},
 	plugins: [
 		tailwindcss(),
 

@@ -43,7 +43,8 @@
                 const { disableDevice } = await import('$lib/utils/push');
                 await disableDevice();
             } catch { /* Signing out must still work if device cleanup fails. */ }
-            await api.auth.logout.post();
+            const { error } = await api.auth.logout.post();
+            if (error) throw error;
 			await refreshData();
 			await goto('/');
 			toasts.success(m.layout_user_menu_signed_out());
@@ -59,6 +60,7 @@
 			type="button"
 			onclick={() => (open = !open)}
 			aria-expanded={open}
+			aria-label={m.common_account()}
 			aria-haspopup="menu"
 			class="flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 transition-colors hover:bg-background-secondary
 				{open ? 'bg-background-secondary' : ''}"

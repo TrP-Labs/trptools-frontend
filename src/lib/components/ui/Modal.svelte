@@ -24,6 +24,7 @@
 	}: Props = $props();
 
 	let dialog = $state<HTMLDialogElement | null>(null);
+	const titleId = $props.id();
 
 	const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-3xl' };
 
@@ -43,6 +44,7 @@
 
 <dialog
 	bind:this={dialog}
+	aria-labelledby={titleId}
 	onclose={close}
 	onclick={(event) => {
 		// Clicking the backdrop lands on the dialog element itself.
@@ -53,7 +55,7 @@
 >
 	<div class="flex items-start justify-between gap-4 border-b border-border-base px-5 py-4">
 		<div class="min-w-0">
-			<h2 class="text-base font-semibold">{title}</h2>
+			<h2 id={titleId} class="text-base font-semibold">{title}</h2>
 			{#if description}
 				<p class="mt-1 text-sm text-text-muted">{description}</p>
 			{/if}

@@ -3,6 +3,12 @@ import { compilePolicyEntries, policySlug } from '../src/lib/server/policyDocume
 import { fetchPolicySources } from '../src/lib/server/policyRepository';
 
 describe('policy documents', () => {
+	test('root links cannot escape to another origin and external links use HTTPS', () => {
+		for (const contents of ['/\\evil.example', '//evil.example', '/\t/evil.example', 'http://example.com', 'https://user:pass@example.com']) {
+			expect(compilePolicyEntries([{ name: 'Link.txt', contents }])).toEqual([]);
+		}
+		expect(compilePolicyEntries([{ name: 'Link.txt', contents: '/about?source=footer' }])[0]?.href).toBe('/about?source=footer');
+	});
 	test('compiles headings into cards and sorts links by file name', () => {
 		const entries = compilePolicyEntries([
 			{ name: 'Terms.md', contents: '# Terms\nIntro.\n## Conduct\nBe kind.' },
