@@ -54,6 +54,7 @@ const API_ERRORS: Record<string, () => string> = {
 	'invalid recurrence rule': m.api_error_invalid_recurrence_rule,
 	'no bot is connected to this group': m.api_error_no_bot_is_connected_to_this_group,
 	'no Discord account is linked': m.api_error_no_discord_account_is_linked,
+	'no game server is connected to this room': m.api_error_no_game_server_is_connected_to_this_room,
 	'program is not valid': m.api_error_program_is_not_valid,
 	'rank already exists': m.api_error_rank_already_exists,
 	'rank does not exist': m.api_error_rank_does_not_exist,

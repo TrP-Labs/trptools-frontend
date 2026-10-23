@@ -4,6 +4,8 @@
 	import Avatar from '$lib/components/users/Avatar.svelte';
 	import CustomSelect from '$lib/components/ui/CustomSelect.svelte';
 	import LiveTextInput from './LiveTextInput.svelte';
+	import GameIndicators from './GameIndicators.svelte';
+	import DriverOrders from './DriverOrders.svelte';
 	import type { NavCell } from './keyboardNav.svelte';
 	import {
 		NOTE_ROUTE,
@@ -50,6 +52,12 @@
 		dimmed?: boolean;
 		/** Lit up as the other end of a tow somebody is pointing at. */
 		highlighted?: boolean;
+		/**
+		 * A hosted server is feeding the room: draw what the game reports in
+		 * place of the manual assigned tick, and offer orders for the driver.
+		 */
+		live?: boolean;
+		onorder?: (order: 'STOP' | 'CONTINUE' | 'END_SHIFT') => void;
 		/** The chosen dropdown value: a route id, the note marker, or empty. */
 		onroute: (value: string) => void;
 		onnote: (note: string) => void;
@@ -81,6 +89,8 @@
 		selecting = false,
 		dimmed = false,
 		highlighted = false,
+		live = false,
+		onorder,
 		onroute,
 		onnote,
 		onassigned,
@@ -197,6 +207,7 @@
 		route: null,
 		note: null,
 		assigned: null,
+		orders: null,
 		solve: null,
 		status: null,
 		location: null,
@@ -299,7 +310,7 @@
 	{#if bucket === 'NORMAL'}
 		<div
 			class="relative order-last flex min-w-0 basis-full flex-wrap items-center gap-2
-				sm:order-none sm:flex-none sm:basis-[26rem]
+				sm:order-none sm:flex-none {live ? 'sm:basis-[34rem]' : 'sm:basis-[26rem]'}
 				{towed ? 'min-h-9' : ''}"
 		>
 			<!--
@@ -348,6 +359,8 @@
 					class="min-w-28 flex-1"
 					onchange={onroute}
 				/>
+
+				{#if live}<GameIndicators {vehicle} {routes} part="route" />{/if}
 
 				{#if noted}
 					<LiveTextInput
@@ -400,6 +413,19 @@
 					</button>
 				{/if}
 
+				{#if live}
+					<!-- One cluster, so on a phone the three wrap together rather than one by one. -->
+					<div class="flex shrink-0 items-center gap-2">
+						<GameIndicators {vehicle} {routes} part="status" />
+						<DriverOrders
+							bind:element={refs.orders}
+							vehicleId={vehicle.id}
+							disabled={towed}
+							ring={ring('orders')}
+							onorder={(order) => onorder?.(order)}
+						/>
+					</div>
+				{:else}
 				<button
 					bind:this={refs.assigned}
 					type="button"
@@ -415,6 +441,7 @@
 				>
 					{m.dispatch_vehicle_row_assigned()}
 				</button>
+				{/if}
 			</div>
 
 			{#if towedBy}

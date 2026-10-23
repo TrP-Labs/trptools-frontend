@@ -57,6 +57,14 @@
 		onsolveone: (vehicle: DispatchVehicle) => Promise<void> | void;
 		/** Open whatever this board imports vehicles with. */
 		onimport: () => void;
+		/**
+		 * A hosted server is feeding this board. Importing is pointless while
+		 * it is — the next report would overwrite the paste — so the button
+		 * goes, and each row shows the game's own state instead of the tick.
+		 */
+		live?: boolean;
+		/** An order for one driver, sent through the game. */
+		onorder?: (vehicle: DispatchVehicle, order: 'STOP' | 'CONTINUE' | 'END_SHIFT') => Promise<void> | void;
 	}
 
 	let {
@@ -70,7 +78,9 @@
 		ondelete,
 		onsolve,
 		onsolveone,
-		onimport
+		onimport,
+		live = false,
+		onorder
 	}: Props = $props();
 
 	// --- filtering and grouping ------------------------------------------------
@@ -214,9 +224,11 @@
 			// A vehicle carrying a written note has no solve button: the solver
 			// refuses to overwrite a note, so offering it would be a button
 			// that reports having done nothing.
+			// Live, the tick is the game's to set and is not a control.
+			const status: NavCell = live ? 'orders' : 'assigned';
 			return vehicle.route === NOTE_ROUTE
-				? ['route', 'note', 'assigned', 'delete']
-				: ['route', 'solve', 'assigned', 'delete'];
+				? ['route', 'note', status, 'delete']
+				: ['route', 'solve', status, 'delete'];
 		}
 
 		// Staff cars and scenery carry no dispatch state to change.
@@ -415,6 +427,7 @@
 	routable={passenger.length}
 	matching={search ? filtered.length : null}
 	navEnabled={nav.enabled}
+	{live}
 	{onimport}
 	{onsolve}
 />
@@ -439,7 +452,12 @@
 	</div>
 {/if}
 
-{#if vehicles.length === 0}
+{#if vehicles.length === 0 && live}
+	<EmptyState
+		title={m.dispatch_live_waiting_vehicles()}
+		description={m.dispatch_live_waiting_vehicles_hint()}
+	/>
+{:else if vehicles.length === 0}
 	<EmptyState
 		title={m.dispatch_dispatch_board_no_vehicles_yet()}
 		description={m.dispatch_dispatch_board_paste_vehicle_list_from_game_start()}
@@ -478,6 +496,8 @@
 						selecting={isCandidate(vehicle)}
 						dimmed={towPick !== null && !isCandidate(vehicle) && vehicle.id !== towPick}
 						highlighted={towHover !== null && tower?.id === towHover}
+						{live}
+						onorder={(order) => onorder?.(vehicle, order)}
 						onroute={(next) => setRoute(vehicle, next)}
 						onnote={(note) => patchVehicle(vehicle.id, { note })}
 						onassigned={(value) => patchVehicle(vehicle.id, { assigned: value })}
