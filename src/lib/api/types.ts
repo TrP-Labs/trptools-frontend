@@ -296,6 +296,12 @@ export interface DispatchVehicle {
 	command?: 'QUEUED' | 'SENT' | null;
 }
 
+/** A rank's attendance rules, with every slot it can sign up for. */
+export type AttendanceSettings = Data<ReturnType<ReturnType<Api['attendance']['ranks']>['get']>>;
+/** A month of standings: who has earned a promotion or a demotion. */
+export type AttendanceStandings = Data<ReturnType<ReturnType<Api['attendance']['groups']>['standings']['get']>>;
+export type AttendanceStanding = AttendanceStandings['people'][number];
+
 /** Whether a game server is feeding a room, and what it last said. */
 export type GameStatus = Data<ReturnType<ReturnType<Api['realtime']['groups']>['status']['get']>>;
 

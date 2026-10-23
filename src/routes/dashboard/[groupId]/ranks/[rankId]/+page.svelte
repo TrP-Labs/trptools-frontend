@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { refreshData } from '$lib/utils/refresh';
-	import { IconRefresh, IconSettings, IconShieldLock, IconTrash } from '@tabler/icons-svelte';
+	import { IconCalendarStats, IconRefresh, IconSettings, IconShieldLock, IconTrash } from '@tabler/icons-svelte';
 	import ObjectPage, { type ObjectSection } from '$lib/components/layout/ObjectPage.svelte';
 	import PermissionEditor from '$lib/components/ranks/PermissionEditor.svelte';
+	import AttendanceEditor from '$lib/components/ranks/AttendanceEditor.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -14,7 +15,7 @@
 	import { api, errorMessage } from '$lib/api/client';
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { permissionDescription, permissionLabel } from '$lib/api/types';
-	import { grantCount } from '$lib/utils/permissions';
+	import { can, grantCount, PERM } from '$lib/utils/permissions';
 	import type { PageProps } from './$types';
 	import { m } from '$lib/paraglide/messages.js';
 
@@ -22,10 +23,14 @@
 
 	let group = $derived(data.group);
 	let rank = $derived(data.rank);
-	let base = $derived(`/dashboard/${group.slug}/ranks`);
+	let attendance = $derived(data.attendance);
+	let canRanks = $derived(can(group.permissions, PERM.MANAGE_RANKS));
+	let base = $derived(canRanks ? `/dashboard/${group.slug}/ranks` : `/dashboard/${group.slug}/promotions`);
+	let title = $derived(rank?.cachedName ?? attendance?.rank.name ?? '');
+	let number = $derived(rank?.cachedRank ?? attendance?.rank.rank ?? 0);
 
 	/** The Roblox owner role always keeps full control (see the permission model). */
-	let isOwner = $derived(rank.cachedRank === 255);
+	let isOwner = $derived(number === 255);
 
 	let busy = $state(false);
 
@@ -38,12 +43,19 @@
 	 * which is a fact about the sheet, edited there.
 	 */
 	let sections = $derived<ObjectSection[]>([
-		{ id: 'permissions', label: m.dashboard_ranks_permissions(), icon: IconShieldLock },
-		{ id: 'settings', label: m.dashboard_ranks_rank_settings(), icon: IconSettings }
+		...(rank
+			? [
+					{ id: 'permissions', label: m.dashboard_ranks_permissions(), icon: IconShieldLock },
+					{ id: 'settings', label: m.dashboard_ranks_rank_settings(), icon: IconSettings }
+				]
+			: []),
+		// The owner role is never promoted, demoted or held to a minimum.
+		...(attendance && !isOwner ? [{ id: 'attendance', label: m.attendance_tab(), icon: IconCalendarStats }] : [])
 	]);
 
 	async function patch(body: Record<string, unknown>, success?: string) {
 		busy = true;
+		if (!rank) return;
 		try {
 			const { error } = await api.ranks({ rankId: rank.id }).patch(body);
 			if (error) throw error;
@@ -58,6 +70,7 @@
 	}
 
 	async function unbind() {
+		if (!rank) return;
 		if (!confirm(m.dashboard_ranks_unbind_confirm({ rank: rank.cachedName })))
 			return;
 
@@ -78,15 +91,16 @@
 
 <ObjectPage
 	backHref={base}
-	backLabel={m.common_ranks()}
-	title={rank.cachedName}
-	description={permissionDescription(rank.permissionLevel)}
-	accent={rank.color}
+	backLabel={canRanks ? m.common_ranks() : m.promotions_title()}
+	{title}
+	description={rank ? permissionDescription(rank.permissionLevel) : m.attendance_tab_hint()}
+	accent={rank?.color ?? attendance?.rank.color}
 	{sections}
 >
 	{#snippet meta()}
 		{#if isOwner}<Badge tone="accent">{m.dashboard_ranks_owner()}</Badge>{/if}
-		<Badge>{m.dashboard_ranks_rank_number({ number: rank.cachedRank })}</Badge>
+		<Badge>{m.dashboard_ranks_rank_number({ number })}</Badge>
+		{#if rank}
 		<Badge tone={rank.permissionLevel > 0 ? 'accent' : undefined}>
 			{permissionLabel(rank.permissionLevel)}
 		</Badge>
@@ -94,9 +108,11 @@
 			<Badge>{m.dashboard_ranks_grants_held({ count: grantCount(rank.permissions) })}</Badge>
 		{/if}
 		{#if rank.visible}<Badge>{m.dashboard_ranks_staff_list()}</Badge>{/if}
+		{/if}
 	{/snippet}
 
 	{#snippet actions()}
+		{#if rank}
 		<Button
 			size="sm"
 			variant="secondary"
@@ -111,10 +127,15 @@
 				<IconTrash size={15} /> {m.dashboard_ranks_unbind()}
 			</Button>
 		{/if}
+		{/if}
 	{/snippet}
 
 	{#snippet children(section)}
-		{#if section === 'permissions'}
+		{#if section === 'attendance' && attendance}
+			<AttendanceEditor settings={attendance} />
+		{:else if !rank}
+			<!-- Only the attendance section exists without Manage ranks. -->
+		{:else if section === 'permissions'}
 			<Card
 				title={m.dashboard_ranks_access()}
 				description={m.dashboard_ranks_what_members_holding_rank_can_do()}
