@@ -8,7 +8,7 @@ export const load: PageServerLoad = async (event) => {
 	if (!can(group.permissions, PERM.START_ROOM))
 		error(403, m.api_error_forbidden());
 	const client = serverApi(event);
-	const [room, upcoming] = await Promise.all([
+	const [room, upcoming, gameStatus] = await Promise.all([
 		client.rooms.get({ query: { groupId: group.id } }),
 		client.schedule.occurrences.get({
 			query: {
@@ -17,6 +17,7 @@ export const load: PageServerLoad = async (event) => {
 				limit: '20',
 			},
 		}),
+		client.realtime.groups({ groupId: group.id }).status.get(),
 	]);
 	const roomId = room.data?.roomId ?? null;
 	const snapshot = roomId ? await client.host({ roomId }).get() : null;
@@ -24,5 +25,6 @@ export const load: PageServerLoad = async (event) => {
 		roomId,
 		hostSnapshot: snapshot?.data ?? null,
 		upcoming: upcoming.data ?? [],
+		gameStatus: gameStatus.data ?? null,
 	};
 };
