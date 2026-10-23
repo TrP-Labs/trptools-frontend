@@ -6,13 +6,20 @@
     import { m } from '$lib/paraglide/messages.js';
     import { refreshData } from '$lib/utils/refresh';
     import { toasts } from '$lib/stores/toast.svelte';
-    let { groupId, connection }: { groupId: string; connection: ClaimableConnection } = $props();
+    // One connection serves claimable ranks and promotions; `returnTo` is the
+    // page Roblox's consent screen sends the person back to.
+    let { groupId, connection, returnTo = 'claimables', hint }: {
+        groupId: string;
+        connection: Pick<ClaimableConnection, 'hasWriteScope' | 'connected' | 'authorizedByMe'>;
+        returnTo?: 'claimables' | 'promotions';
+        hint?: string;
+    } = $props();
     let busy = $state(false);
     async function authorize() {
         busy = true;
         try {
             if (!connection.hasWriteScope) {
-                const result = await api.auth.claimables.reverify.post({ groupId });
+                const result = await api.auth.claimables.reverify.post({ groupId, returnTo });
                 if (result.error || !result.data) throw result.error;
                 window.location.assign(result.data.url);
                 return;
@@ -39,7 +46,7 @@
         <h2 class="font-semibold text-text">{m.claimables_connect_title()}</h2>
         {#if connection.connected}<Badge tone="success">{m.claimables_connected()}</Badge>{/if}
     </div>
-    <p class="max-w-2xl text-sm text-text-muted">{m.claimables_connect_hint()}</p>
+    <p class="max-w-2xl text-sm text-text-muted">{hint ?? m.claimables_connect_hint()}</p>
     {#if !connection.hasWriteScope}<p class="max-w-2xl text-sm text-text-muted">{m.claimables_scope_hint()}</p>{/if}
     <div class="flex flex-wrap gap-3">
         {#if !connection.hasWriteScope || !connection.connected || !connection.authorizedByMe}

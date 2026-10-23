@@ -282,7 +282,28 @@ export interface DispatchVehicle {
 	/** Where a service vehicle is, in the dispatcher's own words. */
 	location: string;
 	status: ServiceStatus;
+	/**
+	 * What a hosted game server last reported, on a room it is feeding. Null
+	 * (or absent, on the single-user board) when nothing has reported.
+	 */
+	/** The route the driver has set on the vehicle itself. */
+	gameRoute?: string | null;
+	/** The route the game's dispatch tablet holds, shared with in-game boards. */
+	gameAssigned?: string | null;
+	/** Whether the dispatch tablet is in the vehicle. */
+	tablet?: boolean | null;
+	/** This board's latest assignment, on its way to the game. */
+	command?: 'QUEUED' | 'SENT' | null;
 }
+
+/** A rank's attendance rules, with every slot it can sign up for. */
+export type AttendanceSettings = Data<ReturnType<ReturnType<Api['attendance']['ranks']>['get']>>;
+/** A month of standings: who has earned a promotion or a demotion. */
+export type AttendanceStandings = Data<ReturnType<ReturnType<Api['attendance']['groups']>['standings']['get']>>;
+export type AttendanceStanding = AttendanceStandings['people'][number];
+
+/** Whether a game server is feeding a room, and what it last said. */
+export type GameStatus = Data<ReturnType<ReturnType<Api['realtime']['groups']>['status']['get']>>;
 
 export type ServiceStatus = 'AWAITING' | 'ENROUTE' | 'ON_SCENE' | 'RETURNING';
 
@@ -294,6 +315,7 @@ export type DispatchStreamEvent =
 	| { event: 'PRESENCE'; data: string[] }
 	| { event: 'CLOSED' }
 	| { event: 'HOST'; data: HostSnapshot }
+	| { event: 'GAME'; data: GameStatus }
 	| { event: 'HEARTBEAT' };
 
 /** How a manager labels a vehicle in group settings. */

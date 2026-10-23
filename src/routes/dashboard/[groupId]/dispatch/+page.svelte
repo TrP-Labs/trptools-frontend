@@ -105,6 +105,17 @@
 		}
 	}
 
+	async function sendOrder(vehicle: DispatchVehicle, order: 'STOP' | 'CONTINUE' | 'END_SHIFT') {
+		if (!roomId) return;
+		try {
+			const { error } = await api.dispatch({ roomId }).vehicle({ vehicleId: vehicle.id }).command.post({ type: order });
+			if (error) throw error;
+			toasts.success(m.dispatch_live_order_sent({ vehicle: vehicle.id }));
+		} catch (error) {
+			toasts.error(errorMessage(error, m.dispatch_live_order_failed()));
+		}
+	}
+
 	let solving = $state(false);
 
 	/**
@@ -276,6 +287,8 @@
 		onsolve={solve}
 		onsolveone={solveVehicle}
 		onimport={() => (importOpen = true)}
+		live={room.live}
+		onorder={sendOrder}
 	/>
 
 	<PresenceModal bind:open={presenceOpen} {roomId} present={room.presence} />

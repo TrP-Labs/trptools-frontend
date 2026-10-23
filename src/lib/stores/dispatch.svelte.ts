@@ -1,5 +1,8 @@
 import { dispatchStreamUrl } from '$lib/api/client';
-import type { DispatchStreamEvent, DispatchVehicle, HostSnapshot } from '$lib/api/types';
+import type { DispatchStreamEvent, DispatchVehicle, GameStatus, HostSnapshot } from '$lib/api/types';
+
+/** Matches the API's window: longer than the game's slowest retry interval. */
+const GAME_LIVE_MS = 75_000;
 
 export type ConnectionStatus = 'idle' | 'connecting' | 'live' | 'retrying' | 'closed';
 
@@ -16,6 +19,23 @@ export class DispatchRoom {
 	presence = $state<string[]>([]);
 	status = $state<ConnectionStatus>('idle');
 	lastEventAt = $state<number | null>(null);
+	/** The hosted server feeding this room, if one has reported. */
+	game = $state<GameStatus | null>(null);
+	/** When `game` arrived, by this browser's clock, so skew cannot keep it live. */
+	gameReceivedAt = $state(0);
+	#now = $state(Date.now());
+	#clock: ReturnType<typeof setInterval> | null = null;
+
+	/**
+	 * Whether a server is feeding the room right now.
+	 *
+	 * Re-checked against a ticking clock, because the moment a feed stops is
+	 * exactly the moment nothing arrives to say so — and the import button has
+	 * to come back by itself.
+	 */
+	get live(): boolean {
+		return Boolean(this.game?.live) && this.#now - this.gameReceivedAt < GAME_LIVE_MS;
+	}
 
 	#source: EventSource | null = null;
 	#retry = 0;
@@ -29,7 +49,9 @@ export class DispatchRoom {
 		this.host = null;
 		this.vehicles = [];
 		this.presence = [];
+		this.game = null;
 		this.#roomId = roomId;
+		this.#clock ??= setInterval(() => (this.#now = Date.now()), 5000);
 		this.#open();
 	}
 
@@ -110,6 +132,12 @@ export class DispatchRoom {
 				this.applyHost(event.data);
 				break;
 
+			case 'GAME':
+				this.game = event.data;
+				this.gameReceivedAt = Date.now();
+				this.#now = this.gameReceivedAt;
+				break;
+
 			case 'HEARTBEAT':
 				break;
 		}
@@ -140,6 +168,11 @@ export class DispatchRoom {
 		if (this.#retryTimer) {
 			clearTimeout(this.#retryTimer);
 			this.#retryTimer = null;
+		}
+
+		if (this.#clock) {
+			clearInterval(this.#clock);
+			this.#clock = null;
 		}
 
 		this.#source?.close();

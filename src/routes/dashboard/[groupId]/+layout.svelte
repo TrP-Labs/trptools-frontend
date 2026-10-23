@@ -12,6 +12,7 @@
 		IconRadio,
 		IconRoute,
 		IconSettings,
+		IconTrendingUp,
 		IconUsers
 	} from '@tabler/icons-svelte';
 	import Sidebar, { type SidebarItem } from '$lib/components/layout/Sidebar.svelte';
@@ -54,6 +55,12 @@
 		{ href: `${base}/depots`, label: m.common_depots(), icon: IconBuildingWarehouse, permissions: [PERM.MANAGE_DEPOTS] },
 		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, permissions: [PERM.MANAGE_RANKS] },
 		{ href: `${base}/claimables`, label: m.claimables_title(), icon: IconAward, permissions: [PERM.MANAGE_CLAIMABLES] },
+		{
+			href: `${base}/promotions`,
+			label: m.promotions_title(),
+			icon: IconTrendingUp,
+			permissions: [PERM.MANAGE_ATTENDANCE, PERM.MANAGE_PROMOTIONS]
+		},
 		{
 			href: `${base}/applications`,
 			label: m.common_applications(),

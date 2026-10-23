@@ -27,6 +27,7 @@ export type NavCell =
 	| 'note'
 	| 'solve'
 	| 'assigned'
+	| 'orders'
 	| 'status'
 	| 'location'
 	| 'tow'

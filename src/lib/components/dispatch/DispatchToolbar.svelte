@@ -19,6 +19,8 @@
 		/** How many vehicles the search matched, or null when not searching. */
 		matching: number | null;
 		navEnabled: boolean;
+		/** A server is feeding the board, so there is nothing to paste. */
+		live?: boolean;
 		onimport: () => void;
 		onsolve: (includeAssigned: boolean) => void;
 	}
@@ -32,6 +34,7 @@
 		routable,
 		matching,
 		navEnabled,
+		live = false,
 		onimport,
 		onsolve
 	}: Props = $props();
@@ -54,9 +57,21 @@
 		/>
 	</div>
 
-	<Button variant="secondary" onclick={onimport}>
-		<IconClipboardText size={16} /> {m.common_import()}
-	</Button>
+	{#if live}
+		<span
+			class="inline-flex h-9 items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-3
+				text-sm font-medium text-success"
+			title={m.dispatch_live_connected_hint()}
+			data-testid="live-badge"
+		>
+			<span class="live-dot"></span>
+			{m.dispatch_live_connected()}
+		</span>
+	{:else}
+		<Button variant="secondary" onclick={onimport}>
+			<IconClipboardText size={16} /> {m.common_import()}
+		</Button>
+	{/if}
 
 	<Button onclick={() => onsolve(false)} loading={solving}>
 		<IconBolt size={16} /> {m.dispatch_dispatch_toolbar_solve_routes()}
@@ -87,6 +102,13 @@
 </div>
 
 <style>
+	.live-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background: var(--color-success);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 25%, transparent);
+	}
 	kbd {
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.25rem;

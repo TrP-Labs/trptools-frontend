@@ -17,7 +17,7 @@
     let { group, event }: { group: Pick<GroupSummary, 'id' | 'slug' | 'sourceLocale'>; event?: ShiftEvent } = $props();
     function initialDraft(): ShiftDraft {
         const start = event ? new Date(event.startTime) : new Date(Date.now() + 3600000);
-        const rule = event ? parseRule(event.rrule) : { repeat: 'WEEKLY' as const, days: [((start.getDay() + 6) % 7)] };
+        const rule = event ? parseRule(event.rrule, start) : { repeat: 'WEEKLY' as const, days: [((start.getDay() + 6) % 7)] };
         return { name: event?.name ?? '', description: event?.description ?? '', color: event?.color ?? '#4287f5',
             startLocal: toLocalInput(start), duration: event?.duration ?? 120, repeat: rule.repeat, days: rule.days,
             visibility: event?.visibility ?? 'PUBLIC', hostLevel: event?.hostLevel ?? 2, translations: structuredClone(event?.translations ?? {}) };
@@ -42,8 +42,12 @@
     ]);
     async function save(section: string) {
         const start = fromLocalInput(draft.startLocal);
-        const originalRule = event ? parseRule(event.rrule) : null;
-        const unchangedRule = originalRule?.repeat === draft.repeat && JSON.stringify(originalRule.days) === JSON.stringify(draft.days);
+        const originalRule = event ? parseRule(event.rrule, new Date(event.startTime)) : null;
+        // A moved start can cross midnight in UTC, which moves which UTC
+        // weekdays the ticked days are, so the stored text only survives
+        // when neither changed.
+        const unchangedRule = originalRule?.repeat === draft.repeat && JSON.stringify(originalRule.days) === JSON.stringify([...draft.days].sort())
+            && event && new Date(event.startTime).getTime() === start.getTime();
         const recurrence = { startTime: start, rrule: event && unchangedRule ? event.rrule : buildRule({ repeat: draft.repeat, days: draft.days }, start), duration: draft.duration };
         const general = { name: draft.name.trim(), description: draft.description, color: draft.color, translations: draft.translations, postDescription };
         const visibility = { visibility: draft.visibility, hostLevel: draft.hostLevel, publicStaff, publicDrivers };
