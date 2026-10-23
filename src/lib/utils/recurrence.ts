@@ -21,6 +21,20 @@ export interface RecurrenceDraft {
 	days: number[];
 }
 
+/**
+ * How many days the start's UTC weekday is ahead of its local one: -1, 0 or 1.
+ *
+ * A rule's BYDAY is read in UTC, because that is how the API expands it, but
+ * the days a manager ticks are the days on their own calendar. An evening
+ * shift west of Greenwich falls on the next UTC day — Monday 20:00 in New
+ * York is Tuesday in UTC — so writing the ticked days straight into BYDAY put
+ * every such shift a day early, and left the first one outside its own rule.
+ */
+function utcDayShift(start: Date): number {
+	const difference = (start.getUTCDay() - start.getDay() + 7) % 7;
+	return difference === 6 ? -1 : difference;
+}
+
 /** The repeats that let the member pick which days of the week they land on. */
 export function picksDays(repeat: Repeat): boolean {
 	return repeat === 'WEEKLY' || repeat === 'FORTNIGHTLY';
@@ -33,47 +47,44 @@ export function buildRule(draft: RecurrenceDraft, start: Date): string {
 		case 'DAILY':
 			return new RRule({ ...base, freq: Frequency.DAILY }).toString();
 
+		// The presets are days on the manager's calendar too, so they go
+		// through the same translation into UTC as days picked by hand.
 		case 'WEEKDAYS':
-			return new RRule({
-				...base,
-				freq: Frequency.WEEKLY,
-				byweekday: [RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR]
-			}).toString();
+			return weeklyRule(start, [0, 1, 2, 3, 4]);
 
 		case 'WEEKENDS':
-			return new RRule({
-				...base,
-				freq: Frequency.WEEKLY,
-				byweekday: [RRule.SA, RRule.SU]
-			}).toString();
+			return weeklyRule(start, [5, 6]);
 
 		case 'MONTHLY':
 			return new RRule({ ...base, freq: Frequency.MONTHLY }).toString();
 
 		case 'FORTNIGHTLY':
 		case 'WEEKLY':
-		default: {
-			const selected: Weekday[] = draft.days
-				.map((index) => WEEKDAYS[index])
-				.filter((day): day is Weekday => Boolean(day));
-
-			return new RRule({
-				...base,
-				freq: Frequency.WEEKLY,
-				// A fortnight is a weekly rule that skips every other week. The
-				// interval counts from DTSTART, so the first occurrence is the
-				// start date and every second week after it. Left off entirely
-				// for a plain weekly rule so existing rules keep their exact
-				// stored text.
-				...(draft.repeat === 'FORTNIGHTLY' ? { interval: 2 } : {}),
-				byweekday: selected.length > 0 ? selected : [WEEKDAYS[start.getDay() === 0 ? 6 : start.getDay() - 1]!]
-			}).toString();
-		}
+		default:
+			return weeklyRule(start, draft.days, draft.repeat === 'FORTNIGHTLY');
 	}
 }
 
+function weeklyRule(start: Date, days: number[], fortnightly = false): string {
+	const shift = utcDayShift(start);
+	const selected: Weekday[] = days
+		.map((index) => WEEKDAYS[(index + shift + 7) % 7])
+		.filter((day): day is Weekday => Boolean(day));
+
+	return new RRule({
+		dtstart: start,
+		freq: Frequency.WEEKLY,
+		// A fortnight is a weekly rule that skips every other week. The
+		// interval counts from DTSTART, so the first occurrence is the start
+		// date and every second week after it. Left off entirely for a plain
+		// weekly rule so existing rules keep their exact stored text.
+		...(fortnightly ? { interval: 2 } : {}),
+		byweekday: selected.length > 0 ? selected : [WEEKDAYS[start.getUTCDay() === 0 ? 6 : start.getUTCDay() - 1]!]
+	}).toString();
+}
+
 /** Best-effort read of an existing rule back into the builder's shape. */
-export function parseRule(rule: string): RecurrenceDraft {
+export function parseRule(rule: string, start?: Date): RecurrenceDraft {
 	try {
 		const parsed = rrulestr(rule) as RRule;
 		const options = parsed.options;
@@ -81,7 +92,9 @@ export function parseRule(rule: string): RecurrenceDraft {
 		if (options.freq === Frequency.DAILY) return { repeat: 'DAILY', days: [] };
 		if (options.freq === Frequency.MONTHLY) return { repeat: 'MONTHLY', days: [] };
 
-		const days = (options.byweekday ?? []) as number[];
+		// Back onto the reader's own calendar; see `utcDayShift`.
+		const shift = start ? utcDayShift(start) : 0;
+		const days = ((options.byweekday ?? []) as number[]).map((day) => (day - shift + 7) % 7).sort();
 
 		// The interval has to be read back, not just written. Without this a
 		// fortnightly shift would open in the editor as a weekly one and be
