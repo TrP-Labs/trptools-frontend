@@ -119,6 +119,18 @@ export function formatDate(value: Date | string, timezone?: string): string {
 	}).format(date);
 }
 
+/** "Oct 3": a column heading, where the year is the period's and goes without saying. */
+export function formatShortDate(value: Date | string, timezone?: string): string {
+	const date = typeof value === 'string' ? new Date(value) : value;
+	if (Number.isNaN(date.getTime())) return '—';
+
+	return new Intl.DateTimeFormat(getLocale(), {
+		day: 'numeric',
+		month: 'short',
+		timeZone: resolveZone(timezone)
+	}).format(date);
+}
+
 /** "in 2 hours", "3 days ago". */
 export function formatRelative(value: Date | string): string {
 	const date = typeof value === 'string' ? new Date(value) : value;

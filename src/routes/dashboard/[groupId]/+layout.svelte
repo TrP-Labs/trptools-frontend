@@ -56,8 +56,8 @@
 		{ href: `${base}/ranks`, label: m.common_ranks(), icon: IconUsers, permissions: [PERM.MANAGE_RANKS] },
 		{ href: `${base}/claimables`, label: m.claimables_title(), icon: IconAward, permissions: [PERM.MANAGE_CLAIMABLES] },
 		{
-			href: `${base}/promotions`,
-			label: m.promotions_title(),
+			href: `${base}/attendance`,
+			label: m.attendance_title(),
 			icon: IconTrendingUp,
 			permissions: [PERM.MANAGE_ATTENDANCE, PERM.MANAGE_PROMOTIONS]
 		},

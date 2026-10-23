@@ -11,7 +11,7 @@
     let { groupId, connection, returnTo = 'claimables', hint }: {
         groupId: string;
         connection: Pick<ClaimableConnection, 'hasWriteScope' | 'connected' | 'authorizedByMe'>;
-        returnTo?: 'claimables' | 'promotions';
+        returnTo?: 'claimables' | 'attendance';
         hint?: string;
     } = $props();
     let busy = $state(false);

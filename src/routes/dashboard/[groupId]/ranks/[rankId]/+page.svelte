@@ -25,7 +25,7 @@
 	let rank = $derived(data.rank);
 	let attendance = $derived(data.attendance);
 	let canRanks = $derived(can(group.permissions, PERM.MANAGE_RANKS));
-	let base = $derived(canRanks ? `/dashboard/${group.slug}/ranks` : `/dashboard/${group.slug}/promotions`);
+	let base = $derived(canRanks ? `/dashboard/${group.slug}/ranks` : `/dashboard/${group.slug}/attendance`);
 	let title = $derived(rank?.cachedName ?? attendance?.rank.name ?? '');
 	let number = $derived(rank?.cachedRank ?? attendance?.rank.rank ?? 0);
 
@@ -91,7 +91,7 @@
 
 <ObjectPage
 	backHref={base}
-	backLabel={canRanks ? m.common_ranks() : m.promotions_title()}
+	backLabel={canRanks ? m.common_ranks() : m.attendance_title()}
 	{title}
 	description={rank ? permissionDescription(rank.permissionLevel) : m.attendance_tab_hint()}
 	accent={rank?.color ?? attendance?.rank.color}

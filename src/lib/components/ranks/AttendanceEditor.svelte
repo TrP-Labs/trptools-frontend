@@ -30,6 +30,7 @@
 			maxPoints: (source.maxPoints ?? '') as number | string,
 			requiredPercent: source.requiredPercent as number | string,
 			unsignedPoints: source.unsignedPoints as number | string,
+			noShowPoints: source.noShowPoints as number | string,
 			promotionRankId: source.promotionRankId ?? '',
 			demotionRankId: source.demotionRankId ?? '',
 			slots: Object.fromEntries(source.slots.map((slot) => [slot.slotId, slot.points])) as Record<string, number | string>
@@ -80,6 +81,7 @@
 				maxPoints: bound(draft.maxPoints),
 				requiredPercent: Math.min(100, Math.max(0, Math.round(Number(draft.requiredPercent) || 0))),
 				unsignedPoints: Math.max(0, Number(draft.unsignedPoints) || 0),
+				noShowPoints: Math.max(0, Number(draft.noShowPoints) || 0),
 				promotionRankId: draft.promotionRankId || null,
 				demotionRankId: draft.demotionRankId || null,
 				slots: Object.entries(draft.slots).map(([slotId, points]) => ({ slotId, points: Math.max(0, Number(points) || 0) }))
@@ -134,6 +136,9 @@
 			</Field>
 			<Field label={m.attendance_unsigned()} hint={m.attendance_unsigned_hint()} for="attendance-unsigned">
 				<Input id="attendance-unsigned" type="number" min="0" step="any" bind:value={draft.unsignedPoints} />
+			</Field>
+			<Field label={m.attendance_no_show()} hint={m.attendance_no_show_hint()} for="attendance-no-show">
+				<Input id="attendance-no-show" type="number" min="0" step="any" bind:value={draft.noShowPoints} />
 			</Field>
 		</div>
 		{#if warning}<p class="mt-3 text-sm text-warning">{m.attendance_bounds_crossed()}</p>{/if}
