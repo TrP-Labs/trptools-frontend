@@ -39,7 +39,7 @@
 	function show(event: Event, shift: AttendanceShift, cell: Cell) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 		// Below the cell when there is no room above it, clamped to the screen.
-		const below = rect.top < 150;
+		const below = rect.top < 250;
 		const x = Math.min(Math.max(rect.left + rect.width / 2, 130), window.innerWidth - 130);
 		tip = { shift, cell, x, y: below ? rect.bottom + 8 : rect.top - 8, below };
 	}
@@ -58,6 +58,18 @@
 				return m.attendance_reason_short();
 			default:
 				return m.attendance_reason_absent();
+		}
+	}
+
+	function jobName(job: string) {
+		switch (job) {
+			case 'DriverShift': return m.attendance_job_driver_shift();
+			case 'FreeDrive': return m.attendance_job_free_drive();
+			case 'ServiceDriver': return m.attendance_job_service_driver();
+			case 'Conductor': return m.attendance_job_conductor();
+			case 'Dispatcher': return m.attendance_job_dispatcher();
+			case 'DepotWorker': return m.attendance_job_depot_worker();
+			default: return job;
 		}
 	}
 
@@ -215,6 +227,12 @@
 				<dt>{m.attendance_tip_slot()}</dt>
 				<dd class="min-w-0 truncate">{tip.cell.slot ?? m.attendance_tip_no_slot()}</dd>
 			</div>
+			{#if tip.cell.jobs?.length}
+				<div class="flex justify-between gap-3" data-testid="cell-careers">
+					<dt>{m.attendance_tip_jobs()}</dt>
+					<dd class="min-w-0 text-right wrap-anywhere">{tip.cell.jobs.map(jobName).join(', ')}</dd>
+				</div>
+			{/if}
 			<div class="flex justify-between gap-3 font-medium text-text">
 				<dt>{m.attendance_tip_points()}</dt>
 				<dd class="font-mono tabular-nums {tone(tip.cell.points)}">
