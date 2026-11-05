@@ -95,7 +95,7 @@
 			rows={10}
 			spellcheck="false"
 			class="font-mono text-xs"
-			placeholder={'[{"Id":101,"OwnerId":1,"Name":m.dispatch_import_vehicles_modal_ziu_9_trolleybus(),"Depot":m.dispatch_import_vehicles_modal_main_island_depot()}]'}
+			placeholder={`[{"Id":101,"OwnerId":1,"Name":"${m.dispatch_import_vehicles_modal_ziu_9_trolleybus()}","Depot":"${m.dispatch_import_vehicles_modal_main_island_depot()}"}]`}
 		/>
 	</Field>
 
