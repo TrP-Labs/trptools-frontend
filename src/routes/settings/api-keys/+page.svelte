@@ -13,31 +13,20 @@
 	import { toasts } from '$lib/stores/toast.svelte';
 	import { formatRelative } from '$lib/utils/format';
 	import type { PageProps } from './$types';
+	import ScopePicker from '$lib/components/settings/ScopePicker.svelte';
+	import { DEFAULT_SCOPES } from '$lib/utils/apiScopes';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 
-	const SCOPES = [
-		'groups:read',
-		'groups:write',
-		'routes:read',
-		'routes:write',
-		'schedule:read',
-		'schedule:write',
-		'dispatch:read',
-		'dispatch:write'
-	];
 
 	let createOpen = $state(false);
 	let name = $state('');
-	let scopes = $state<string[]>(['groups:read', 'routes:read', 'schedule:read']);
+	let scopes = $state<string[]>([...DEFAULT_SCOPES]);
 	let creating = $state(false);
 
 	let issued = $state<string | null>(null);
 
-	function toggleScope(scope: string) {
-		scopes = scopes.includes(scope) ? scopes.filter((value) => value !== scope) : [...scopes, scope];
-	}
 
 	async function create() {
 		creating = true;
@@ -133,22 +122,7 @@
 		</Field>
 
 		<Field label={m.settings_api_keys_scopes()}>
-			<div class="flex flex-wrap gap-1.5">
-				{#each SCOPES as scope (scope)}
-					{@const active = scopes.includes(scope)}
-					<button
-						type="button"
-						onclick={() => toggleScope(scope)}
-						aria-pressed={active}
-						class="rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-colors
-							{active
-							? 'border-accent bg-accent/15 text-accent'
-							: 'border-border-base bg-background-secondary text-text-muted hover:text-text'}"
-					>
-						{scope}
-					</button>
-				{/each}
-			</div>
+			<ScopePicker bind:scopes />
 		</Field>
 	</div>
 

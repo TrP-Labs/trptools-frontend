@@ -179,8 +179,14 @@
 		}
 	}
 
-	function eventAction(item: HostEvent, operation: 'ACTIVATE' | 'ACKNOWLEDGE' | 'SKIP') {
-		return act(() => api.host({ roomId: roomId! }).events({ id: item.id }).post({ operation }));
+	async function eventAction(item: HostEvent, operation: 'ACTIVATE' | 'ACKNOWLEDGE' | 'SKIP') {
+		await act(() => api.host({ roomId: roomId! }).events({ id: item.id }).post({ operation }));
+		// "Edit shift information" is a step the host does here, on this page;
+		// activating it used to mark it done and leave the form folded away.
+		if (item.action === 'EDIT_SHIFT' && operation === 'ACTIVATE') {
+			detailsOpen = true;
+			requestAnimationFrame(() => document.getElementById('host-note')?.focus());
+		}
 	}
 
 	function eventTime(item: HostEvent, reference: 'START' | 'END', offsetMinutes: number) {

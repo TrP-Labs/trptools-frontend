@@ -12,7 +12,17 @@
 	$effect(() => {
 		if (offsetMinutes !== 0) direction = offsetMinutes < 0 ? -1 : 1;
 	});
-	let amount = $derived(Math.abs(offsetMinutes) / unit);
+	let amount = $derived(Math.round((Math.abs(offsetMinutes) / unit) * 100) / 100);
+
+	// `step` is "any" because a step of a sixtieth of an hour leaves 1.5
+	// hours "off step", and a browser refuses to submit a form holding one
+	// without saying so — the schedule editor's Save looked dead (trap 30).
+	// The API takes whole minutes within a day either side, so the value is
+	// rounded and clamped here rather than refused there as a bad request.
+	function toOffset(raw: string) {
+		const minutes = Math.min(1440, Math.round(Math.abs(Number(raw) || 0) * unit));
+		return minutes * direction;
+	}
 </script>
 
 <div class="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4">
@@ -43,11 +53,9 @@
 			type="number"
 			min="0"
 			max={1440 / unit}
-			step={unit === 60 ? '0.0166666667' : '1'}
+			step="any"
 			value={amount}
-			oninput={(e) =>
-				(offsetMinutes =
-					Math.round(Number(e.currentTarget.value) * unit) * direction)}
+			oninput={(e) => (offsetMinutes = toOffset(e.currentTarget.value))}
 		/></Field
 	>
 	<Field label={m.host_unit()}

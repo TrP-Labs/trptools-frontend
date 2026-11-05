@@ -216,6 +216,7 @@
 			<SubmissionList
 				submissions={data.pending}
 				reviewable
+				autoRank={application.autoRank && Boolean(application.rank)}
 				emptyTitle={m.dashboard_applications_nobody_waiting()}
 				emptyDescription={application.open
 					? m.dashboard_applications_applications_people_send_appear_here_read()
@@ -259,6 +260,7 @@
 			<SubmissionList
 				submissions={archive}
 				manageRecords
+				autoRank={application.autoRank && Boolean(application.rank)}
 				emptyTitle={archiveFilter === 'ALL'
 					? m.dashboard_applications_nothing_decided_yet()
 					: archiveFilter === 'APPROVED'
@@ -328,6 +330,17 @@
 							onchange={(rankId) => patch({ rankId: rankId || null }, 'Rank binding updated')}
 						/>
 					</Field>
+					{#if application.rank}
+						<div class="mt-4">
+							<Toggle
+								checked={application.autoRank}
+								label={m.dashboard_applications_auto_rank()}
+								description={m.dashboard_applications_auto_rank_hint()}
+								disabled={busy}
+								onchange={(autoRank) => patch({ autoRank })}
+							/>
+						</div>
+					{/if}
 				</Card>
 
 				<Card

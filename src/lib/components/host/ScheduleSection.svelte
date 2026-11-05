@@ -15,7 +15,13 @@
 	async function save() {
 		busy = true;
 		try {
-			const { error } = await api.host.schedule({ groupId }).put(draft);
+			// A cleared number box binds as null, which the API refuses as a
+			// malformed body. Send the whole minutes it actually accepts.
+			const minutes = Math.round(Number(draft.depotReminderMinutes) || 0);
+			const { error } = await api.host.schedule({ groupId }).put({
+				...draft,
+				depotReminderMinutes: Math.min(1440, Math.max(0, minutes))
+			});
 			if (error) throw error;
 			toasts.success(m.host_saved());
 		} catch (error) {

@@ -55,6 +55,8 @@ const API_ERRORS: Record<string, () => string> = {
 	'no bot is connected to this group': m.api_error_no_bot_is_connected_to_this_group,
 	'you can only move people between ranks below your own': m.api_error_only_ranks_below_your_own,
 	'Roblox could not change that rank, try again shortly': m.api_error_roblox_could_not_change_rank,
+	'not in the group, or that rank no longer exists': m.api_error_not_in_group_or_rank_gone,
+	'only ranks you could give yourself can be given on approval': m.api_error_auto_rank_refused,
 	'no Discord account is linked': m.api_error_no_discord_account_is_linked,
 	'no game server is connected to this room': m.api_error_no_game_server_is_connected_to_this_room,
 	'program is not valid': m.api_error_program_is_not_valid,

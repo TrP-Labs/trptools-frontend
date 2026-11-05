@@ -109,6 +109,10 @@ export type ApplicationSubmissionDetail = Data<
 	ReturnType<ReturnType<Api['applications']['submissions']>['get']>
 >;
 export type ApplicationAnswer = ApplicationSubmissionDetail['answers'][number];
+/** What an approval did to the applicant's Roblox rank. */
+export type ApplicationRankChange = Data<
+	ReturnType<ReturnType<Api['applications']['submissions']>['review']['post']>
+>['rank'];
 export type ApplicationStatus = ApplicationSubmission['status'];
 /** Somebody waiting on a decision, as a group's own overview lists them. */
 export type PendingApplicant = Data<ReturnType<Api['applications']['pending']['get']>>[number];

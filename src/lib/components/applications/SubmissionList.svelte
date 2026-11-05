@@ -24,6 +24,7 @@
 	import { formatDateTime, formatRelative } from '$lib/utils/format';
 	import {
 		applicationStatusLabel,
+		type ApplicationRankChange,
 		type ApplicationSubmission,
 		type ApplicationSubmissionDetail
 	} from '$lib/api/types';
@@ -42,6 +43,8 @@
 		reviewable?: boolean;
 		/** The archive also offers to undo or destroy what a decision left behind. */
 		manageRecords?: boolean;
+		/** The form moves approved applicants to its rank on Roblox. */
+		autoRank?: boolean;
 		emptyTitle: string;
 		emptyDescription: string;
 	}
@@ -50,6 +53,7 @@
 		submissions,
 		reviewable = false,
 		manageRecords = false,
+		autoRank = false,
 		emptyTitle,
 		emptyDescription
 	}: Props = $props();
@@ -127,19 +131,40 @@
 		}
 	}
 
+	/** Says what happened on Roblox. A failure keeps the approval, so it is its own toast. */
+	function announceRank(rank: ApplicationRankChange) {
+		if (rank.state === 'CONFIRMED') toasts.success(m.applications_submission_list_rank_changed());
+		else if (rank.state === 'PENDING') toasts.success(m.applications_submission_list_rank_pending());
+		else if (rank.state === 'FAILED') toasts.error(errorMessage(rank.reason ?? undefined, m.api_error_roblox_could_not_change_rank()));
+	}
+
+	async function retryRank(submissionId: string) {
+		busy = true;
+		try {
+			const { data: result, error } = await api.applications.submissions({ submissionId }).rank.post();
+			if (!result) throw error;
+			announceRank(result.rank);
+		} catch (error) {
+			toasts.error(errorMessage(error, m.api_error_roblox_could_not_change_rank()));
+		} finally {
+			busy = false;
+		}
+	}
+
 	async function review(submissionId: string, decision: 'APPROVE' | 'DENY') {
 		busy = true;
 		try {
-			const { error } = await api.applications
+			const { data: result, error } = await api.applications
 				.submissions({ submissionId })
 				.review.post({ decision, note });
-			if (error) throw error;
+			if (!result) throw error;
 
 			toasts.success(
 				decision === 'APPROVE'
 					? m.applications_submission_list_application_approved()
 					: m.applications_submission_list_application_denied()
 			);
+			announceRank(result.rank);
 			openId = null;
 			detail = null;
 			note = '';
@@ -318,7 +343,9 @@
 									</div>
 
 									<p class="text-xs text-text-subtle">
-										{m.applications_submission_list_approving_records_decision_here_promotions_still()}
+										{autoRank
+											? m.applications_submission_list_approving_changes_rank()
+											: m.applications_submission_list_approving_records_decision_here_promotions_still()}
 									</p>
 								</div>
 							{:else if submission.reviewedAt}
@@ -335,6 +362,11 @@
 									</p>
 									{#if submission.reviewNote}
 										<p class="whitespace-pre-line text-text">“{submission.reviewNote}”</p>
+									{/if}
+									{#if autoRank && submission.status === 'APPROVED'}
+										<Button size="sm" variant="secondary" loading={busy} onclick={() => retryRank(submission.id)}>
+											{m.applications_submission_list_change_rank()}
+										</Button>
 									{/if}
 									{#if submission.clearedAt}
 										<p class="text-text-subtle">

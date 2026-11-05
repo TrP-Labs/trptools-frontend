@@ -39,6 +39,24 @@
 	// and the connection effect below follows the new value automatically.
 	let roomId = $derived(data.roomId);
 
+	// The server settles cards along the clock once a minute; a card that is
+	// due and waiting on staff is shown from the moment it is due, since
+	// acknowledging settles it first anyway.
+	let clock = $state(Date.now());
+	$effect(() => {
+		const timer = setInterval(() => (clock = Date.now()), 15_000);
+		return () => clearInterval(timer);
+	});
+	let alerts = $derived(
+		(room.host?.timeline ?? []).filter(
+			(item) =>
+				item.audience !== 'HOST' &&
+				(item.status === 'READY' ||
+					item.awaitingAck ||
+					(item.status === 'WAITING' && !item.automation && item.dueAt <= clock))
+		)
+	);
+
 	$effect(() => {
 		if (roomId) room.connect(roomId);
 		else room.disconnect();
@@ -272,7 +290,7 @@
 		onopen={openRoom}
 	/>
 {:else}
-	{#each (room.host?.timeline ?? []).filter(item => (item.status === 'READY' || item.awaitingAck) && item.audience !== 'HOST') as item (item.id)}
+	{#each alerts as item (item.id)}
         <div class="mb-4 flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center" role="status"><p class="flex-1 text-sm text-text">{item.id === 'return-depot' ? m.host_depot_label() : item.label}</p><Button size="sm" variant="secondary" onclick={async()=>{const {error}=await api.host({roomId:roomId!}).events({id:item.id}).post({operation:'ACKNOWLEDGE'});if(error)toasts.error(errorMessage(error,m.host_error()));}}>{m.host_acknowledge()}</Button></div>
     {/each}
     <DispatchBoard
