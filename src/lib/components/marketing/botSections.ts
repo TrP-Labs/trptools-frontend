@@ -1,6 +1,6 @@
 import {
 	IconBroadcast, IconChartBar, IconHash, IconLanguage, IconLink, IconLock, IconPlugConnected, IconRefresh,
-	IconSettings, IconTrash, IconTruck, IconUserCheck
+	IconSettings, IconTrash, IconTruck, IconUserCheck, IconCalendarEvent, IconClipboardList, IconRadio
 } from '@tabler/icons-svelte';
 import { m } from '$lib/paraglide/messages.js';
 import type { HomeSection } from './homeSections';
@@ -8,7 +8,7 @@ import type { HomeSection } from './homeSections';
 /** The /bot page's sections. Same packing rules as the home page's. */
 export const botSections: HomeSection[] = [
 	{
-		id: 'automation', eyebrow: m.marketing_bot_automation_title, title: m.marketing_bot_timeline, intro: m.marketing_bot_timeline_body,
+		id: 'automation', tint: 't-blurple', icon: IconCalendarEvent, eyebrow: m.marketing_bot_automation_title, title: m.marketing_bot_timeline, intro: m.marketing_bot_timeline_body,
 		features: [
 			{ title: m.marketing_bot_announce, body: m.marketing_bot_announce_body, chip: '01 · /announce',
 				details: [m.marketing_bot_announce_d1, m.marketing_bot_announce_d2, m.marketing_bot_announce_d3] },
@@ -20,13 +20,13 @@ export const botSections: HomeSection[] = [
 				details: [m.marketing_bot_begin_d1, m.marketing_bot_begin_d2, m.marketing_bot_begin_d3] },
 			{ title: m.marketing_bot_complete, body: m.marketing_bot_complete_body, chip: '05 · /complete',
 				details: [m.marketing_bot_complete_d1, m.marketing_bot_complete_d2, m.marketing_bot_complete_d3] },
-			{ title: m.marketing_bot_host_title, body: m.marketing_bot_host_body, span: 'wide', shot: { name: 'host' },
+			{ title: m.marketing_bot_host_title, body: m.marketing_bot_host_body, span: 'wide', shot: { name: 'host', width: 'max(440px, 108%)' },
 				details: [m.marketing_bot_host_d1, m.marketing_bot_host_d2, m.marketing_bot_host_d3] },
 			{ title: m.marketing_bot_commands, visual: 'commands' }
 		]
 	},
 	{
-		id: 'signups', eyebrow: m.marketing_shifts, title: m.marketing_bot_identity_title, intro: m.marketing_bot_identity_body,
+		id: 'signups', tint: 't-green', icon: IconClipboardList, eyebrow: m.marketing_shifts, title: m.marketing_bot_identity_title, intro: m.marketing_bot_identity_body,
 		features: [
 			{ title: m.marketing_bot_sheets_title, body: m.marketing_bot_sheets_body, span: 'big', shot: { name: 'signups' },
 				details: [m.marketing_bot_sheets_d1, m.marketing_bot_sheets_d2, m.marketing_bot_sheets_d3] },
@@ -40,7 +40,7 @@ export const botSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'board', eyebrow: m.marketing_dispatch, title: m.marketing_bot_board_title, intro: m.marketing_bot_board_body,
+		id: 'board', tint: 't-blue', icon: IconRadio, eyebrow: m.marketing_dispatch, title: m.marketing_bot_board_title, intro: m.marketing_bot_board_body,
 		features: [
 			{ title: m.marketing_bot_manifest_title, body: m.marketing_manifest_body, span: 'big', shot: { name: 'manifest', themed: false },
 				details: [m.marketing_manifest_d1, m.marketing_manifest_d2, m.marketing_manifest_d3] },
@@ -54,7 +54,7 @@ export const botSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'languages', eyebrow: m.marketing_languages, title: m.marketing_bot_language_title, intro: m.marketing_bot_language_body,
+		id: 'languages', tint: 't-pink', icon: IconLanguage, eyebrow: m.marketing_languages, title: m.marketing_bot_language_title, intro: m.marketing_bot_language_body,
 		features: [
 			{ title: m.marketing_bot_lang_demo, span: 'wide', visual: 'stack' },
 			{ title: m.marketing_bot_cmdlang_title, body: m.marketing_bot_cmdlang_body, icon: IconLanguage,
@@ -63,7 +63,7 @@ export const botSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'server', eyebrow: m.marketing_bot_server, title: m.marketing_bot_controls, intro: m.marketing_bot_server_intro,
+		id: 'server', tint: 't-amber', icon: IconSettings, eyebrow: m.marketing_bot_server, title: m.marketing_bot_controls, intro: m.marketing_bot_server_intro,
 		features: [
 			{ title: m.marketing_bot_channels_title, body: m.marketing_bot_channels_body, icon: IconHash,
 				details: [m.marketing_bot_channels_d1, m.marketing_bot_channels_d2, m.marketing_bot_channels_d3] },
@@ -76,7 +76,7 @@ export const botSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'setup', eyebrow: m.marketing_bot_setup, title: m.marketing_bot_setup_title, intro: m.marketing_bot_hint,
+		id: 'setup', tint: 't-teal', icon: IconPlugConnected, eyebrow: m.marketing_bot_setup, title: m.marketing_bot_setup_title, intro: m.marketing_bot_hint,
 		features: [
 			{ title: m.marketing_bot_step1, body: m.marketing_bot_step1_body, chip: '01' },
 			{ title: m.marketing_bot_step2, body: m.marketing_bot_step2_body, chip: '02' },

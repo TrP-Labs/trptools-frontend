@@ -1,10 +1,11 @@
 import {
 	IconAward, IconBell, IconBolt, IconBrandDiscord, IconBulb, IconCalendarEvent, IconClock, IconCloudDataConnection,
 	IconCode, IconHistory, IconKey, IconKeyboard, IconLanguage, IconLayoutDashboard, IconPlayerPause, IconRepeat,
-	IconTable, IconTrendingUp, IconTruck, IconUserShare, IconUserX
+	IconTable, IconTrendingUp, IconTruck, IconUserShare, IconUserX, IconRadio, IconCalendarTime, IconChartDots, IconShield, IconUsersGroup
 } from '@tabler/icons-svelte';
 import { m } from '$lib/paraglide/messages.js';
 import type { Feature } from './feature';
+import type { Icon } from '@tabler/icons-svelte';
 
 /**
  * The home page's sections, grouped by what a group uses each part for.
@@ -13,11 +14,12 @@ import type { Feature } from './feature';
  * packing: a big card takes two columns and two rows, a wide one two
  * columns. Reordering changes the picture, so check the page after.
  */
-export type HomeSection = { id: string; eyebrow: () => string; title: () => string; intro: () => string; features: Feature[] };
+/** `tint` names a color class from marketing.css; it colors the label, the icons and the highlights. */
+export type HomeSection = { id: string; tint: string; icon: Icon; eyebrow: () => string; title: () => string; intro: () => string; features: Feature[] };
 
 export const homeSections: HomeSection[] = [
 	{
-		id: 'dispatch', eyebrow: m.marketing_dispatch, title: m.marketing_dispatch_title, intro: m.marketing_dispatch_intro,
+		id: 'dispatch', tint: 't-blue', icon: IconRadio, eyebrow: m.marketing_dispatch, title: m.marketing_dispatch_title, intro: m.marketing_dispatch_intro,
 		features: [
 			{ title: m.marketing_board_title, body: m.marketing_board_body, span: 'big', shot: { name: 'dispatch' },
 				details: [m.marketing_board_d1, m.marketing_board_d2, m.marketing_board_d3] },
@@ -29,14 +31,14 @@ export const homeSections: HomeSection[] = [
 				details: [m.marketing_keys_d1, m.marketing_keys_d2, m.marketing_keys_d3] },
 			{ title: m.marketing_tow_title, body: m.marketing_tow_body, icon: IconTruck,
 				details: [m.marketing_tow_d1, m.marketing_tow_d2, m.marketing_tow_d3] },
-			{ title: m.marketing_host_page_title, body: m.marketing_host_page_body, span: 'wide', shot: { name: 'host' },
+			{ title: m.marketing_host_page_title, body: m.marketing_host_page_body, span: 'wide', shot: { name: 'host', width: 'max(440px, 108%)' },
 				details: [m.marketing_host_d1, m.marketing_host_d2, m.marketing_host_d3] },
 			{ title: m.marketing_solo_title, body: m.marketing_solo_body, span: 'wide', tone: 'accent',
 				link: { href: '/tools/dispatch', label: m.marketing_try } }
 		]
 	},
 	{
-		id: 'shifts', eyebrow: m.marketing_shifts, title: m.marketing_shifts_title, intro: m.marketing_shifts_intro,
+		id: 'shifts', tint: 't-green', icon: IconCalendarTime, eyebrow: m.marketing_shifts, title: m.marketing_shifts_title, intro: m.marketing_shifts_intro,
 		features: [
 			{ title: m.marketing_sheets_title, body: m.marketing_sheets_body, span: 'big', shot: { name: 'signups' },
 				details: [m.marketing_sheets_d1, m.marketing_sheets_d2, m.marketing_sheets_d3] },
@@ -55,7 +57,7 @@ export const homeSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'activity', eyebrow: m.marketing_activity, title: m.marketing_activity_title, intro: m.marketing_activity_intro,
+		id: 'activity', tint: 't-amber', icon: IconChartDots, eyebrow: m.marketing_activity, title: m.marketing_activity_title, intro: m.marketing_activity_intro,
 		features: [
 			{ title: m.marketing_points_title, body: m.marketing_points_body, span: 'wide', shot: { name: 'rank-points', side: 'bottom' },
 				details: [m.marketing_points_d1, m.marketing_points_d2, m.marketing_points_d3] },
@@ -72,7 +74,7 @@ export const homeSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'ranks', eyebrow: m.marketing_ranks, title: m.marketing_ranks_title, intro: m.marketing_ranks_intro,
+		id: 'ranks', tint: 't-violet', icon: IconShield, eyebrow: m.marketing_ranks, title: m.marketing_ranks_title, intro: m.marketing_ranks_intro,
 		features: [
 			{ title: m.marketing_grants_title, body: m.marketing_grants_body, span: 'big', shot: { name: 'ranks' },
 				details: [m.marketing_grants_d1, m.marketing_grants_d2, m.marketing_grants_d3] },
@@ -91,9 +93,9 @@ export const homeSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'discord', eyebrow: m.marketing_bot, title: m.marketing_bot_hero, intro: m.marketing_bot_intro,
+		id: 'discord', tint: 't-blurple', icon: IconBrandDiscord, eyebrow: m.marketing_bot, title: m.marketing_bot_hero, intro: m.marketing_bot_intro,
 		features: [
-			{ title: m.marketing_bot_board_title, body: m.marketing_manifest_body, span: 'big', shot: { name: 'manifest', themed: false },
+			{ title: m.marketing_bot_manifest_title, body: m.marketing_manifest_body, span: 'big', shot: { name: 'manifest', themed: false },
 				details: [m.marketing_manifest_d1, m.marketing_manifest_d2, m.marketing_manifest_d3] },
 			{ title: m.marketing_auto_title, body: m.marketing_auto_body, icon: IconCalendarEvent,
 				details: [m.marketing_auto_d1, m.marketing_auto_d2, m.marketing_auto_d3] },
@@ -104,7 +106,7 @@ export const homeSections: HomeSection[] = [
 		]
 	},
 	{
-		id: 'group', eyebrow: m.marketing_group, title: m.marketing_more, intro: m.marketing_group_intro,
+		id: 'group', tint: 't-teal', icon: IconUsersGroup, eyebrow: m.marketing_group, title: m.marketing_more, intro: m.marketing_group_intro,
 		features: [
 			{ title: m.marketing_public_title, body: m.marketing_public_short, span: 'big', shot: { name: 'group' },
 				details: [m.marketing_public_d1, m.marketing_public_d2, m.marketing_public_d3] },

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconArrowRight, IconBrandDiscord, IconLanguage, IconRadio, IconCalendarTime, IconChartDots, IconShield, IconUsersGroup } from '@tabler/icons-svelte';
+	import { IconArrowRight, IconLanguage, IconRadio, IconUsersGroup } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import BentoSection from './BentoSection.svelte';
 	import FeatureCard from './FeatureCard.svelte';
@@ -7,8 +7,6 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { languageName, SITE_LOCALES } from '$lib/utils/languages';
 	import './marketing.css';
-
-	const sectionIcons = { dispatch: IconRadio, shifts: IconCalendarTime, activity: IconChartDots, ranks: IconShield, discord: IconBrandDiscord, group: IconUsersGroup };
 </script>
 
 {#snippet keys()}
@@ -18,7 +16,7 @@
 	<div class="langs" aria-hidden="true">{#each SITE_LOCALES as locale (locale)}<span lang={locale}>{languageName(locale)}</span>{/each}</div>
 {/snippet}
 
-<div class="marketing">
+<div class="marketing-page"><div class="marketing">
 	<div class="bento pt-10 sm:pt-14">
 		<section class="hero-card span-big">
 			<div class="dots" aria-hidden="true"></div>
@@ -38,13 +36,12 @@
 
 	<nav class="index" aria-label={m.marketing_index()}>
 		{#each homeSections as section (section.id)}
-			{@const Icon = sectionIcons[section.id as keyof typeof sectionIcons]}
-			<a href="#{section.id}"><Icon size={14} />{section.eyebrow()}</a>
+			<a href="#{section.id}" class={section.tint}><section.icon size={14} />{section.eyebrow()}</a>
 		{/each}
 	</nav>
 
 	{#each homeSections as section (section.id)}
-		<BentoSection id={section.id} eyebrow={section.eyebrow()} title={section.title()} intro={section.intro()} features={section.features} visuals={{ keys, languages }} />
+		<BentoSection id={section.id} tint={section.tint} eyebrow={section.eyebrow()} title={section.title()} intro={section.intro()} features={section.features} visuals={{ keys, languages }} />
 	{/each}
 
 	<section class="section" aria-labelledby="end-title">
@@ -62,7 +59,7 @@
 			<FeatureCard index={1} feature={{ title: m.marketing_tools_link, body: m.marketing_tools_body, icon: IconRadio, link: { href: '/tools', label: m.marketing_tools_link } }} />
 		</div>
 	</section>
-</div>
+</div></div>
 
 <style>
 	.end h2 { margin:0 0 12px; font-size:clamp(26px,3.2vw,38px); font-weight:700; letter-spacing:-.035em; line-height:1.1; text-wrap:balance; }

@@ -17,8 +17,9 @@ export type Feature = {
 	 * A screenshot in `static/marketing`. Themed shots exist as
 	 * `<name>-dim.webp` and `<name>-light.webp`; an unthemed one is a single
 	 * file that looks the same everywhere (the bot's rendered board).
+	 * `width` overrides how wide it is drawn, for a crop that should be seen whole.
 	 */
-	shot?: { name: string; themed?: boolean; side?: 'right' | 'bottom' };
+	shot?: { name: string; themed?: boolean; side?: 'right' | 'bottom'; width?: string };
 	span?: 'wide' | 'tall' | 'big';
 	tone?: 'accent';
 	/** A large figure drawn in place of an icon. Not translated: numbers only. */

@@ -35,7 +35,7 @@
 	</div>
 {/snippet}
 
-<div class="marketing">
+<div class="marketing-page"><div class="marketing">
 	<div class="bento pt-10 sm:pt-14">
 		<section class="hero-card span-big">
 			<div class="dots" aria-hidden="true"></div>
@@ -52,13 +52,13 @@
 	</div>
 
 	<nav class="index" aria-label={m.marketing_index()}>
-		{#each botSections as section (section.id)}<a href="#{section.id}">{section.eyebrow()}</a>{/each}
+		{#each botSections as section (section.id)}<a href="#{section.id}" class={section.tint}><section.icon size={14} />{section.eyebrow()}</a>{/each}
 	</nav>
 
 	{#each botSections as section (section.id)}
-		<BentoSection id={section.id} eyebrow={section.eyebrow()} title={section.title()} intro={section.intro()} features={section.features} visuals={{ commands, stack }} />
+		<BentoSection id={section.id} tint={section.tint} eyebrow={section.eyebrow()} title={section.title()} intro={section.intro()} features={section.features} visuals={{ commands, stack }} />
 	{/each}
-</div>
+</div></div>
 
 <style>
 	.preview { display:flex; }
