@@ -1,49 +1,74 @@
 <script lang="ts">
-	import { IconArrowRight, IconRoute, IconRadio, IconCalendarTime, IconBrandDiscord, IconClipboardList, IconLanguage } from '@tabler/icons-svelte';
+	import { IconArrowRight, IconBrandDiscord, IconLanguage, IconRadio, IconCalendarTime, IconChartDots, IconShield, IconUsersGroup } from '@tabler/icons-svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Network from './Network.svelte';
-	import DispatchPreview from './DispatchPreview.svelte';
+	import BentoSection from './BentoSection.svelte';
+	import FeatureCard from './FeatureCard.svelte';
+	import { homeSections } from './homeSections';
 	import { m } from '$lib/paraglide/messages.js';
 	import { languageName, SITE_LOCALES } from '$lib/utils/languages';
 	import './marketing.css';
+
+	const sectionIcons = { dispatch: IconRadio, shifts: IconCalendarTime, activity: IconChartDots, ranks: IconShield, discord: IconBrandDiscord, group: IconUsersGroup };
 </script>
+
+{#snippet keys()}
+	<div class="keys" aria-hidden="true"><kbd>\</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>1–4</kbd></div>
+{/snippet}
+{#snippet languages()}
+	<div class="langs" aria-hidden="true">{#each SITE_LOCALES as locale (locale)}<span lang={locale}>{languageName(locale)}</span>{/each}</div>
+{/snippet}
+
 <div class="marketing">
-	<section class="hero">
-		<div>
+	<div class="bento pt-10 sm:pt-14">
+		<section class="hero-card span-big">
+			<div class="dots" aria-hidden="true"></div>
 			<p class="eyebrow">{m.marketing_eyebrow()}</p>
-			<h1>{m.marketing_hero()}</h1><p class="intro">{m.marketing_intro()}</p>
-			<div class="actions"><Button href="/dashboard" size="lg">{m.marketing_start()}<IconArrowRight size={17}/></Button><Button href="/tools/dispatch" variant="secondary" size="lg">{m.marketing_try()}</Button></div>
+			<h1>{m.marketing_hero()}</h1>
+			<p class="intro">{m.marketing_intro()}</p>
+			<div class="actions">
+				<Button href="/dashboard" size="lg">{m.marketing_start()}<IconArrowRight size={17} /></Button>
+				<Button href="/tools/dispatch" variant="secondary" size="lg">{m.marketing_try()}</Button>
+			</div>
 			<p class="hint">{m.marketing_no_account()}</p>
-		</div>
-		<Network />
-	</section>
+		</section>
+		<FeatureCard index={1} feature={{ title: m.marketing_hero_since, body: m.marketing_hero_since_body, stat: '2023' }} />
+		<FeatureCard index={2} visuals={{ languages }} feature={{ title: m.marketing_hero_lang_title, body: m.marketing_hero_lang_body, icon: IconLanguage, visual: 'languages' }} />
+		<FeatureCard index={3} feature={{ title: m.marketing_hero_cta_title, body: m.marketing_hero_cta_body, span: 'wide', tone: 'accent', link: { href: '/dashboard', label: m.marketing_start } }} />
+	</div>
+
 	<nav class="index" aria-label={m.marketing_index()}>
-		<a href="#routes">{m.marketing_routes()}</a><a href="#dispatch">{m.marketing_dispatch()}</a><a href="#shifts">{m.marketing_shifts()}</a><a href="#applications">{m.marketing_applications()}</a><a href="#languages">{m.marketing_languages()}</a><a href="/bot">{m.marketing_bot()} ↗</a>
+		{#each homeSections as section (section.id)}
+			{@const Icon = sectionIcons[section.id as keyof typeof sectionIcons]}
+			<a href="#{section.id}"><Icon size={14} />{section.eyebrow()}</a>
+		{/each}
 	</nav>
-	<section id="routes" class="section split">
-		<div><p class="eyebrow"><span class="number">01</span>{m.marketing_routes()}</p><h2>{m.marketing_routes_title()}</h2></div>
-		<div><p class="body">{m.marketing_routes_body()}</p><p class="detail">{m.marketing_routes_detail()}</p></div>
-	</section>
-	<section id="dispatch" class="section split">
-		<div><IconRadio size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_dispatch_title()}</h2><p class="body">{m.marketing_dispatch_body()}</p><p class="detail">{m.marketing_dispatch_detail()}</p><a class="link" href="/tools/dispatch">{m.marketing_try()}<IconArrowRight size={16}/></a></div>
-		<DispatchPreview/>
-	</section>
-	<section id="shifts" class="section two">
-		<article><IconCalendarTime size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_shifts_title()}</h2><p class="body">{m.marketing_shifts_body()}</p><p class="detail">{m.marketing_shifts_detail()}</p></article>
-		<article><IconBrandDiscord size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_linked_title()}</h2><p class="body">{m.marketing_linked_body()}</p><p class="detail">{m.marketing_linked_detail()}</p><a class="link" href="/bot">{m.marketing_bot_link()}<IconArrowRight size={16}/></a></article>
-	</section>
-	<section class="section two">
-		<article id="applications" class="scroll-mt-20"><IconClipboardList size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_apps_title()}</h2><p class="body">{m.marketing_apps_body()}</p><p class="detail">{m.marketing_apps_detail()}</p></article>
-		<article id="languages" class="scroll-mt-20"><IconLanguage size={24} stroke={1.5} class="text-accent"/><h2>{m.marketing_language_title()}</h2><p class="body">{m.marketing_language_body()}</p><p class="detail">{m.marketing_language_detail()}</p><div class="mt-6 flex flex-wrap gap-2 font-mono text-xs text-text-muted" aria-hidden="true">{#each SITE_LOCALES as locale}<span lang={locale} class="rounded border border-border-base px-2 py-1">{languageName(locale)}</span>{/each}</div></article>
-	</section>
-	<section class="section">
-		<p class="eyebrow"><span class="number">02</span>TrPTools</p><h2>{m.marketing_more()}</h2>
-		<div class="extras">
-			{#each [{title:m.marketing_public_title(),body:m.marketing_public_body()},{title:m.marketing_access_title(),body:m.marketing_access_body()},{title:m.marketing_host_title(),body:m.marketing_host_body()},{title:m.marketing_stage_title(),body:m.marketing_stage_body()},{title:m.marketing_api_title(),body:m.marketing_api_body()}] as feature}
-				<article><h3>{feature.title}</h3><p>{feature.body}</p></article>
-			{/each}
-			<article class="flex flex-col items-start"><a class="link !mt-0" href="/tools">{m.marketing_tools_link()}<IconArrowRight size={16}/></a><a class="link" href="/groups">{m.marketing_groups_link()}<IconArrowRight size={16}/></a></article>
+
+	{#each homeSections as section (section.id)}
+		<BentoSection id={section.id} eyebrow={section.eyebrow()} title={section.title()} intro={section.intro()} features={section.features} visuals={{ keys, languages }} />
+	{/each}
+
+	<section class="section" aria-labelledby="end-title">
+		<div class="bento">
+			<div class="hero-card span-wide end">
+				<div class="dots" aria-hidden="true"></div>
+				<h2 id="end-title">{m.marketing_end_title()}</h2>
+				<p class="intro">{m.marketing_end_body()}</p>
+				<div class="actions">
+					<Button href="/dashboard" size="lg">{m.marketing_start()}<IconArrowRight size={17} /></Button>
+					<Button href="/tools/dispatch" variant="secondary" size="lg">{m.marketing_try()}</Button>
+				</div>
+			</div>
+			<FeatureCard feature={{ title: m.marketing_groups_link, body: m.marketing_groups_body, icon: IconUsersGroup, link: { href: '/groups', label: m.marketing_groups_link } }} />
+			<FeatureCard index={1} feature={{ title: m.marketing_tools_link, body: m.marketing_tools_body, icon: IconRadio, link: { href: '/tools', label: m.marketing_tools_link } }} />
 		</div>
 	</section>
-	<div class="end"><span class="flex items-center gap-3 text-sm text-text-muted"><IconRoute size={20}/>{m.marketing_network_caption()}</span><Button href="/dashboard">{m.marketing_start()}<IconArrowRight size={16}/></Button></div>
 </div>
+
+<style>
+	.end h2 { margin:0 0 12px; font-size:clamp(26px,3.2vw,38px); font-weight:700; letter-spacing:-.035em; line-height:1.1; text-wrap:balance; }
+	.keys { display:flex; flex-wrap:wrap; gap:6px; }
+	.keys kbd { min-width:30px; padding:4px 8px; border:1px solid var(--border-strong); border-bottom-width:3px; border-radius:8px;
+		background:var(--background-secondary); font:600 12px var(--font-mono); text-align:center; color:var(--text); }
+	.langs { display:flex; flex-wrap:wrap; gap:6px; }
+	.langs span { padding:3px 9px; border:1px solid var(--border); border-radius:999px; font-size:11.5px; color:var(--text-muted); background:var(--background-secondary); }
+</style>
