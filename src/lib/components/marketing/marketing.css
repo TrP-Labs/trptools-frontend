@@ -1,25 +1,76 @@
-.marketing { max-width:1200px; margin:auto; padding:0 24px; }
-.marketing .eyebrow { color:var(--accent); font:500 11px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; }
-.marketing .hero { display:grid; grid-template-columns:1.05fr 1fr; align-items:center; gap:64px; padding:76px 0 64px; }
-.marketing h1 { max-width:650px; margin:18px 0 22px; font-size:clamp(42px,5.5vw,72px); line-height:1.03; letter-spacing:-.055em; font-weight:650; text-wrap:balance; }
-.marketing .intro { max-width:540px; color:var(--text-muted); font-size:17px; line-height:1.75; }
-.marketing .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
-.marketing .hint { margin-top:16px; font-size:12px; line-height:1.6; color:var(--text-muted); }
-.marketing .index { display:flex; flex-wrap:wrap; gap:12px 26px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:18px 0; font-size:12px; }
-.marketing .index a { color:var(--text-muted); }
-.marketing .index a:hover { color:var(--accent); }
-.marketing .section { padding:52px 0; border-bottom:1px solid var(--border); scroll-margin-top:80px; }
-.marketing .split { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
-.marketing .two { display:grid; grid-template-columns:1fr 1fr; gap:64px; }
-.marketing .number { font:12px var(--font-mono); color:var(--text-muted); margin-right:12px; }
-.marketing h2 { margin:14px 0; font-size:clamp(24px,3vw,33px); font-weight:600; letter-spacing:-.035em; line-height:1.2; text-wrap:balance; }
-.marketing h3 { font-size:15px; font-weight:600; margin-bottom:8px; }
-.marketing .body { font-size:15px; color:var(--text-muted); line-height:1.75; }
-.marketing .detail { margin-top:16px; font-size:13px; color:var(--text-muted); line-height:1.8; }
-.marketing .link { display:inline-flex; align-items:center; gap:8px; color:var(--accent); font-size:13px; margin-top:22px; }
-.marketing .extras { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:30px 42px; margin-top:30px; }
-.marketing .extras p { color:var(--text-muted); font-size:13px; line-height:1.75; }
-.marketing .end { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; padding:38px 0; }
-.marketing section, .marketing article, .marketing .hero > * { min-width:0; }
-@media(max-width:900px) { .marketing .hero { gap:32px; padding-top:52px; } .marketing .split,.marketing .two { gap:32px; } .marketing .extras { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:640px) { .marketing { padding:0 20px; } .marketing .hero,.marketing .split,.marketing .two { grid-template-columns:minmax(0,1fr); } .marketing .hero { padding:40px 0; gap:32px; } .marketing .intro { font-size:15px; } .marketing .section { padding:36px 0; } .marketing .extras { grid-template-columns:minmax(0,1fr); gap:24px; } .marketing .index { gap:12px 20px; } }
+/*
+ * The two marketing pages (the signed-out home page and /bot) are bento grids
+ * of feature cards, grouped into titled sections by what a group uses them
+ * for. Everything paints from the theme tokens so the pages follow the same
+ * three themes as the dashboard they are selling.
+ */
+/*
+ * The glow behind the hero spans the window, not the content column: drawn
+ * inside the column it stopped dead at the column's edges. Each gradient
+ * fades out before the box ends, and the page clips sideways so a glow
+ * wider than the window never adds a scrollbar.
+ */
+.marketing-page { position:relative; overflow-x:clip; isolation:isolate; }
+.marketing-page::before { content:''; position:absolute; inset:0 0 auto; height:960px; z-index:-1; pointer-events:none;
+	background:radial-gradient(55% 62% at 18% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 100%),
+		radial-gradient(45% 50% at 88% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 100%); }
+.marketing { max-width:1240px; margin:auto; padding:0 24px 48px; }
+
+/*
+ * One color per section, so a reader can tell where they are by the label
+ * and the icons as much as by the heading. Each has a darker partner for
+ * the light theme, where the dark-theme tones wash out.
+ */
+.t-blue { --tint:#5b9dff; } .t-green { --tint:#3fb950; } .t-amber { --tint:#e3a33b; } .t-violet { --tint:#a78bfa; }
+.t-blurple { --tint:#7d87f7; } .t-teal { --tint:#2dc7b2; } .t-pink { --tint:#ee6fae; }
+html.light .t-blue { --tint:#2563eb; } html.light .t-green { --tint:#1a7f37; } html.light .t-amber { --tint:#b45309; }
+html.light .t-violet { --tint:#7c3aed; } html.light .t-blurple { --tint:#4f5bd5; } html.light .t-teal { --tint:#0f766e; } html.light .t-pink { --tint:#c0267a; }
+
+.marketing .eyebrow { display:inline-flex; align-items:center; gap:10px; color:var(--tint, var(--accent)); font:600 11px var(--font-mono); letter-spacing:.16em; text-transform:uppercase; }
+.marketing .eyebrow::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 12px currentColor; }
+
+.marketing .bento { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); grid-auto-rows:minmax(232px, auto); grid-auto-flow:dense; gap:16px; }
+.marketing .bento > * { min-width:0; }
+.marketing .span-wide { grid-column:span 2; }
+.marketing .span-tall { grid-row:span 2; }
+.marketing .span-big { grid-column:span 2; grid-row:span 2; }
+
+/* The hero is the first card of the first grid, so it reads as part of it. */
+.marketing .hero-card { position:relative; display:flex; flex-direction:column; justify-content:center; overflow:hidden; padding:clamp(28px,4vw,56px);
+	border:1px solid var(--border); border-radius:24px; background:linear-gradient(160deg, color-mix(in srgb, var(--surface) 92%, var(--accent)), var(--surface) 55%); }
+.marketing .hero-card h1 { max-width:620px; margin:20px 0 18px; font-size:clamp(38px,5.2vw,66px); line-height:1.02; letter-spacing:-.05em; font-weight:700; text-wrap:balance; }
+.marketing .hero-card .intro { max-width:520px; color:var(--text-muted); font-size:16px; line-height:1.7; }
+.marketing .hero-card .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
+.marketing .hero-card .hint { margin-top:14px; font-size:12px; color:var(--text-subtle); }
+.marketing .dots { position:absolute; top:28px; right:28px; width:96px; height:56px; opacity:.55; pointer-events:none;
+	background-image:radial-gradient(var(--accent) 1.2px, transparent 1.4px); background-size:16px 16px; }
+
+.marketing .index { display:flex; gap:6px; overflow-x:auto; margin:28px auto 0; width:fit-content; max-width:100%;
+	padding:6px; border:1px solid var(--border); border-radius:999px; background:var(--surface); scrollbar-width:none; }
+.marketing .index::-webkit-scrollbar { display:none; }
+.marketing .index a { flex:none; display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:999px; font-size:12.5px; color:var(--text-muted); transition:color .2s, background .2s; }
+.marketing .index a:hover { color:var(--text); background:var(--background-secondary); }
+.marketing .index svg { color:var(--tint, var(--accent)); }
+
+.marketing .section { padding-top:88px; scroll-margin-top:72px; }
+.marketing .section-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:16px 48px; align-items:end; margin-bottom:28px; }
+.marketing .section-head h2 { margin-top:14px; font-size:clamp(26px,3.2vw,38px); font-weight:650; letter-spacing:-.035em; line-height:1.12; text-wrap:balance; }
+.marketing .section-head > p { color:var(--text-muted); font-size:15px; line-height:1.7; }
+
+.marketing .cta-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:auto; padding-top:20px; }
+.marketing .card-link { display:inline-flex; align-items:center; gap:8px; margin-top:auto; padding-top:18px; font-size:13px; font-weight:500; color:var(--accent); }
+.marketing .card-link:hover { text-decoration:underline; text-underline-offset:3px; }
+
+@media (max-width:1023px) {
+	.marketing .bento { grid-template-columns:repeat(2, minmax(0,1fr)); }
+	.marketing .section-head { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:639px) {
+	.marketing { padding:0 16px 32px; }
+	.marketing .bento { grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:12px; }
+	.marketing .span-wide, .marketing .span-big { grid-column:auto; }
+	.marketing .span-tall, .marketing .span-big { grid-row:auto; }
+	.marketing .section { padding-top:64px; }
+	.marketing .dots { display:none; }
+	.marketing .index { flex-wrap:wrap; justify-content:center; border-radius:18px; }
+}
